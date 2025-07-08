@@ -8,37 +8,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded: El DOM ha sido cargado. Iniciando la aplicación...');
 
-    // NUEVO: Registro del Service Worker para la funcionalidad PWA
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js')
-                .then(registration => {
-                    console.log('Service Worker registrado con éxito:', registration.scope);
-                    // NUEVO: Obtener la versión del Service Worker y mostrarla en la UI
-                    if (registration.active) {
-                        registration.active.postMessage({ type: 'GET_VERSION' });
-                    }
-                })
-                .catch(error => {
-                    console.error('Fallo el registro del Service Worker:', error);
-                });
-        });
-
-        // NUEVO: Escuchar mensajes del Service Worker (para obtener la versión)
-        navigator.serviceWorker.addEventListener('message', event => {
-            if (event.data && event.data.type === 'APP_VERSION') {
-                const appVersionDisplay = document.getElementById('appVersionDisplay');
-                const welcomeAppVersionDisplay = document.getElementById('welcomeAppVersionDisplay');
-                if (appVersionDisplay) {
-                    appVersionDisplay.textContent = `v${event.data.version}`;
-                }
-                if (welcomeAppVersionDisplay) {
-                    welcomeAppVersionDisplay.textContent = `v${event.data.version}`;
-                }
-            }
-        });
-    }
-
     // =================================================================================
     // 1. CONFIGURACIÓN Y ESTADO GLOBAL
     // =================================================================================
@@ -74,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let highlightTimeout = null;
     let resolveConfirmPromise;
     let isAgentNameEditable = false;
-    let _awaitingChecklistCompletionForCopySave = false; // Bandera para la acción pendiente de copiar/guardar
+    let _awaitingChecklistCompletionForCopySave = false; // NUEVO: Bandera para la acción pendiente de copiar/guardar
 
     // ------------------------------------------
     // C. Configuración de Campos y Datos
@@ -107,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'enablePhysicalCheck4': { label: 'Enable Phys. 4', required: false, type: 'checkbox' },
         'xVuStatusSelect': { label: 'xVu STATUS', required: true, type: 'select', conditional: true },
         'packetLossSelect': { label: 'PACKET LOSS', required: true, type: 'select', conditional: true },
-        'additionalinfoText': { label: 'ADDITIONAL INFO', required: false, type: 'textarea' },
+        'additionalinfoText': { label: 'ADDITIOANL INFO', required: false, type: 'textarea' },
         'troubleshootingProcessText': { label: 'TS STEPS', required: true, type: 'textarea' },
         'awaAlertsSelect': { label: 'AWA ALERTS', required: false, type: 'select' },
         'awaAlerts2Select': { label: 'AWA ALERTS 2', required: false, type: 'select', conditional: true },
@@ -280,10 +249,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const enablePhysicalCheck2 = get('enablePhysicalCheck2');
     const enablePhysicalCheck3 = get('enablePhysicalCheck3');
     const enablePhysicalCheck4 = get('enablePhysicalCheck4');
-    const physicalCheckList1Label = document.querySelector('label[for="physicalCheckList1Select"]');
-    const physicalCheckList2Label = document.querySelector('label[for="physicalCheckList2Select"]');
-    const physicalCheckList3Label = document.querySelector('label[for="physicalCheckList3Select"]');
-    const physicalCheckList4Label = document.querySelector('label[for="physicalCheckList4Select"]');
+    const physicalCheckList1Label = get('physicalCheckList1Label');
+    const physicalCheckList2Label = get('physicalCheckList2Label');
+    const physicalCheckList3Label = get('physicalCheckList3Label');
+    const physicalCheckList4Label = get('physicalCheckList4Label');
     const optikTvLegacySpecificFieldsContainer = get('optikTvLegacySpecificFields');
     const xVuStatusSelect = get('xVuStatusSelect');
     const packetLossSelect = get('packetLossSelect');
@@ -372,289 +341,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeFeedbackModalBtn = get('closeFeedbackModalBtn');
     // const submitFeedbackBtn = get('submitFeedbackBtn'); // Ya no es necesario con Google Form
 
-    // NUEVO: Referencias a elementos del modal de bienvenida
-    const welcomeModalOverlay = get('welcomeModalOverlay');
-    const welcomeAgentNameInput = get('welcomeAgentNameInput');
-    const startTakingNotesBtn = get('startTakingNotesBtn');
-    const appVersionDisplay = document.getElementById('appVersionDisplay'); // Referencia al span de la versión en el header
-    const welcomeAppVersionDisplay = document.getElementById('welcomeAppVersionDisplay'); // Referencia al span de la versión en el modal de bienvenida
-
-
-    // =================================================================================
-    // 2.5. FUNCIONES AUXILIARES ESPECÍFICAS DE EVENTOS (MOVIDAS PARA CORRECCIÓN)
-    // =================================================================================
-
-    const saveAgentNameOnBlur = async () => {
-        const name = _getFieldValue('agentName');
-        if (name) {
-            await saveAgentName();
-        } else {
-            showToast('El nombre del agente no puede estar vacío.', 'error');
-            if (agentNameInput) agentNameInput.classList.add('required-initial-border');
-        }
-    };
-
-    const saveAgentNameOnEnter = async (event) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            const name = _getFieldValue('agentName');
-            if (name) {
-                const saved = await saveAgentName();
-                if (saved && agentNameInput) {
-                    agentNameInput.blur(); // Quitar el foco después de guardar
-                }
-            } else {
-                showToast('El nombre del agente no puede estar vacío.', 'error');
-                if (agentNameInput) agentNameInput.classList.add('required-initial-border');
-            }
-        }
-    };
-
-    const handleSkillChange = () => {
-        const isSHS = skillToggle.checked;
-        if (skillTextIndicator) skillTextIndicator.textContent = isSHS ? 'SHS' : 'FFH';
-        
-        // Auto-selección de "SHS Legacy" si el skill es SHS
-        if (serviceSelect) {
-            if (isSHS) {
-                serviceSelect.value = 'SHS Legacy';
-                // Populate issue select immediately for SHS Legacy
-                populateIssueSelect('SHS Legacy'); // Populate before disabling
-                serviceSelect.disabled = true; // Deshabilitar para que no se cambie manualmente
-            } else {
-                serviceSelect.value = ''; // Resetear el servicio al cambiar de skill a FFH
-                serviceSelect.disabled = false; // Habilitar si es FFH
-                populateIssueSelect(''); // Clear issue select for FFH
-            }
-            // Disparar el evento change para que se actualicen los campos dependientes
-            // This dispatch is crucial for cascading updates after setting serviceSelect.value
-            serviceSelect.dispatchEvent(new Event('change'));
-        }
-
-        // Issue select is handled by serviceSelect's change event, so no direct manipulation here.
-        // if (issueSelect) {
-        //     issueSelect.innerHTML = '<option value="">Seleccione un problema</option>';
-        //     issueSelect.disabled = true;
-        // }
-
-        // Mostrar/ocultar campos de velocidad y dispositivos según el skill
-        if (isSHS) {
-            if (activeDevicesGroup) activeDevicesGroup.style.display = 'none';
-            if (totalDevicesGroup) totalDevicesGroup.style.display = 'none';
-            if (downloadBeforeGroup) downloadBeforeGroup.style.display = 'none';
-            if (uploadBeforeGroup) uploadBeforeGroup.style.display = 'none';
-            if (downloadAfterGroup) downloadAfterGroup.style.display = 'none';
-            if (uploadAfterGroup) uploadAfterGroup.style.display = 'none';
-            // También limpiar sus valores si se ocultan
-            if (activeDevicesInput) activeDevicesInput.value = '';
-            if (totalDevicesInput) totalDevicesInput.value = '';
-            if (downloadBeforeInput) downloadBeforeInput.value = '';
-            if (uploadBeforeInput) uploadBeforeInput.value = '';
-            if (downloadAfterInput) downloadAfterInput.value = '';
-            if (uploadAfterInput) uploadAfterInput.value = '';
-
-            // Reiniciar y poblar opciones de AWA para SHS
-            _populateAwaAlertsOptions('SHS');
-            updateAwaAlerts2SelectState(false); // Reiniciar estado de AWA2
-            updateAwaStepsSelectState(''); // Reiniciar estado de AWA Steps
-        } else {
-            if (activeDevicesGroup) activeDevicesGroup.style.display = 'flex';
-            if (totalDevicesGroup) totalDevicesGroup.style.display = 'flex';
-            if (downloadBeforeGroup) downloadBeforeGroup.style.display = 'flex';
-            if (uploadBeforeGroup) uploadBeforeGroup.style.display = 'flex';
-            if (downloadAfterGroup) downloadAfterGroup.style.display = 'flex';
-            if (uploadAfterGroup) uploadAfterGroup.style.display = 'flex';
-
-            // Reiniciar y poblar opciones de AWA para FFH
-            _populateAwaAlertsOptions('FFH');
-            updateAwaAlerts2SelectState(false); // Reiniciar estado de AWA2
-            updateAwaStepsSelectState(''); // Reiniciar estado de AWA Steps
-        }
-
-        // Reiniciar y deshabilitar los campos de "Physical Check" si no es SHS
-        if (!isSHS) {
-            if (physicalCheckList1Select) physicalCheckList1Select.value = '';
-            if (physicalCheckList2Select) physicalCheckList2Select.value = '';
-            if (physicalCheckList3Select) physicalCheckList3Select.value = '';
-            if (physicalCheckList4Select) physicalCheckList4Select.value = '';
-            
-            if (enablePhysicalCheck2) enablePhysicalCheck2.checked = false;
-            if (enablePhysicalCheck3) enablePhysicalCheck3.checked = false;
-            if (enablePhysicalCheck4) enablePhysicalCheck4.checked = false;
-
-            _updatePhysicalCheckListEnablement('', false, false, false); // Forzar ocultamiento y deshabilitación
-        } else {
-            // Si se cambia a SHS, aseguramos que los campos de physical check se muestren y sean obligatorios por defecto.
-            _updatePhysicalCheckListEnablement('SHS', true, false, false);
-        }
-
-        // Resetear campos específicos de Optik TV (Legacy) al cambiar el skill
-        updateOptikTvLegacySpecificFields('');
-
-        generateFinalNote();
-        applyInitialRequiredHighlight();
-    };
-
-    const handleAwaAlertsMainDropdownChange = () => {
-        updateAwaStepsSelectState(); // Actualiza el estado de awaStepsSelect basado en el principal
-        generateFinalNote();
-    };
-
-    const handleAwaAlerts2CheckboxToggle = () => {
-        updateAwaAlerts2SelectState();
-        generateFinalNote();
-    };
-
-    const handleResolvedSelectChange = () => {
-        updateTechFieldsVisibilityAndState(_getFieldValue('resolvedSelect'));
-        generateFinalNote();
-    };
-
-    const handleChecklistChange = (event) => {
-        if (event.target.type === 'radio' && event.target.name.startsWith('checklist_')) {
-            const parentItem = event.target.closest('.checklist-item');
-            if (parentItem) {
-                parentItem.classList.remove('status-pending', 'status-yes', 'status-no', 'status-na', 'checklist-item-required'); // Remove required class on any selection
-                switch (event.target.value) {
-                    case 'yes':
-                        parentItem.classList.add('status-yes');
-                        break;
-                    case 'no':
-                        parentItem.classList.add('status-no');
-                        break;
-                    case 'na':
-                        parentItem.classList.add('status-na');
-                        break;
-                    case 'pending': // Should not be directly selected by user, but for completeness
-                        parentItem.classList.add('status-pending');
-                        break;
-                }
-            }
-        }
-    };
-
-    const handleCopilotCopy = async (sourceData = null) => { // Modified to accept sourceData
-        const dataToUse = sourceData || _collectFormData(); // Use provided data or collect from current form
-
-        if (!dataToUse) {
-            showToast('No hay datos para enviar al Copilot.', 'warning');
-            return;
-        }
-
-        // Build content for sections 2, 3, and 4
-        const copilotContentParts = [
-            ..._buildSection2InitialContent(dataToUse),
-            ..._buildTroubleshootingProcessContent(dataToUse),
-            ..._buildSection3Content(dataToUse),
-            ..._buildSection4Content(dataToUse)
-        ];
-        const copilotText = copilotContentParts.filter(line => line.trim() !== '').join('\n').replace(/\n\s*\n/g, '\n\n').trim();
-
-        if (copilotText.trim() === '') {
-            showToast('No hay contenido relevante para Copilot.', 'warning');
-            return;
-        }
-
-        const copilotReadyText = `Telus Customer Notes:\n\n${copilotText}`;
-        const copied = await copyToClipboard(copilotReadyText);
-        if (copied) {
-            showToast('Nota formateada para Copilot y copiada al portapapeles.', 'success');
-        }
-    };
-
-    const handleResolutionCopy = async (sourceData = null) => { // Modified to accept sourceData
-        const dataToUse = sourceData || _collectFormData(); // Use provided data or collect from current form
-
-        if (!dataToUse) {
-            showToast('No hay datos para copiar la resolución.', 'warning');
-            return;
-        }
-
-        const cxIssue = _getFieldValue('cxIssueText', dataToUse);
-        const tsSteps = _getFieldValue('troubleshootingProcessText', dataToUse);
-
-        const resolutionParts = [];
-        if (cxIssue) resolutionParts.push(`CX ISSUE: ${cxIssue}`);
-        if (tsSteps) resolutionParts.push(`TS STEPS: ${tsSteps}`);
-
-        if (resolutionParts.length === 0) {
-            showToast('No hay información de CX ISSUE o TS STEPS para copiar.', 'warning');
-            return;
-        }
-        
-        let resolutionText = resolutionParts.join('\n');
-        if (resolutionText.length > RESOLUTION_COPY_CHAR_LIMIT) {
-            resolutionText = resolutionText.substring(0, RESOLUTION_COPY_CHAR_LIMIT);
-            showToast(`La resolución es muy larga, se truncó a ${RESOLUTION_COPY_CHAR_LIMIT} caracteres.`, 'warning');
-        }
-        const copied = await copyToClipboard(resolutionText);
-        if (copied) {
-            showToast('Información de resolución copiada al portapapeles.', 'success');
-        }
-    };
-
-
     // =================================================================================
     // 3. LÓGICA PRINCIPAL DE LA APLICACIÓN
     // =================================================================================
-
-    /**
-     * Recopila todos los datos del formulario actual.
-     * @returns {Object} Un objeto con los datos del formulario.
-     */
-    const _collectFormData = () => {
-        const formData = {};
-        const formElements = document.getElementById('callNoteForm').elements;
-        for (let i = 0; i < formElements.length; i++) {
-            const element = formElements[i];
-            if (element.name) {
-                if (element.type === 'radio') {
-                    if (element.checked) formData[element.name] = element.value;
-                } else if (element.type === 'checkbox') {
-                    formData[element.id] = element.checked;
-                } else if (element.id) {
-                    formData[element.id] = element.value;
-                }
-            } else if (element.id && element.tagName === 'SELECT') {
-                formData[element.id] = element.value;
-            }
-        }
-        // Asegurar que los valores de los grupos de radio estén presentes
-        ['outage', 'errorsInNC', 'accountSuspended'].forEach(name => {
-            const checkedRadio = document.querySelector(`input[name="${name}"]:checked`);
-            if (checkedRadio) formData[name] = checkedRadio.value;
-            else formData[name] = '';
-        });
-        formData.skill = skillToggle.checked ? 'SHS' : 'FFH';
-
-        // Recopilar datos del checklist
-        const checklistItems = checklistSidebar.querySelectorAll('.checklist-item');
-        checklistItems.forEach(item => {
-            const radioName = item.querySelector('input[type="radio"]').name;
-            const checkedRadio = item.querySelector(`input[name="${radioName}"]:checked`);
-            if (checkedRadio) {
-                formData[radioName] = checkedRadio.value;
-            } else {
-                 formData[radioName] = 'pending'; // Si no está marcado, se considera pendiente
-            }
-        });
-
-        // Asegurar que los checkboxes de habilitación de Physical Check estén en formData
-        if (enablePhysicalCheck2) formData.enablePhysicalCheck2 = enablePhysicalCheck2.checked;
-        if (enablePhysicalCheck3) formData.enablePhysicalCheck3 = enablePhysicalCheck3.checked;
-        if (enablePhysicalCheck4) formData.enablePhysicalCheck4 = enablePhysicalCheck4.checked;
-        if (enableAwaAlerts2) formData.enableAwaAlerts2 = enableAwaAlerts2.checked;
-        if (transferCheckbox) formData.transferCheckbox = transferCheckbox.checked;
-
-        // Asegurar que otros campos importantes estén en formData
-        formData.agentName = _getFieldValue('agentName'); // Siempre incluir el nombre del agente
-        if (xidInput) formData.xid = xidInput.value;
-        if (ticketInput) formData.ticketInput = ticketInput.value;
-        if (extraStepsSelect) formData.extraStepsSelect = extraStepsSelect.value;
-
-        return formData;
-    };
-
 
     const _getFieldValue = (id, sourceData = null) => {
         if (sourceData) {
@@ -838,7 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
                     const dayAbbreviations = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
                     const formattedDate = `${dayAbbreviations[dateObj.getDay()]} ${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}`;
-                    resolutionDetails.push(`FOLLOW UP: ${formattedDate}, ${dispatchTime}`);
+                    resolutionDetails.push(`FOLLOW UP: ${formattedDate}, ${followUpTime}`);
                 }
             } else if (resolvedValue === 'No | BOSR Created') {
                 if (_getFieldValue('cbr2Input', sourceData)) resolutionDetails.push(`BOSR TICKET #: ${_getFieldValue('cbr2Input', sourceData)}`);
@@ -894,14 +583,17 @@ document.addEventListener('DOMContentLoaded', () => {
             checklistSidebar.classList.add('open');
             checklistSidebarOverlay.style.display = 'block';
             
-            // Si la validación falla y la acción es de copiar/guardar desde el modal, cerrar el modal.
+            // NUEVO: Si la validación falla y la acción es de copiar/guardar desde el modal, cerrar el modal.
             if (_awaitingChecklistCompletionForCopySave) {
                 closeModal(true); // Cierra el modal final, pero mantiene el sidebar
             }
             return false;
         }
 
-        // Paso 1: Manejar el guardado del nombre del agente PRIMERO si es necesario.
+        // --- INICIO DE LA LÓGICA CORREGIDA ---
+
+        // PASO 1: Manejar el guardado del nombre del agente PRIMERO si es necesario.
+        // Esto estabiliza el estado del formulario antes de la validación general.
         if (isAgentNameEditable) {
             if (!_getFieldValue('agentName')) {
                 showToast('Por favor, ingrese su nombre de agente (PFTS).', 'error');
@@ -910,12 +602,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     agentNameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     agentNameInput.focus();
                 }
-                return false;
+                return false; // Salir temprano si el nombre falta.
             }
-            await saveAgentName();
+            await saveAgentName(); // Guardar y esperar a que el campo se vuelva readonly.
         }
 
-        // Paso 2: Ahora, realizar una validación UNIFICADA para todos los campos.
+        // PASO 2: Ahora, realizar una validación UNIFICADA para todos los campos.
         let allRequiredFieldsFilled = true;
         let firstMissingElement = null;
 
@@ -973,12 +665,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 firstMissingElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 firstMissingElement.focus();
             }
-            // Si la validación falla y la acción es de copiar/guardar desde el modal, cerrar el modal.
+            // NUEVO: Si la validación falla y la acción es de copiar/guardar desde el modal, cerrar el modal.
             if (_awaitingChecklistCompletionForCopySave) {
                 closeModal(true); // Cierra el modal final, pero mantiene el sidebar
             }
             return false;
         }
+
+        // --- FIN DE LA LÓGICA DE VALIDACIÓN ---
 
         const noteToSave = _currentFinalNoteContent;
         if (noteToSave.trim() === '') {
@@ -986,26 +680,69 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
 
-        // Recopilar datos del formulario usando la nueva función
-        const formData = _collectFormData();
+        const formData = {};
+        const formElements = document.getElementById('callNoteForm').elements;
+        for (let i = 0; i < formElements.length; i++) {
+            const element = formElements[i];
+            if (element.name) {
+                if (element.type === 'radio') {
+                    if (element.checked) formData[element.name] = element.value;
+                } else if (element.type === 'checkbox') {
+                    formData[element.id] = element.checked;
+                } else if (element.id) { // Solo si tiene ID, para evitar elementos sin ID pero con nombre
+                    formData[element.id] = element.value;
+                }
+            } else if (element.id && element.tagName === 'SELECT') { // Para selects sin name pero con ID
+                formData[element.id] = element.value;
+            }
+        }
+        ['outage', 'errorsInNC', 'accountSuspended'].forEach(name => {
+            const checkedRadio = document.querySelector(`input[name="${name}"]:checked`);
+            if (checkedRadio) formData[name] = checkedRadio.value;
+            else formData[name] = '';
+        });
+        formData.skill = skillToggle.checked ? 'SHS' : 'FFH';
+
+        const checklistItems = checklistSidebar.querySelectorAll('.checklist-item');
+        checklistItems.forEach(item => {
+            const radioName = item.querySelector('input[type="radio"]').name;
+            const checkedRadio = item.querySelector(`input[name="${radioName}"]:checked`);
+            if (checkedRadio) {
+                formData[radioName] = checkedRadio.value;
+            } else {
+                 formData[radioName] = 'pending'; // Guardar el estado 'pending' si no hay radio seleccionado
+            }
+        });
+
+        if (enablePhysicalCheck2) formData.enablePhysicalCheck2 = enablePhysicalCheck2.checked;
+        if (enablePhysicalCheck3) formData.enablePhysicalCheck3 = enablePhysicalCheck3.checked;
+        if (enablePhysicalCheck4) formData.enablePhysicalCheck4 = enablePhysicalCheck4.checked;
+        if (enableAwaAlerts2) formData.enableAwaAlerts2 = enableAwaAlerts2.checked;
+        if (transferCheckbox) formData.transferCheckbox = transferCheckbox.checked;
+        formData.agentName = _getFieldValue('agentName');
+        if (xidInput) formData.xid = xidInput.value;
+        if (ticketInput) formData.ticketInput = ticketInput.value;
+        if (extraStepsSelect) formData.extraStepsSelect = extraStepsSelect.value;
 
         try {
             const noteData = {
                 finalNoteText: noteToSave,
                 formData: formData,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString() // Valor por defecto para nuevas notas
             };
 
             if (currentEditingNoteId) {
+                // Si se está editando una nota existente, recuperar su timestamp original
                 const originalNote = await db.notes.get(currentEditingNoteId);
                 if (originalNote && originalNote.timestamp) {
-                    noteData.timestamp = originalNote.timestamp;
+                    noteData.timestamp = originalNote.timestamp; // Preservar timestamp original
                 }
                 noteData.id = currentEditingNoteId;
                 noteData.isModified = true;
                 await db.notes.put(noteData);
                 showToast('Nota del historial actualizada.', 'success');
             } else {
+                // Para nuevas notas, usar el timestamp actual
                 noteData.id = Date.now().toString();
                 noteData.isModified = false;
                 await db.notes.add(noteData);
@@ -1016,8 +753,11 @@ document.addEventListener('DOMContentLoaded', () => {
             isEditingNoteFlag = false;
             await loadNotes();
             _lastNoteIdBeforeModalTransition = null;
+            // CORRECCIÓN: Reiniciar _currentlyViewedNoteData aquí al guardar,
+            // ya que la nota actual del editor es la que se acaba de guardar.
             _currentlyViewedNoteData = null; 
             
+            // NUEVO: Llevar al usuario a la sección 1 y enfocar el campo BAN
             window.scrollTo({ top: 0, behavior: 'smooth' });
             if (banInput) {
                 banInput.focus();
@@ -1055,10 +795,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (noNotesMessage) noNotesMessage.style.display = 'none';
         }
 
+        // Objeto para agrupar notas por fecha y contar
         const notesByDate = {};
 
         notes.forEach((note) => {
             const timestamp = note.timestamp ? new Date(note.timestamp) : new Date();
+            // Formatear la fecha para agrupar (ej. "YYYY-MM-DD")
+            // Usar métodos UTC para asegurar que la clave de fecha no se desplace por la zona horaria local
             const dateKey = `${timestamp.getUTCFullYear()}-${(timestamp.getUTCMonth() + 1).toString().padStart(2, '0')}-${timestamp.getUTCDate().toString().padStart(2, '0')}`; 
 
             if (!notesByDate[dateKey]) {
@@ -1067,17 +810,21 @@ document.addEventListener('DOMContentLoaded', () => {
             notesByDate[dateKey].push(note);
         });
 
+        // Ordenar las fechas de forma descendente (más reciente primero)
         const sortedDateKeys = Object.keys(notesByDate).sort((a, b) => new Date(b) - new Date(a));
 
         const today = new Date();
+        // Obtener la fecha de hoy en UTC para una comparación consistente
         const todayUTCKey = `${today.getUTCFullYear()}-${(today.getUTCMonth() + 1).toString().padStart(2, '0')}-${today.getUTCDate().toString().padStart(2, '0')}`;
 
 
         sortedDateKeys.forEach((dateKey) => {
             const notesForThisDay = notesByDate[dateKey];
-            const timestamp = new Date(dateKey);
+            const timestamp = new Date(dateKey); // Usar la clave de fecha para obtener la fecha correcta
+            // Comparar con la clave UTC de hoy
             const isTodayGroupCheck = (dateKey === todayUTCKey);
 
+            // Usar métodos UTC para formatear la fecha de visualización
             const dayOfWeek = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][timestamp.getUTCDay()];
             const dayOfMonth = timestamp.getUTCDate();
             const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -1098,6 +845,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const groupHeader = document.createElement('div');
             groupHeader.classList.add('date-group-header');
+            // Añadir el contador de notas aquí, sin paréntesis
             groupHeader.innerHTML = `
                 <h3>${groupDisplayDate}</h3>
                 <span class="note-count">${notesForThisDay.length}</span>
@@ -1150,6 +898,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
+            // Iterar sobre las notas de este día para añadirlas a la lista
             notesForThisDay.forEach((note) => {
                 const ban = note.formData?.ban || '';
                 const cid = note.formData?.cid || '';
@@ -1160,7 +909,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const issue = note.formData?.issueSelect || '';
                 const resolved = note.formData?.resolvedSelect || '';
                 const dispatchDate = note.formData?.dispatchDateInput || '';
-                const dispatchTime = note.formData?.dispatchTimeSlotSelect || '';
+                const dispatchTime = note.formData?.dispatchSlotSelect || ''; // Corregido: Usar dispatchSlotSelect
                 const cbr2 = note.formData?.cbr2Input || '';
                 const skill = note.formData?.skill || '';
                 const noteLength = note.finalNoteText ? note.finalNoteText.length : 0;
@@ -1416,20 +1165,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (formData.skill) {
             skillToggle.checked = formData.skill === 'SHS';
-            handleSkillChange(); // Esto ya maneja la selección de SHS Legacy en serviceSelect
+            handleSkillChange();
         }
 
         if (serviceSelect) {
             serviceSelect.value = formData.serviceSelect || '';
-            // serviceSelect.disabled se maneja en handleSkillChange
+            serviceSelect.disabled = (formData.skill === 'SHS');
             populateIssueSelect(formData.serviceSelect, formData.issueSelect);
             updateAffectedFieldVisibilityAndLabel(formData.serviceSelect, formData.affectedText);
             _populatePhysicalCheckListLabelsAndOptions(
                 formData.serviceSelect,
                 formData.physicalCheckList1Select,
-                (formData.physicalCheckList2Select), // Pasando el valor del formulario
-                (formData.physicalCheckList3Select), // Pasando el valor del formulario
-                (formData.physicalCheckList4Select), // Pasando el valor del formulario
+                formData.physicalCheckList2Select,
+                formData.physicalCheckList3Select,
+                formData.physicalCheckList4Select,
                 formData.issueSelect
             );
             _updatePhysicalCheckListEnablement(
@@ -1442,7 +1191,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 formData.serviceSelect,
                 formData.xVuStatusSelect,
                 formData.packetLossSelect
-
             );
         }
 
@@ -1458,7 +1206,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (get('serviceOnCsr')) get('serviceOnCsr').value = formData.serviceOnCsr || '';
         if (get('extraStepsSelect')) get('extraStepsSelect').value = formData.extraStepsSelect || '';
-        if (get('ticketInput')) ticketInput.value = formData.ticketInput || ''; // CORRECCIÓN: Asignar el valor del formData a ticketInput.value
+        if (get('ticketInput')) get('ticketInput').value = formData.ticketInput || '';
 
         await new Promise(resolve => setTimeout(resolve, 10));
         applyInitialRequiredHighlight();
@@ -1556,7 +1304,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isForEdit) {
             currentEditingNoteId = null;
             isEditingNoteFlag = false;
-            _currentlyYViewedNoteData = null; 
+            // CORRECCIÓN: Reiniciar _currentlyViewedNoteData aquí si no es para edición,
+            // lo que asegura que al resetear el formulario, no haya una nota "vista" previa.
+            _currentlyViewedNoteData = null; 
         }
         applyInitialRequiredHighlight();
         handleSkillChange();
@@ -1680,13 +1430,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function customConfirm(message) {
-        if (!confirmMessage || !customConfirmModal) {
-            console.log('customConfirm: Elementos del modal no encontrados.');
-            return Promise.resolve(false);
-        }
+        if (!confirmMessage || !customConfirmModal) return Promise.resolve(false);
         confirmMessage.textContent = message;
         customConfirmModal.style.display = 'flex';
-        console.log('customConfirm: Modal mostrado. Esperando respuesta.');
         return new Promise((resolve) => {
             resolveConfirmPromise = resolve;
         });
@@ -1769,20 +1515,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (agentNameSetting && agentNameSetting.value) {
                 if (agentNameInput) agentNameInput.value = agentNameSetting.value;
                 setAgentNameReadonly();
-                return true; // Nombre cargado
             } else {
                 setAgentNameEditable();
                 if (agentNameInput && !_getFieldValue('agentName')) {
                     agentNameInput.classList.add('required-initial-border');
                 }
-                return false; // Nombre no encontrado, se necesita entrada
             }
         } catch (e) {
             console.error("Error al cargar nombre del agente desde IndexedDB:", e);
             showToast('No se pudo cargar el nombre del agente.', 'error');
             setAgentNameEditable();
-            return false; // Error al cargar, se necesita entrada
         }
+        generateFinalNote();
     };
 
     const saveAgentName = async () => {
@@ -1792,18 +1536,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 await db.settings.put({ key: AGENT_NAME_KEY, value: name });
                 setAgentNameReadonly();
                 showToast('Nombre del agente guardado.', 'success');
-                return true;
             }
             catch (e) {
                 console.error("Error al guardar el nombre del agente en IndexedDB:", e);
                 showToast('Error al guardar el nombre del agente.', 'error');
-                return false;
             }
         } else {
             if (agentNameInput) agentNameInput.classList.add('required-initial-border');
             showToast('El nombre del agente no puede estar vacío.', 'error');
-            return false;
         }
+        generateFinalNote();
     };
     
     const updateThirdRowLayout = (callerValue = null, xidValue = '') => {
@@ -1924,7 +1666,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 labelEl.textContent = customLabel || fieldConfig[select.id].label;
             }
 
-            // Specific logic for SHS physical checklist dropdowns
             if (select.id === 'physicalCheckList2Select' && isSHS) {
                 const effectiveIssue = selectedIssueFromForm || currentIssueValue;
                 select.innerHTML = '<option value="">Seleccione una opción</option>';
@@ -1935,14 +1676,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     select.value = '';
                 } else if (shsDeviceOptionsMap[effectiveIssue] || effectiveIssue === 'General Issues') {
                     const optionsSource = effectiveIssue === 'General Issues' ? shsDeviceOptionsMap['Main Panel'] : shsDeviceOptionsMap[effectiveIssue];
-                    if (optionsSource) { // Ensure optionsSource is defined
-                        optionsSource.forEach(optionText => {
-                            const option = document.createElement('option');
-                            option.value = optionText;
-                            option.textContent = optionText;
-                            select.appendChild(option);
-                        });
-                    }
+                    optionsSource.forEach(optionText => {
+                        const option = document.createElement('option');
+                        option.value = optionText;
+                        option.textContent = optionText;
+                        select.appendChild(option);
+                    });
                     select.disabled = false;
                     select.setAttribute('required', 'required');
                 } else if (directIssueToDeviceMap.includes(effectiveIssue)) {
@@ -1981,7 +1720,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     select.value = '';
                 }
-            } else { // Default population for other physical checklists or non-SHS
+            } else {
                 select.innerHTML = '<option value="">Seleccione una opción</option>';
                 const options = (service && equipmentOptions[service] && equipmentOptions[service][listKey]) ? equipmentOptions[service][listKey] : [];
                 options.forEach(optionText => {
@@ -2032,7 +1771,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const select = item.select;
                 const checkbox = item.checkbox;
                 if (!select) return;
-                if (checkbox === null) { // physicalCheckList1Select (IQ PANEL) is always enabled and required for SHS
+                if (checkbox === null) {
                     select.disabled = false;
                     select.setAttribute('required', 'required');
                 } else {
@@ -2051,7 +1790,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             });
-        } else { // FFH logic
+        } else {
             const shouldHidePhysicalCheckForFFHService = SERVICES_TO_HIDE_PHYSICAL_CHECK.includes(service);
             if (shouldHidePhysicalCheckForFFHService) {
                 physicalCheckListsContainer.classList.add('hidden-field');
@@ -2216,14 +1955,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isAwaAlertsMainSelected = _getFieldValue('awaAlertsSelect') !== '';
         if (isAwaAlertsMainSelected) {
             awaStepsSelect.disabled = false;
-            // Only set required if it's not SHS and there are actual steps, or if SHS has steps.
-            // For SHS, awaStepsSelect is required if awaAlertsSelect is selected.
-            if (currentSkill === 'SHS' || options.length > 0) {
-                awaStepsSelect.setAttribute('required', 'required');
-            } else {
-                awaStepsSelect.removeAttribute('required');
-            }
-            
+            awaStepsSelect.setAttribute('required', 'required');
             if (awaStepsValue && Array.from(awaStepsSelect.options).some(option => option.value === awaStepsValue)) {
                 awaStepsSelect.value = awaStepsValue;
             } else if (awaStepsValue) {
@@ -2529,7 +2261,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(checklistSidebar) checklistSidebar.classList.remove('open');
         if(checklistSidebarOverlay) checklistSidebarOverlay.style.display = 'none';
 
-        // Si había una acción de copiar/guardar pendiente desde el modal, reabrir el modal
+        // NUEVO: Si había una acción de copiar/guardar pendiente desde el modal, reabrir el modal
         if (_awaitingChecklistCompletionForCopySave) {
             _awaitingChecklistCompletionForCopySave = false; // Resetear la bandera
             // Reabrir el modal con la nota que se estaba visualizando o la nota actual del editor
@@ -2588,7 +2320,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         currentViewedNoteId = null;
-        // NO reiniciar _currentlyViewedNoteData aquí. Se mantiene para poder restaurar la nota del historial.
+        // CORRECCIÓN: NO reiniciar _currentlyViewedNoteData aquí. Se mantiene para poder restaurar la nota del historial.
         
         if (modalEditFromHistoryBtn) modalEditFromHistoryBtn.style.display = 'none';
         if (modalNoteTextarea) modalNoteTextarea.value = '';
@@ -2606,9 +2338,9 @@ document.addEventListener('DOMContentLoaded', () => {
             dynamicPartsContainer.innerHTML = '';
         }
 
-        // Si _currentlyViewedNoteData tiene una nota del historial, la mostramos en el modal principal.
+        // CORRECCIÓN: Si _currentlyViewedNoteData tiene una nota del historial, la mostramos en el modal principal.
         if (_currentlyViewedNoteData) {
-            viewNoteInModal(_currentlyViewedNoteData); // Fixed typo here
+            viewNoteInModal(_currentlyViewedNoteData);
         } else if (_currentFinalNoteContent.trim() !== '') {
             // Si no hay nota del historial (porque se abrió desde la nota actual del editor),
             // y hay contenido en el editor, mostramos la nota del editor.
@@ -2623,7 +2355,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const viewNoteInModal = (noteObject) => {
         if (!noteObject) return;
-        // Almacenar la nota que se está visualizando para poder restaurarla.
+        // CORRECCIÓN: Almacenar la nota que se está visualizando para poder restaurarla.
         _currentlyViewedNoteData = noteObject; 
         
         if (modalNoteTextarea) modalNoteTextarea.value = noteObject.finalNoteText;
@@ -2700,13 +2432,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     groupContent.style.maxHeight = 'none';
                     groupContent.offsetHeight;
                     groupContent.style.maxHeight = groupContent.scrollHeight + 'px';
-                    content.style.opacity = '1';
+                    groupContent.style.opacity = '1';
                     if (iconDown) iconDown.style.display = 'block';
                     if (iconUp) iconUp.style.display = 'none';
                 } else {
                     groupContent.style.maxHeight = '0px';
                     groupContent.style.opacity = '0';
                     if (iconDown) iconDown.style.display = 'none';
+                    if (iconUp) iconUp.style.display = 'block';
                 }
                 group.style.display = 'block';
             } else {
@@ -2720,8 +2453,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (iconUp) iconUp.style.display = 'none';
                 } else {
                     group.style.display = 'none';
+                    groupContent.style.maxHeight = '0px';
                     groupContent.style.opacity = '0';
                     if (iconDown) iconDown.style.display = 'none';
+                    if (iconUp) iconUp.style.display = 'block';
                 }
             }
         });
@@ -2738,47 +2473,192 @@ document.addEventListener('DOMContentLoaded', () => {
                 noNotesMessage.style.display = 'none';
             }
         }
-    };
+    }
 
     // =================================================================================
     // 5. MANEJADORES DE EVENTOS
     // =================================================================================
 
+    const saveAgentNameOnBlur = async () => {
+        if (isAgentNameEditable) await saveAgentName();
+    };
+
+    const saveAgentNameOnEnter = async (event) => {
+        if (event.key === 'Enter' && isAgentNameEditable) {
+            event.preventDefault();
+            await saveAgentName();
+            if (agentNameInput) agentNameInput.blur();
+        }
+    };
+
+    const handleAwaAlertsMainDropdownChange = () => {
+        const isAwaAlertsMainSelected = _getFieldValue('awaAlertsSelect') !== '';
+        if (!isEditingNoteFlag) {
+            if (isAwaAlertsMainSelected && enableAwaAlerts2 && !enableAwaAlerts2.checked) {
+                enableAwaAlerts2.checked = true;
+                updateAwaAlerts2SelectState(enableAwaAlerts2.checked, awaAlerts2Select.value);
+            } else if (!isAwaAlertsMainSelected && enableAwaAlerts2 && enableAwaAlerts2.checked) {
+                enableAwaAlerts2.checked = false;
+                updateAwaAlerts2SelectState(enableAwaAlerts2.checked, awaAlerts2Select.value);
+            }
+        } else {
+            updateAwaAlerts2SelectState(enableAwaAlerts2.checked, awaAlerts2Select.value);
+        }
+        updateAwaStepsSelectState();
+    };
+
+    const handleAwaAlerts2CheckboxToggle = () => {
+        updateAwaAlerts2SelectState(enableAwaAlerts2.checked, awaAlerts2Select.value);
+    };
+
+    const handleResolvedSelectChange = () => {
+        if (!resolvedSelect || !transferCheckbox) return;
+        const resolvedValue = _getFieldValue('resolvedSelect');
+        const shouldShowTransfer = (resolvedValue === 'Cx need to be transfered');
+        if (!isEditingNoteFlag) {
+            if (shouldShowTransfer && !transferCheckbox.checked) {
+                transferCheckbox.checked = true;
+                updateTransferFieldState(transferCheckbox.checked, transferSelect.value);
+            } else if (!shouldShowTransfer && transferCheckbox.checked) {
+                transferCheckbox.checked = false;
+                updateTransferFieldState(transferCheckbox.checked, transferSelect.value);
+            }
+        } else {
+            updateTransferFieldState(transferCheckbox.checked, transferSelect.value);
+        }
+        updateTechFieldsVisibilityAndState(resolvedValue);
+        applyInitialRequiredHighlight();
+        generateFinalNote();
+    };
+
+    const handleSkillChange = () => {
+        const isSHS = skillToggle.checked;
+        if (skillTextIndicator) {
+            skillTextIndicator.textContent = isSHS ? 'SHS' : 'FFH';
+        }
+
+        const currentService = _getFieldValue('serviceSelect');
+
+        if (isSHS) {
+            serviceSelect.value = 'SHS Legacy';
+            serviceSelect.disabled = true;
+            serviceSelect.dispatchEvent(new Event('change'));
+
+            if (!isEditingNoteFlag) {
+                if (enablePhysicalCheck2) enablePhysicalCheck2.checked = false;
+                if (enablePhysicalCheck3) enablePhysicalCheck3.checked = false;
+                if (enablePhysicalCheck4) enablePhysicalCheck4.checked = false;
+            }
+            _populateAwaAlertsOptions('SHS', awaAlertsSelect.value);
+            updateAwaAlerts2SelectState(enableAwaAlerts2.checked, awaAlerts2Select.value);
+            updateAwaStepsSelectState(awaStepsSelect.value);
+
+            if (activeDevicesGroup) activeDevicesGroup.style.display = 'none';
+            if (totalDevicesGroup) totalDevicesGroup.style.display = 'none';
+            if (downloadBeforeGroup) downloadBeforeGroup.style.display = 'none';
+            if (uploadBeforeGroup) uploadBeforeGroup.style.display = 'none';
+            if (downloadAfterGroup) downloadAfterGroup.style.display = 'none';
+            if (uploadAfterGroup) uploadAfterGroup.style.display = 'none';
+
+            if (activeDevicesInput) activeDevicesInput.value = '';
+            if (totalDevicesInput) totalDevicesInput.value = '';
+            if (downloadBeforeInput) downloadBeforeInput.value = '';
+            if (uploadBeforeInput) uploadBeforeInput.value = '';
+            if (downloadAfterInput) downloadAfterInput.value = '';
+            if (uploadAfterInput) uploadAfterInput.value = '';
+
+        } else {
+            serviceSelect.disabled = false;
+            if (currentService === 'SHS Legacy') {
+                serviceSelect.value = '';
+                serviceSelect.dispatchEvent(new Event('change'));
+            }
+
+            _populatePhysicalCheckListLabelsAndOptions(_getFieldValue('serviceSelect'));
+            _updatePhysicalCheckListEnablement(_getFieldValue('serviceSelect'), enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
+
+            _populateAwaAlertsOptions('FFH', awaAlertsSelect.value);
+            updateAwaAlerts2SelectState(enableAwaAlerts2.checked, awaAlerts2Select.value);
+            updateAwaStepsSelectState(awaStepsSelect.value);
+
+            if (activeDevicesGroup) activeDevicesGroup.style.display = 'flex';
+            if (totalDevicesGroup) totalDevicesGroup.style.display = 'flex';
+            if (downloadBeforeGroup) downloadBeforeGroup.style.display = 'flex';
+            if (uploadBeforeGroup) uploadBeforeGroup.style.display = 'flex';
+            if (downloadAfterGroup) downloadAfterGroup.style.display = 'flex';
+            if (uploadAfterGroup) uploadAfterGroup.style.display = 'flex';
+        }
+        applyInitialRequiredHighlight();
+        generateFinalNote();
+    };
+
+    const handleResolutionCopy = async (sourceData = null) => {
+        const cxIssueVal = _getFieldValue('cxIssueText', sourceData);
+        const tsStepsVal = _getFieldValue('troubleshootingProcessText', sourceData);
+        if (!cxIssueVal && !tsStepsVal) {
+             showToast('No hay información de resolución para copiar.', 'warning');
+             return;
+        }
+
+        let combinedResolutionText = '';
+        if (cxIssueVal) combinedResolutionText += `CX ISSUE: ${cxIssueVal}`;
+        if (tsStepsVal) {
+            if (combinedResolutionText) combinedResolutionText += '\n';
+            combinedResolutionText += `TS STEPS: ${tsStepsVal}`;
+        }
+        let finalTextToCopy = combinedResolutionText;
+        if (combinedResolutionText.length > RESOLUTION_COPY_CHAR_LIMIT) {
+            finalTextToCopy = tsStepsVal ? `TS STEPS: ${tsStepsVal}` : '';
+            if (!finalTextToCopy) {
+                showToast('La resolución excede el límite y no hay pasos de troubleshooting para copiar.', 'warning');
+                return;
+            }
+        }
+        if (finalTextToCopy) {
+            await copyToClipboard(finalTextToCopy);
+        } else {
+            showToast('No hay información de resolución para copiar.', 'warning');
+        }
+    };
+
+    const handleCopilotCopy = async (sourceNoteText) => {
+        if (!sourceNoteText) {
+            showToast('No hay nota para enviar a Copilot.', 'warning');
+            return;
+        }
+        const noteLines = sourceNoteText.split('\n');
+        const filteredNote = noteLines.filter(line => !line.startsWith('PFTS |') && !line.startsWith('SKILL:') && !line.startsWith('BAN:') && !line.startsWith('CID:') && !line.startsWith('NAME:') && !line.startsWith('CBR:') && !line.startsWith('CALLER:') && !line.startsWith('VERIFIED BY:') && !line.startsWith('ADDRESS:') && !line.startsWith('XID:')).join('\n');
+        await copyToClipboard(filteredNote);
+    };
+
+    const handleChecklistChange = (event) => {
+        const radio = event.target;
+        if (radio.type !== 'radio') return;
+
+        const parentItem = radio.closest('.checklist-item');
+        if (!parentItem) return;
+
+        parentItem.classList.remove('status-pending', 'status-yes', 'status-no', 'status-na', 'checklist-item-required');
+
+        switch (radio.value) {
+            case 'yes':
+                parentItem.classList.add('status-yes');
+                break;
+            case 'no':
+                parentItem.classList.add('status-no');
+                break;
+            case 'na':
+                parentItem.classList.add('status-na');
+                break;
+        }
+    };
+    
+    // =================================================================================
+    // 6. INICIALIZACIÓN
+    // =================================================================================
+
     const initializeEventListeners = () => {
         console.log('initializeEventListeners: Setting up all event listeners...'); // Debugging log
-
-        // NUEVO: Event listeners para el modal de bienvenida
-        if (startTakingNotesBtn) {
-            startTakingNotesBtn.addEventListener('click', async () => {
-                const name = welcomeAgentNameInput.value.trim();
-                if (name) {
-                    agentNameInput.value = name;
-                    const saved = await saveAgentName(); // Guardar el nombre del agente
-                    if (saved) {
-                        if (welcomeModalOverlay) welcomeModalOverlay.style.display = 'none';
-                        agentNameInput.focus(); // Enfocar el campo de agente principal
-                        showToast('¡Bienvenido! Empieza a tomar notas.', 'success');
-                    }
-                } else {
-                    showToast('Por favor, ingresa tu nombre.', 'warning');
-                    welcomeAgentNameInput.classList.add('required-initial-border');
-                }
-            });
-        }
-        if (welcomeAgentNameInput) {
-            welcomeAgentNameInput.addEventListener('input', () => {
-                if (welcomeAgentNameInput.value.trim() !== '') {
-                    welcomeAgentNameInput.classList.remove('required-initial-border');
-                }
-            });
-            welcomeAgentNameInput.addEventListener('keydown', async (event) => {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    startTakingNotesBtn.click(); // Simular clic en el botón
-                }
-            });
-        }
-
 
         if (editAgentNameBtn) {
             editAgentNameBtn.addEventListener('click', () => {
@@ -2795,26 +2675,21 @@ document.addEventListener('DOMContentLoaded', () => {
             btnReset.addEventListener('click', async () => {
                 const hasData = checkCurrentFormHasData();
                 if (hasData) {
-                    console.log('btnReset: Formulario tiene datos, mostrando confirmación.');
                     const confirmed = await customConfirm('¿Está seguro de que desea borrar toda la información del formulario? Esta acción no se puede deshacer.');
                     if (!confirmed) {
                         showToast('Reseteo cancelado.', 'info');
-                        console.log('btnReset: Reseteo cancelado por el usuario.');
                         return;
                     }
-                    console.log('btnReset: Reseteo confirmado por el usuario.');
-                } else {
-                    console.log('btnReset: Formulario vacío, no se necesita confirmación.');
                 }
                 currentViewedNoteId = null;
                 _lastNoteIdBeforeModalTransition = null;
-                // _currentlyViewedNoteData se reinicia en clearAllFormFields(false)
+                // CORRECCIÓN: _currentlyViewedNoteData se reinicia en clearAllFormFields(false)
                 if (noteModalOverlay) noteModalOverlay.style.display = 'none';
                 if (separateNoteModalOverlay) separateNoteModalOverlay.style.display = 'none';
                 clearAllFormFields();
                 hideSidebar();
                 showToast('Formulario restablecido.', 'info');
-                // Llevar al usuario a la sección 1 y enfocar el campo BAN
+                // NUEVO: Llevar al usuario a la sección 1 y enfocar el campo BAN
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 if (banInput) {
                     banInput.focus();
@@ -2830,7 +2705,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 unhighlightAllNotes();
                 _lastNoteIdBeforeModalTransition = null;
                 currentViewedNoteId = null;
-                // NO reiniciar _currentlyViewedNoteData aquí. El historial es solo una vista.
+                // CORRECCIÓN: NO reiniciar _currentlyViewedNoteData aquí. El historial es solo una vista.
             });
         }
 
@@ -2882,8 +2757,22 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Eliminado: Event listener para los botones .clean-checklist-section-btn
-        // document.querySelectorAll('.clean-checklist-section-btn').forEach(button => { /* ... */ });
+        document.querySelectorAll('.clean-checklist-section-btn').forEach(button => {
+            button.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const sectionIdentifier = event.currentTarget.dataset.section;
+                const sectionTitle = event.currentTarget.closest('.checklist-section').querySelector('.checklist-title-text').textContent;
+                const itemsToClear = document.querySelectorAll(`.checklist-section:has([data-section="${sectionIdentifier}"]) .checklist-item`);
+                
+                itemsToClear.forEach(item => {
+                    const radios = item.querySelectorAll('input[type="radio"]');
+                    radios.forEach(radio => radio.checked = false);
+                    item.classList.remove('status-yes', 'status-no', 'status-na', 'checklist-item-required');
+                    item.classList.add('status-pending');
+                });
+                showToast(`Sección "${sectionTitle}" del checklist limpiada.`, 'info');
+            });
+        });
 
         if(btnChecklistYesAll) {
             btnChecklistYesAll.addEventListener('click', () => {
@@ -2911,8 +2800,216 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Eliminado: Event listener para los botones .clean-section-btn
-        // document.querySelectorAll('.clean-section-btn').forEach(button => { /* ... */ });
+        document.querySelectorAll('.copy-button').forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const buttonElement = event.target.closest('.copy-button');
+                if (!buttonElement) return;
+                const targetInputId = buttonElement.dataset.target;
+                const targetInput = get(targetInputId);
+                if (targetInput) {
+                    await copyToClipboard(targetInput.value);
+                }
+            });
+        });
+
+        if (confirmYesBtn) confirmYesBtn.addEventListener('click', () => {
+            if (customConfirmModal) customConfirmModal.style.display = 'none';
+            if (resolveConfirmPromise) resolveConfirmPromise(true);
+        });
+
+        if (confirmNoBtn) confirmNoBtn.addEventListener('click', () => {
+            if (customConfirmModal) customConfirmModal.style.display = 'none';
+            if (resolveConfirmPromise) resolveConfirmPromise(false);
+        });
+
+        if (customConfirmModal) customConfirmModal.addEventListener('click', (event) => {
+            if (event.target === customConfirmModal) {
+                customConfirmModal.style.display = 'none';
+                if (resolveConfirmPromise) resolveConfirmPromise(false);
+            }
+        });
+
+        if (callerSelect) {
+            callerSelect.addEventListener('change', () => {
+                updateThirdRowLayout();
+                generateFinalNote();
+            });
+        }
+
+        if (serviceSelect) {
+            serviceSelect.addEventListener('change', () => {
+                const selectedService = _getFieldValue('serviceSelect');
+                populateIssueSelect(selectedService);
+                updateAffectedFieldVisibilityAndLabel(selectedService);
+                _populatePhysicalCheckListLabelsAndOptions(selectedService);
+                _updatePhysicalCheckListEnablement(selectedService, enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
+                updateOptikTvLegacySpecificFields(selectedService);
+                applyInitialRequiredHighlight();
+                generateFinalNote();
+            });
+        }
+
+        if (enablePhysicalCheck2) enablePhysicalCheck2.addEventListener('change', () => {
+            _updatePhysicalCheckListEnablement(_getFieldValue('serviceSelect'), enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
+            applyInitialRequiredHighlight();
+            generateFinalNote();
+        });
+        if (enablePhysicalCheck3) enablePhysicalCheck3.addEventListener('change', () => {
+            _updatePhysicalCheckListEnablement(_getFieldValue('serviceSelect'), enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
+            applyInitialRequiredHighlight();
+            generateFinalNote();
+        });
+        if (enablePhysicalCheck4) enablePhysicalCheck4.addEventListener('change', () => {
+            _updatePhysicalCheckListEnablement(_getFieldValue('serviceSelect'), enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
+            applyInitialRequiredHighlight();
+            generateFinalNote();
+        });
+
+        if (physicalCheckList1Select) {
+            physicalCheckList1Select.addEventListener('change', () => {
+                const selectedService = _getFieldValue('serviceSelect');
+                const currentSkill = skillToggle.checked ? 'SHS' : 'FFH';
+                const isSHS = currentSkill === 'SHS';
+                if (selectedService !== '' && (isSHS || !SERVICES_TO_HIDE_PHYSICAL_CHECK.includes(selectedService))) {
+                    if (!isEditingNoteFlag && _getFieldValue('physicalCheckList1Select') !== '' && enablePhysicalCheck2 && !enablePhysicalCheck2.checked) {
+                        enablePhysicalCheck2.checked = true;
+                        _updatePhysicalCheckListEnablement(selectedService, enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
+                    } else if (!isEditingNoteFlag && _getFieldValue('physicalCheckList1Select') === '' && enablePhysicalCheck2 && enablePhysicalCheck2.checked) {
+                        enablePhysicalCheck2.checked = false;
+                        _updatePhysicalCheckListEnablement(selectedService, enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
+                    }
+                } else {
+                    if (enablePhysicalCheck2) enablePhysicalCheck2.checked = false;
+                    if (enablePhysicalCheck3) enablePhysicalCheck3.checked = false;
+                    if (enablePhysicalCheck4) enablePhysicalCheck4.checked = false;
+                    _updatePhysicalCheckListEnablement(selectedService, false, false, false);
+                }
+            });
+        }
+        if (physicalCheckList2Select) {
+            physicalCheckList2Select.addEventListener('change', () => {
+                const selectedService = _getFieldValue('serviceSelect');
+                const currentSkill = skillToggle.checked ? 'SHS' : 'FFH';
+                const isSHS = currentSkill === 'SHS';
+                if (selectedService !== '' && (isSHS || !SERVICES_TO_HIDE_PHYSICAL_CHECK.includes(selectedService))) {
+                    if (!isEditingNoteFlag && _getFieldValue('physicalCheckList2Select') !== '' && enablePhysicalCheck3 && !enablePhysicalCheck3.checked) {
+                        enablePhysicalCheck3.checked = true;
+                        _updatePhysicalCheckListEnablement(selectedService, enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
+                    } else if (!isEditingNoteFlag && _getFieldValue('physicalCheckList2Select') === '' && enablePhysicalCheck3 && enablePhysicalCheck3.checked) {
+                        enablePhysicalCheck3.checked = false;
+                        _updatePhysicalCheckListEnablement(selectedService, enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
+                    }
+                } else {
+                    if (enablePhysicalCheck2) enablePhysicalCheck2.checked = false;
+                    if (enablePhysicalCheck3) enablePhysicalCheck3.checked = false;
+                    if (enablePhysicalCheck4) enablePhysicalCheck4.checked = false;
+                    _updatePhysicalCheckListEnablement(selectedService, false, false, false);
+                }
+            });
+        }
+        if (physicalCheckList3Select) {
+            physicalCheckList3Select.addEventListener('change', () => {
+                const selectedService = _getFieldValue('serviceSelect');
+                const currentSkill = skillToggle.checked ? 'SHS' : 'FFH';
+                const isSHS = currentSkill === 'SHS';
+                if (selectedService !== '' && (isSHS || !SERVICES_TO_HIDE_PHYSICAL_CHECK.includes(selectedService))) {
+                    if (!isEditingNoteFlag && _getFieldValue('physicalCheckList3Select') !== '' && enablePhysicalCheck4 && !enablePhysicalCheck4.checked) {
+                        enablePhysicalCheck4.checked = true;
+                        _updatePhysicalCheckListEnablement(selectedService, enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
+                    } else if (!isEditingNoteFlag && _getFieldValue('physicalCheckList3Select') === '' && enablePhysicalCheck4 && enablePhysicalCheck4.checked) {
+                        enablePhysicalCheck4.checked = false;
+                        _updatePhysicalCheckListEnablement(selectedService, enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
+                    }
+                } else {
+                    if (enablePhysicalCheck2) enablePhysicalCheck2.checked = false;
+                    if (enablePhysicalCheck3) enablePhysicalCheck3.checked = false;
+                    if (enablePhysicalCheck4) enablePhysicalCheck4.checked = false;
+                    _updatePhysicalCheckListEnablement(selectedService, false, false, false);
+                }
+            });
+        }
+
+        const cleanSection = (sectionId) => {
+            const section = get(sectionId);
+            if (!section) return;
+
+            section.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]):not([readonly]), select, textarea')
+                .forEach(input => input.value = '');
+            section.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
+            section.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                if (checkbox.id !== 'transferCheckbox') checkbox.checked = false;
+            });
+
+            if (sectionId === 'seccion1') {
+                updateThirdRowLayout();
+            } else if (sectionId === 'seccion2') {
+                if (serviceSelect) {
+                    serviceSelect.value = '';
+                    serviceSelect.dispatchEvent(new Event('change'));
+                }
+            } else if (sectionId === 'seccion3') {
+                if (awaAlertsSelect) {
+                    awaAlertsSelect.value = '';
+                    awaAlertsSelect.dispatchEvent(new Event('change'));
+                }
+                if (tvsSelect) {
+                    tvsSelect.value = '';
+                    tvsSelect.dispatchEvent(new Event('change'));
+                }
+                if (extraStepsSelect) {
+                    extraStepsSelect.value = '';
+                    extraStepsSelect.dispatchEvent(new Event('change'));
+                }
+                if ((skillToggle.checked ? 'SHS' : 'FFH') === 'SHS') {
+                    if (activeDevicesInput) activeDevicesInput.value = '';
+                    if (totalDevicesInput) totalDevicesInput.value = '';
+                    if (downloadBeforeInput) downloadBeforeInput.value = '';
+                    if (uploadBeforeInput) uploadBeforeInput.value = '';
+                    if (downloadAfterInput) downloadAfterInput.value = '';
+                    if (uploadAfterInput) uploadAfterInput.value = '';
+
+                    if (activeDevicesGroup) activeDevicesGroup.style.display = 'none';
+                    if (totalDevicesGroup) totalDevicesGroup.style.display = 'none';
+                    if (downloadBeforeGroup) downloadBeforeGroup.style.display = 'none';
+                    if (uploadBeforeGroup) uploadBeforeGroup.style.display = 'none';
+                    if (downloadAfterGroup) downloadAfterGroup.style.display = 'none';
+                    if (uploadAfterGroup) uploadAfterGroup.style.display = 'none';
+                } else {
+                    if (activeDevicesInput) activeDevicesInput.value = '';
+                    if (totalDevicesInput) totalDevicesInput.value = '';
+                    if (downloadBeforeInput) downloadBeforeInput.value = '';
+                    if (uploadBeforeInput) uploadBeforeInput.value = '';
+                    if (downloadAfterInput) downloadAfterInput.value = '';
+                    if (uploadAfterInput) uploadAfterInput.value = '';
+
+                    if (activeDevicesGroup) activeDevicesGroup.style.display = 'flex';
+                    if (totalDevicesGroup) totalDevicesGroup.style.display = 'flex';
+                    if (downloadBeforeGroup) downloadBeforeGroup.style.display = 'flex';
+                    if (uploadBeforeGroup) uploadBeforeGroup.style.display = 'flex';
+                    if (downloadAfterGroup) downloadAfterGroup.style.display = 'flex';
+                    if (uploadAfterGroup) uploadAfterGroup.style.display = 'flex';
+                }
+            } else if (sectionId === 'seccion4') {
+                if (resolvedSelect) {
+                    resolvedSelect.value = '';
+                    resolvedSelect.dispatchEvent(new Event('change'));
+                }
+                if (csrOrderInput) csrOrderInput.value = '';
+                if (ticketInput) ticketInput.value = '';
+            }
+            handleSkillChange();
+            applyInitialRequiredHighlight();
+            generateFinalNote();
+            const sectionTitleElement = section.querySelector('.section-title');
+            const sectionTitleText = sectionTitleElement ? sectionTitleElement.textContent.trim().replace('Limpiar sección', '').trim() : sectionId;
+            showToast(`Sección "${sectionTitleText}" limpiada.`, 'info');
+        };
+
+        document.querySelectorAll('.clean-section-btn').forEach(button => {
+            button.addEventListener('click', (event) => {
+                cleanSection(event.currentTarget.dataset.sectionId);
+            });
+        });
 
         if (btnSee) {
             btnSee.addEventListener('click', () => {
@@ -3101,7 +3198,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         closeModal(true); // Cerrar el modal actual si está abierto
                         await editNote(noteToLoad.formData, noteToLoad.id);
                     } else {
-                        showToast('Nota no encontrada para editar.', 'error');
+                        showToast('Error: Nota no encontrada para editar.', 'error');
                     }
                 } else {
                     showToast('No hay nota seleccionada del historial para editar.', 'warning');
@@ -3112,24 +3209,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modalCopyBtn) modalCopyBtn.addEventListener('click', async () => await copyToClipboard(modalNoteTextarea.value));
         
         if (modalCopilotBtn) {
-            modalCopilotBtn.addEventListener('click', () => {
-                // Pasa los datos de la nota actualmente visualizada o los datos del formulario principal
-                const sourceDataForCopilot = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : _collectFormData();
-                handleCopilotCopy(sourceDataForCopilot);
-            });
+            modalCopilotBtn.addEventListener('click', () => handleCopilotCopy(modalNoteTextarea.value));
         }
         
         if (separateModalCopilotBtn) {
             separateModalCopilotBtn.addEventListener('click', () => {
-                // Pasa los datos de la nota actualmente visualizada o los datos del formulario principal
-                const sourceDataForCopilot = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : _collectFormData();
-                handleCopilotCopy(sourceDataForCopilot);
+                // CORRECCIÓN: Usar _currentlyViewedNoteData si está disponible, de lo contrario _currentFinalNoteContent.
+                const sourceNote = _currentlyViewedNoteData ? _currentlyViewedNoteData.finalNoteText : _currentFinalNoteContent;
+                handleCopilotCopy(sourceNote);
             });
         }
 
         if (modalCopySaveBtn) {
             modalCopySaveBtn.addEventListener('click', async () => {
-                // Establecer la bandera antes de intentar guardar/copiar
+                // NUEVO: Establecer la bandera antes de intentar guardar/copiar
                 _awaitingChecklistCompletionForCopySave = true;
                 const saved = await saveCurrentNote(); // saveCurrentNote ahora maneja el cierre del modal si falla la validación
                 
@@ -3139,7 +3232,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         clearAllFormFields();
                         closeModal(true);
                         _lastNoteIdBeforeModalTransition = null;
-                        // Llevar al usuario a la sección 1 y enfocar el campo BAN
+                        // NUEVO: Llevar al usuario a la sección 1 y enfocar el campo BAN
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                         if (banInput) {
                             banInput.focus();
@@ -3163,7 +3256,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (separateModalCopySaveBtn) {
             separateModalCopySaveBtn.addEventListener('click', async () => {
-                // Usar _currentlyViewedNoteData.formData si está disponible, de lo contrario null.
+                // CORRECCIÓN: Usar _currentlyViewedNoteData.formData si está disponible, de lo contrario null.
                 const sourceData = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : null;
                 const noteToCopy = [
                     ..._buildSection1Content(sourceData),
@@ -3186,21 +3279,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         
-        // El botón de resolución del modal principal
-        if (modalResolutionBtn) {
-            modalResolutionBtn.addEventListener('click', () => {
-                // Pasa los datos de la nota actualmente visualizada o los datos del formulario principal
-                const sourceDataForResolution = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : _collectFormData();
-                handleResolutionCopy(sourceDataForResolution);
-            });
-        }
-
-        // El botón de resolución del modal de nota separada
         if (separateModalResolutionBtn) {
-            separateModalResolutionBtn.addEventListener('click', () => {
-                // Pasa los datos de la nota actualmente visualizada o los datos del formulario principal
-                const sourceDataForResolution = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : _collectFormData();
-                handleResolutionCopy(sourceDataForResolution);
+            modalResolutionBtn.addEventListener('click', () => {
+                // CORRECCIÓN: Usar _currentlyViewedNoteData.formData si está disponible, de lo contrario null.
+                const sourceData = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : null;
+                handleResolutionCopy(sourceData);
             });
         }
 
@@ -3216,9 +3299,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (modalSeparateBtn) {
             modalSeparateBtn.addEventListener('click', () => {
-                // Si la nota actual es la del historial, usamos sus datos. Si no, usamos la del editor.
-                const sourceData = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : _collectFormData(); // Usa _collectFormData para la nota actual
-                const finalNote = _currentlyViewedNoteData ? _currentlyViewedNoteData.finalNoteText : _currentFinalNoteContent; 
+                // CORRECCIÓN: Si la nota actual es la del historial, usamos sus datos. Si no, usamos la del editor.
+                const sourceData = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : null;
+                const finalNote = _currentlyViewedNoteData ? _currentlyViewedNoteData.finalNoteText : _currentFinalNoteContent;
 
                 const part1CoreContent = _buildSection1Content(sourceData);
                 const section2Content = _buildSection2InitialContent(sourceData);
@@ -3292,6 +3375,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        if (modalResolutionBtn) {
+            modalResolutionBtn.addEventListener('click', () => {
+                // CORRECCIÓN: Usar _currentlyViewedNoteData.formData si está disponible, de lo contrario null.
+                const sourceData = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : null;
+                handleResolutionCopy(sourceData);
+            });
+        }
+
         if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', hideSidebar);
         if (historySidebarOverlay) historySidebarOverlay.addEventListener('click', hideSidebar);
         if (historySearchInput) historySearchInput.addEventListener('input', (event) => filterNotes(event.target.value));
@@ -3357,7 +3448,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (feedbackModalOverlay) feedbackModalOverlay.style.display = 'none';
             });
         }
-        // Cerrar modal de feedback al hacer clic en el overlay
+        // NUEVO: Cerrar modal de feedback al hacer clic en el overlay
         if (feedbackModalOverlay) {
             feedbackModalOverlay.addEventListener('click', (event) => {
                 if (event.target === feedbackModalOverlay) {
@@ -3380,32 +3471,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         populateExtraStepsSelect();
         updateThirdRowLayout();
-        
-        // NUEVO: Lógica para el modal de bienvenida
-        // La versión de la app se actualizará por el Service Worker.
-        // Si el Service Worker ya está activo, intentará obtener la versión de inmediato.
-        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-            navigator.serviceWorker.controller.postMessage({ type: 'GET_VERSION' });
-        } else {
-            // Si no hay Service Worker activo (primera carga o error), mostrar versión por defecto
-            if (appVersionDisplay) appVersionDisplay.textContent = `vX.Y.Z`;
-            if (welcomeAppVersionDisplay) welcomeAppVersionDisplay.textContent = `vX.Y.Z`;
-        }
-
-        const agentNameLoaded = await loadAgentName(); // Cargar el nombre del agente
-        if (!agentNameLoaded) {
-            // Si el nombre del agente no se ha cargado (es la primera vez o hay error), mostrar modal de bienvenida
-            if (welcomeModalOverlay) {
-                welcomeModalOverlay.style.display = 'flex';
-                if (welcomeAgentNameInput) {
-                    welcomeAgentNameInput.focus();
-                }
-            }
-        } else {
-            // Si el nombre del agente ya está guardado, no mostrar el modal de bienvenida
-            if (welcomeModalOverlay) welcomeModalOverlay.style.display = 'none';
-        }
-        
+        await loadAgentName();
         initialResizeTextareas();
 
         if (affectedTextGroup) affectedTextGroup.style.display = 'none';
@@ -3454,7 +3520,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('scroll', updateStickyHeaderInfo);
         updateStickyHeaderInfo();
 
-        handleSkillChange(); // Asegura que el skill se inicialice correctamente (incluyendo SHS Legacy)
+        handleSkillChange();
         console.log('initializeApp: Calling initializeEventListeners...'); // Log de depuración
         initializeEventListeners();
         console.log('initializeApp: Initialization complete.'); // Log de depuración
@@ -3463,3 +3529,27 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded: Initializing app...'); // Log de depuración
     initializeApp();
 });
+
+// =======================================================
+//  INICIO: LÓGICA PARA PROGRESSIVE WEB APP (PWA)
+// =======================================================
+
+// Comprueba si el navegador soporta Service Workers
+if ('serviceWorker' in navigator) {
+  // Espera a que la página cargue completamente para no retrasar el renderizado inicial
+  window.addEventListener('load', () => {
+    // Registra el archivo del Service Worker
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(registration => {
+        // Si el registro es exitoso, lo muestra en la consola
+        console.log('Service Worker registrado con éxito:', registration);
+      })
+      .catch(error => {
+        // Si hay un error, lo muestra en la consola
+        console.log('Error al registrar el Service Worker:', error);
+      });
+  });
+}
+// =======================================================
+//  FIN: LÓGICA PARA PROGRESSIVE WEB APP (PWA)
+// =======================================================
