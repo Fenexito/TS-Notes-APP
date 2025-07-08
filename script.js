@@ -533,27 +533,56 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const handleCopilotCopy = async (textToProcess) => {
-        if (!textToProcess || textToProcess.trim() === '') {
-            showToast('No hay nota para enviar al Copilot.', 'warning');
+    const handleCopilotCopy = async (sourceData = null) => { // Modified to accept sourceData
+        const dataToUse = sourceData || _collectFormData(); // Use provided data or collect from current form
+
+        if (!dataToUse) {
+            showToast('No hay datos para enviar al Copilot.', 'warning');
             return;
         }
 
-        const copilotReadyText = `Telus Customer Notes:\n\n${textToProcess}`;
+        // Build content for sections 2, 3, and 4
+        const copilotContentParts = [
+            ..._buildSection2InitialContent(dataToUse),
+            ..._buildTroubleshootingProcessContent(dataToUse),
+            ..._buildSection3Content(dataToUse),
+            ..._buildSection4Content(dataToUse)
+        ];
+        const copilotText = copilotContentParts.filter(line => line.trim() !== '').join('\n').replace(/\n\s*\n/g, '\n\n').trim();
+
+        if (copilotText.trim() === '') {
+            showToast('No hay contenido relevante para Copilot.', 'warning');
+            return;
+        }
+
+        const copilotReadyText = `Telus Customer Notes:\n\n${copilotText}`;
         const copied = await copyToClipboard(copilotReadyText);
         if (copied) {
             showToast('Nota formateada para Copilot y copiada al portapapeles.', 'success');
         }
     };
 
-    const handleResolutionCopy = async (sourceData = null) => {
-        const resolutionContentArray = _buildSection4Content(sourceData);
-        if (resolutionContentArray.length === 0) {
-            showToast('No hay información de resolución para copiar.', 'warning');
+    const handleResolutionCopy = async (sourceData = null) => { // Modified to accept sourceData
+        const dataToUse = sourceData || _collectFormData(); // Use provided data or collect from current form
+
+        if (!dataToUse) {
+            showToast('No hay datos para copiar la resolución.', 'warning');
+            return;
+        }
+
+        const cxIssue = _getFieldValue('cxIssueText', dataToUse);
+        const tsSteps = _getFieldValue('troubleshootingProcessText', dataToUse);
+
+        const resolutionParts = [];
+        if (cxIssue) resolutionParts.push(`CX ISSUE: ${cxIssue}`);
+        if (tsSteps) resolutionParts.push(`TS STEPS: ${tsSteps}`);
+
+        if (resolutionParts.length === 0) {
+            showToast('No hay información de CX ISSUE o TS STEPS para copiar.', 'warning');
             return;
         }
         
-        let resolutionText = resolutionContentArray.join('\n');
+        let resolutionText = resolutionParts.join('\n');
         if (resolutionText.length > RESOLUTION_COPY_CHAR_LIMIT) {
             resolutionText = resolutionText.substring(0, RESOLUTION_COPY_CHAR_LIMIT);
             showToast(`La resolución es muy larga, se truncó a ${RESOLUTION_COPY_CHAR_LIMIT} caracteres.`, 'warning');
@@ -568,6 +597,64 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================================
     // 3. LÓGICA PRINCIPAL DE LA APLICACIÓN
     // =================================================================================
+
+    /**
+     * Recopila todos los datos del formulario actual.
+     * @returns {Object} Un objeto con los datos del formulario.
+     */
+    const _collectFormData = () => {
+        const formData = {};
+        const formElements = document.getElementById('callNoteForm').elements;
+        for (let i = 0; i < formElements.length; i++) {
+            const element = formElements[i];
+            if (element.name) {
+                if (element.type === 'radio') {
+                    if (element.checked) formData[element.name] = element.value;
+                } else if (element.type === 'checkbox') {
+                    formData[element.id] = element.checked;
+                } else if (element.id) {
+                    formData[element.id] = element.value;
+                }
+            } else if (element.id && element.tagName === 'SELECT') {
+                formData[element.id] = element.value;
+            }
+        }
+        // Asegurar que los valores de los grupos de radio estén presentes
+        ['outage', 'errorsInNC', 'accountSuspended'].forEach(name => {
+            const checkedRadio = document.querySelector(`input[name="${name}"]:checked`);
+            if (checkedRadio) formData[name] = checkedRadio.value;
+            else formData[name] = '';
+        });
+        formData.skill = skillToggle.checked ? 'SHS' : 'FFH';
+
+        // Recopilar datos del checklist
+        const checklistItems = checklistSidebar.querySelectorAll('.checklist-item');
+        checklistItems.forEach(item => {
+            const radioName = item.querySelector('input[type="radio"]').name;
+            const checkedRadio = item.querySelector(`input[name="${radioName}"]:checked`);
+            if (checkedRadio) {
+                formData[radioName] = checkedRadio.value;
+            } else {
+                 formData[radioName] = 'pending'; // Si no está marcado, se considera pendiente
+            }
+        });
+
+        // Asegurar que los checkboxes de habilitación de Physical Check estén en formData
+        if (enablePhysicalCheck2) formData.enablePhysicalCheck2 = enablePhysicalCheck2.checked;
+        if (enablePhysicalCheck3) formData.enablePhysicalCheck3 = enablePhysicalCheck3.checked;
+        if (enablePhysicalCheck4) formData.enablePhysicalCheck4 = enablePhysicalCheck4.checked;
+        if (enableAwaAlerts2) formData.enableAwaAlerts2 = enableAwaAlerts2.checked;
+        if (transferCheckbox) formData.transferCheckbox = transferCheckbox.checked;
+
+        // Asegurar que otros campos importantes estén en formData
+        formData.agentName = _getFieldValue('agentName'); // Siempre incluir el nombre del agente
+        if (xidInput) formData.xid = xidInput.value;
+        if (ticketInput) formData.ticketInput = ticketInput.value;
+        if (extraStepsSelect) formData.extraStepsSelect = extraStepsSelect.value;
+
+        return formData;
+    };
+
 
     const _getFieldValue = (id, sourceData = null) => {
         if (sourceData) {
@@ -751,7 +838,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
                     const dayAbbreviations = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
                     const formattedDate = `${dayAbbreviations[dateObj.getDay()]} ${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}`;
-                    resolutionDetails.push(`FOLLOW UP: ${formattedDate}, ${followUpTime}`);
+                    resolutionDetails.push(`FOLLOW UP: ${formattedDate}, ${dispatchTime}`);
                 }
             } else if (resolvedValue === 'No | BOSR Created') {
                 if (_getFieldValue('cbr2Input', sourceData)) resolutionDetails.push(`BOSR TICKET #: ${_getFieldValue('cbr2Input', sourceData)}`);
@@ -899,49 +986,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
 
-        const formData = {};
-        const formElements = document.getElementById('callNoteForm').elements;
-        for (let i = 0; i < formElements.length; i++) {
-            const element = formElements[i];
-            if (element.name) {
-                if (element.type === 'radio') {
-                    if (element.checked) formData[element.name] = element.value;
-                } else if (element.type === 'checkbox') {
-                    formData[element.id] = element.checked;
-                } else if (element.id) {
-                    formData[element.id] = element.value;
-                }
-            } else if (element.id && element.tagName === 'SELECT') {
-                formData[element.id] = element.value;
-            }
-        }
-        ['outage', 'errorsInNC', 'accountSuspended'].forEach(name => {
-            const checkedRadio = document.querySelector(`input[name="${name}"]:checked`);
-            if (checkedRadio) formData[name] = checkedRadio.value;
-            else formData[name] = '';
-        });
-        formData.skill = skillToggle.checked ? 'SHS' : 'FFH';
-
-        const checklistItems = checklistSidebar.querySelectorAll('.checklist-item');
-        checklistItems.forEach(item => {
-            const radioName = item.querySelector('input[type="radio"]').name;
-            const checkedRadio = item.querySelector(`input[name="${radioName}"]:checked`);
-            if (checkedRadio) {
-                formData[radioName] = checkedRadio.value;
-            } else {
-                 formData[radioName] = 'pending';
-            }
-        });
-
-        if (enablePhysicalCheck2) formData.enablePhysicalCheck2 = enablePhysicalCheck2.checked;
-        if (enablePhysicalCheck3) formData.enablePhysicalCheck3 = enablePhysicalCheck3.checked;
-        if (enablePhysicalCheck4) formData.enablePhysicalCheck4 = enablePhysicalCheck4.checked;
-        if (enableAwaAlerts2) formData.enableAwaAlerts2 = enableAwaAlerts2.checked;
-        if (transferCheckbox) formData.transferCheckbox = transferCheckbox.checked;
-        formData.agentName = _getFieldValue('agentName');
-        if (xidInput) formData.xid = xidInput.value;
-        if (ticketInput) formData.ticketInput = ticketInput.value;
-        if (extraStepsSelect) formData.extraStepsSelect = extraStepsSelect.value;
+        // Recopilar datos del formulario usando la nueva función
+        const formData = _collectFormData();
 
         try {
             const noteData = {
@@ -1412,7 +1458,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (get('serviceOnCsr')) get('serviceOnCsr').value = formData.serviceOnCsr || '';
         if (get('extraStepsSelect')) get('extraStepsSelect').value = formData.extraStepsSelect || '';
-        if (get('ticketInput')) get('ticketInput').value = formData.ticketInput || '';
+        if (get('ticketInput')) ticketInput.value = formData.ticketInput || ''; // CORRECCIÓN: Asignar el valor del formData a ticketInput.value
 
         await new Promise(resolve => setTimeout(resolve, 10));
         applyInitialRequiredHighlight();
@@ -1510,7 +1556,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isForEdit) {
             currentEditingNoteId = null;
             isEditingNoteFlag = false;
-            _currentlyViewedNoteData = null; 
+            _currentlyYViewedNoteData = null; 
         }
         applyInitialRequiredHighlight();
         handleSkillChange();
@@ -1634,9 +1680,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function customConfirm(message) {
-        if (!confirmMessage || !customConfirmModal) return Promise.resolve(false);
+        if (!confirmMessage || !customConfirmModal) {
+            console.log('customConfirm: Elementos del modal no encontrados.');
+            return Promise.resolve(false);
+        }
         confirmMessage.textContent = message;
         customConfirmModal.style.display = 'flex';
+        console.log('customConfirm: Modal mostrado. Esperando respuesta.');
         return new Promise((resolve) => {
             resolveConfirmPromise = resolve;
         });
@@ -2558,7 +2608,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Si _currentlyViewedNoteData tiene una nota del historial, la mostramos en el modal principal.
         if (_currentlyViewedNoteData) {
-            viewNoteInModal(_currentlyViewedNoteData);
+            viewNoteInModal(_currentlyViewedNoteData); // Fixed typo here
         } else if (_currentFinalNoteContent.trim() !== '') {
             // Si no hay nota del historial (porque se abrió desde la nota actual del editor),
             // y hay contenido en el editor, mostramos la nota del editor.
@@ -2650,7 +2700,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     groupContent.style.maxHeight = 'none';
                     groupContent.offsetHeight;
                     groupContent.style.maxHeight = groupContent.scrollHeight + 'px';
-                    groupContent.style.opacity = '1';
+                    content.style.opacity = '1';
                     if (iconDown) iconDown.style.display = 'block';
                     if (iconUp) iconUp.style.display = 'none';
                 } else {
@@ -2670,7 +2720,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (iconUp) iconUp.style.display = 'none';
                 } else {
                     group.style.display = 'none';
-                    groupContent.style.maxHeight = '0px';
                     groupContent.style.opacity = '0';
                     if (iconDown) iconDown.style.display = 'none';
                 }
@@ -2746,11 +2795,16 @@ document.addEventListener('DOMContentLoaded', () => {
             btnReset.addEventListener('click', async () => {
                 const hasData = checkCurrentFormHasData();
                 if (hasData) {
+                    console.log('btnReset: Formulario tiene datos, mostrando confirmación.');
                     const confirmed = await customConfirm('¿Está seguro de que desea borrar toda la información del formulario? Esta acción no se puede deshacer.');
                     if (!confirmed) {
                         showToast('Reseteo cancelado.', 'info');
+                        console.log('btnReset: Reseteo cancelado por el usuario.');
                         return;
                     }
+                    console.log('btnReset: Reseteo confirmado por el usuario.');
+                } else {
+                    console.log('btnReset: Formulario vacío, no se necesita confirmación.');
                 }
                 currentViewedNoteId = null;
                 _lastNoteIdBeforeModalTransition = null;
@@ -2828,22 +2882,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        document.querySelectorAll('.clean-checklist-section-btn').forEach(button => {
-            button.addEventListener('click', (event) => {
-                event.stopPropagation();
-                const sectionIdentifier = event.currentTarget.dataset.section;
-                const sectionTitle = event.currentTarget.closest('.checklist-section').querySelector('.checklist-title-text').textContent;
-                const itemsToClear = document.querySelectorAll(`.checklist-section[data-section-id="${sectionIdentifier}"] .checklist-item`);
-                
-                itemsToClear.forEach(item => {
-                    const radios = item.querySelectorAll('input[type="radio"]');
-                    radios.forEach(radio => radio.checked = false);
-                    item.classList.remove('status-yes', 'status-no', 'status-na', 'checklist-item-required');
-                    item.classList.add('status-pending');
-                });
-                showToast(`Sección "${sectionTitle}" del checklist limpiada.`, 'info');
-            });
-        });
+        // Eliminado: Event listener para los botones .clean-checklist-section-btn
+        // document.querySelectorAll('.clean-checklist-section-btn').forEach(button => { /* ... */ });
 
         if(btnChecklistYesAll) {
             btnChecklistYesAll.addEventListener('click', () => {
@@ -2871,257 +2911,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        document.querySelectorAll('.copy-button').forEach(button => {
-            button.addEventListener('click', async (event) => {
-                const buttonElement = event.target.closest('.copy-button');
-                if (!buttonElement) return;
-                const targetInputId = buttonElement.dataset.target;
-                const targetInput = get(targetInputId);
-                if (targetInput) {
-                    await copyToClipboard(targetInput.value);
-                }
-            });
-        });
-
-        if (confirmYesBtn) confirmYesBtn.addEventListener('click', () => {
-            if (customConfirmModal) customConfirmModal.style.display = 'none';
-            if (resolveConfirmPromise) resolveConfirmPromise(true);
-        });
-
-        if (confirmNoBtn) confirmNoBtn.addEventListener('click', () => {
-            if (customConfirmModal) customConfirmModal.style.display = 'none';
-            if (resolveConfirmPromise) resolveConfirmPromise(false);
-        });
-
-        if (customConfirmModal) customConfirmModal.addEventListener('click', (event) => {
-            if (event.target === customConfirmModal) {
-                customConfirmModal.style.display = 'none';
-                if (resolveConfirmPromise) resolveConfirmPromise(false);
-            }
-        });
-
-        if (callerSelect) {
-            callerSelect.addEventListener('change', () => {
-                updateThirdRowLayout();
-                generateFinalNote();
-            });
-        }
-
-        if (serviceSelect) {
-            serviceSelect.addEventListener('change', () => {
-                const selectedService = _getFieldValue('serviceSelect');
-                populateIssueSelect(selectedService);
-                updateAffectedFieldVisibilityAndLabel(selectedService);
-                _populatePhysicalCheckListLabelsAndOptions(selectedService);
-                _updatePhysicalCheckListEnablement(selectedService, enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
-                updateOptikTvLegacySpecificFields(selectedService);
-                applyInitialRequiredHighlight();
-                generateFinalNote();
-            });
-        }
-
-        if (enablePhysicalCheck2) enablePhysicalCheck2.addEventListener('change', () => {
-            _updatePhysicalCheckListEnablement(_getFieldValue('serviceSelect'), enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
-            applyInitialRequiredHighlight();
-            generateFinalNote();
-        });
-        if (enablePhysicalCheck3) enablePhysicalCheck3.addEventListener('change', () => {
-            _updatePhysicalCheckListEnablement(_getFieldValue('serviceSelect'), enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
-            applyInitialRequiredHighlight();
-            generateFinalNote();
-        });
-        if (enablePhysicalCheck4) enablePhysicalCheck4.addEventListener('change', () => {
-            _updatePhysicalCheckListEnablement(_getFieldValue('serviceSelect'), enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
-            applyInitialRequiredHighlight();
-            generateFinalNote();
-        });
-
-        if (physicalCheckList1Select) {
-            physicalCheckList1Select.addEventListener('change', () => {
-                const selectedService = _getFieldValue('serviceSelect');
-                const currentSkill = skillToggle.checked ? 'SHS' : 'FFH';
-                const isSHS = currentSkill === 'SHS';
-                if (selectedService !== '' && (isSHS || !SERVICES_TO_HIDE_PHYSICAL_CHECK.includes(selectedService))) {
-                    if (!isEditingNoteFlag && _getFieldValue('physicalCheckList1Select') !== '' && enablePhysicalCheck2 && !enablePhysicalCheck2.checked) {
-                        enablePhysicalCheck2.checked = true;
-                        _updatePhysicalCheckListEnablement(selectedService, enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
-                    } else if (!isEditingNoteFlag && _getFieldValue('physicalCheckList1Select') === '' && enablePhysicalCheck2 && enablePhysicalCheck2.checked) {
-                        enablePhysicalCheck2.checked = false;
-                        _updatePhysicalCheckListEnablement(selectedService, enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
-                    }
-                } else {
-                    if (enablePhysicalCheck2) enablePhysicalCheck2.checked = false;
-                    if (enablePhysicalCheck3) enablePhysicalCheck3.checked = false;
-                    if (enablePhysicalCheck4) enablePhysicalCheck4.checked = false;
-                    _updatePhysicalCheckListEnablement(selectedService, false, false, false);
-                }
-            });
-        }
-        if (physicalCheckList2Select) {
-            physicalCheckList2Select.addEventListener('change', () => {
-                const selectedService = _getFieldValue('serviceSelect');
-                const currentSkill = skillToggle.checked ? 'SHS' : 'FFH';
-                const isSHS = currentSkill === 'SHS';
-                if (selectedService !== '' && (isSHS || !SERVICES_TO_HIDE_PHYSICAL_CHECK.includes(selectedService))) {
-                    if (!isEditingNoteFlag && _getFieldValue('physicalCheckList2Select') !== '' && enablePhysicalCheck3 && !enablePhysicalCheck3.checked) {
-                        enablePhysicalCheck3.checked = true;
-                        _updatePhysicalCheckListEnablement(selectedService, enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
-                    } else if (!isEditingNoteFlag && _getFieldValue('physicalCheckList2Select') === '' && enablePhysicalCheck3 && enablePhysicalCheck3.checked) {
-                        enablePhysicalCheck3.checked = false;
-                        _updatePhysicalCheckListEnablement(selectedService, enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
-                    }
-                } else {
-                    if (enablePhysicalCheck2) enablePhysicalCheck2.checked = false;
-                    if (enablePhysicalCheck3) enablePhysicalCheck3.checked = false;
-                    if (enablePhysicalCheck4) enablePhysicalCheck4.checked = false;
-                    _updatePhysicalCheckListEnablement(selectedService, false, false, false);
-                }
-            });
-        }
-        if (physicalCheckList3Select) {
-            physicalCheckList3Select.addEventListener('change', () => {
-                const selectedService = _getFieldValue('serviceSelect');
-                const currentSkill = skillToggle.checked ? 'SHS' : 'FFH';
-                const isSHS = currentSkill === 'SHS';
-                if (selectedService !== '' && (isSHS || !SERVICES_TO_HIDE_PHYSICAL_CHECK.includes(selectedService))) {
-                    if (!isEditingNoteFlag && _getFieldValue('physicalCheckList3Select') !== '' && enablePhysicalCheck4 && !enablePhysicalCheck4.checked) {
-                        enablePhysicalCheck4.checked = true;
-                        _updatePhysicalCheckListEnablement(selectedService, enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
-                    } else if (!isEditingNoteFlag && _getFieldValue('physicalCheckList3Select') === '' && enablePhysicalCheck4 && enablePhysicalCheck4.checked) {
-                        enablePhysicalCheck4.checked = false;
-                        _updatePhysicalCheckListEnablement(selectedService, enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
-                    }
-                } else {
-                    if (enablePhysicalCheck2) enablePhysicalCheck2.checked = false;
-                    if (enablePhysicalCheck3) enablePhysicalCheck3.checked = false;
-                    if (enablePhysicalCheck4) enablePhysicalCheck4.checked = false;
-                    _updatePhysicalCheckListEnablement(selectedService, false, false, false);
-                }
-            });
-        }
-
-        const cleanSection = (sectionId) => {
-            const section = get(sectionId);
-            if (!section) return;
-
-            // Limpiar todos los inputs, selects y textareas dentro de la sección
-            section.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]):not([readonly]), select, textarea')
-                .forEach(input => {
-                    input.value = '';
-                    input.classList.remove('required-initial-border');
-                    input.style.border = '';
-                });
-            section.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
-            section.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                // Excluir el skillToggle para que no se resetee con el botón de limpiar sección
-                if (checkbox.id !== 'transferCheckbox' && checkbox.id !== 'skillToggle') {
-                    checkbox.checked = false;
-                }
-            });
-
-            // Restablecer estilos de grupos de radio
-            section.querySelectorAll('.radio-group').forEach(group => {
-                group.classList.remove('required-initial-border');
-                group.style.border = '';
-            });
-
-            // Lógica específica para cada sección para restablecer estados y disparar eventos
-            if (sectionId === 'seccion1') {
-                // Clear specific fields in section 1
-                if (banInput) banInput.value = '';
-                if (cidInput) cidInput.value = '';
-                if (nameInput) nameInput.value = '';
-                if (cbrInput) cbrInput.value = '';
-                if (callerSelect) callerSelect.value = '';
-                if (verifiedBySelect) verifiedBySelect.value = '';
-                if (addressInput) addressInput.value = '';
-                if (xidInput) xidInput.value = '';
-                updateThirdRowLayout(); // Restablece la visibilidad de XID
-            } else if (sectionId === 'seccion2') {
-                if (serviceOnCsrSelect) serviceOnCsrSelect.value = '';
-                // Resetear radios de Outage, NetCracker, Suspended
-                document.querySelectorAll('input[name="outage"]').forEach(radio => radio.checked = false);
-                document.querySelectorAll('input[name="errorsInNC"]').forEach(radio => radio.checked = false);
-                document.querySelectorAll('input[name="accountSuspended"]').forEach(radio => radio.checked = false);
-
-                if (serviceSelect) {
-                    serviceSelect.value = '';
-                    // No dispatch change here, as handleSkillChange will handle it globally
-                    // when it's called at the end of cleanSection.
-                }
-                if (issueSelect) issueSelect.value = '';
-                if (cxIssueText) cxIssueText.value = '';
-                if (affectedText) affectedText.value = '';
-                if (physicalCheckList1Select) physicalCheckList1Select.value = '';
-                if (physicalCheckList2Select) physicalCheckList2Select.value = '';
-                if (physicalCheckList3Select) physicalCheckList3Select.value = '';
-                if (physicalCheckList4Select) physicalCheckList4Select.value = '';
-                if (enablePhysicalCheck2) enablePhysicalCheck2.checked = false;
-                if (enablePhysicalCheck3) enablePhysicalCheck3.checked = false;
-                if (enablePhysicalCheck4) enablePhysicalCheck4.checked = false;
-                if (xVuStatusSelect) xVuStatusSelect.value = '';
-                if (packetLossSelect) packetLossSelect.value = '';
-                if (additionalinfoText) additionalinfoText.value = '';
-                if (troubleshootingProcessText) troubleshootingProcessText.value = '';
-
-                // Ensure visibility is reset by calling relevant update functions
-                updateAffectedFieldVisibilityAndLabel(''); // Reset affected field visibility
-                _updatePhysicalCheckListEnablement('', false, false, false); // Hide and disable physical checks
-                updateOptikTvLegacySpecificFields(''); // Hide Optik TV legacy fields
-
-            } else if (sectionId === 'seccion3') {
-                if (awaAlertsSelect) awaAlertsSelect.value = '';
-                if (awaAlerts2Select) awaAlerts2Select.value = '';
-                if (enableAwaAlerts2) enableAwaAlerts2.checked = false;
-                if (awaStepsSelect) awaStepsSelect.value = '';
-                if (activeDevicesInput) activeDevicesInput.value = '';
-                if (totalDevicesInput) totalDevicesInput.value = '';
-                if (downloadBeforeInput) downloadBeforeInput.value = '';
-                if (uploadBeforeInput) uploadBeforeInput.value = '';
-                if (downloadAfterInput) downloadAfterInput.value = '';
-                if (uploadAfterInput) uploadAfterInput.value = '';
-                if (tvsSelect) tvsSelect.value = '';
-                if (tvsKeyInput) tvsKeyInput.value = '';
-                if (extraStepsSelect) extraStepsSelect.value = '';
-
-                // Ensure visibility is reset by calling relevant update functions
-                updateAwaAlerts2SelectState(false); // Reset AWA2 state
-                updateAwaStepsSelectState(''); // Reset AWA Steps state
-                updateTvsKeyFieldState(''); // Reset TVS Key state
-
-            } else if (sectionId === 'seccion4') {
-                if (resolvedSelect) resolvedSelect.value = '';
-                if (transferCheckbox) transferCheckbox.checked = false;
-                if (transferSelect) transferSelect.value = '';
-                if (cbr2Input) cbr2Input.value = '';
-                if (aocInput) aocInput.value = fieldConfig.aocInput.defaultValue; // Reset to default value
-                if (dispatchDateInput) dispatchDateInput.value = '';
-                if (dispatchTimeSlotSelect) dispatchTimeSlotSelect.value = '';
-                if (csrOrderInput) csrOrderInput.value = '';
-                if (ticketInput) ticketInput.value = '';
-
-                // Ensure visibility is reset by calling relevant update functions
-                updateTransferFieldState(false); // Reset transfer field state
-                updateTechFieldsVisibilityAndState(''); // Reset tech fields visibility
-            }
-
-            // Llamadas globales para re-evaluar el estado del formulario después de limpiar
-            // Estas llamadas son importantes para que los campos condicionales se actualicen
-            // correctamente en toda la UI después de limpiar una sección.
-            handleSkillChange(); 
-            applyInitialRequiredHighlight(); 
-            generateFinalNote(); 
-            
-            const sectionTitleElement = section.querySelector('.section-title');
-            const sectionTitleText = sectionTitleElement ? sectionTitleElement.textContent.trim().replace('Limpiar sección', '').trim() : sectionId;
-            showToast(`Sección "${sectionTitleText}" limpiada.`, 'info');
-        };
-
-        document.querySelectorAll('.clean-section-btn').forEach(button => {
-            button.addEventListener('click', (event) => {
-                cleanSection(event.currentTarget.dataset.sectionId);
-            });
-        });
+        // Eliminado: Event listener para los botones .clean-section-btn
+        // document.querySelectorAll('.clean-section-btn').forEach(button => { /* ... */ });
 
         if (btnSee) {
             btnSee.addEventListener('click', () => {
@@ -3321,14 +3112,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modalCopyBtn) modalCopyBtn.addEventListener('click', async () => await copyToClipboard(modalNoteTextarea.value));
         
         if (modalCopilotBtn) {
-            modalCopilotBtn.addEventListener('click', () => handleCopilotCopy(modalNoteTextarea.value));
+            modalCopilotBtn.addEventListener('click', () => {
+                // Pasa los datos de la nota actualmente visualizada o los datos del formulario principal
+                const sourceDataForCopilot = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : _collectFormData();
+                handleCopilotCopy(sourceDataForCopilot);
+            });
         }
         
         if (separateModalCopilotBtn) {
             separateModalCopilotBtn.addEventListener('click', () => {
-                // Usar _currentlyViewedNoteData si está disponible, de lo contrario _currentFinalNoteContent.
-                const sourceNote = _currentlyViewedNoteData ? _currentlyViewedNoteData.finalNoteText : _currentFinalNoteContent;
-                handleCopilotCopy(sourceNote);
+                // Pasa los datos de la nota actualmente visualizada o los datos del formulario principal
+                const sourceDataForCopilot = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : _collectFormData();
+                handleCopilotCopy(sourceDataForCopilot);
             });
         }
 
@@ -3394,18 +3189,18 @@ document.addEventListener('DOMContentLoaded', () => {
         // El botón de resolución del modal principal
         if (modalResolutionBtn) {
             modalResolutionBtn.addEventListener('click', () => {
-                // Usar _currentlyViewedNoteData.formData si está disponible, de lo contrario null.
-                const sourceData = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : null;
-                handleResolutionCopy(sourceData);
+                // Pasa los datos de la nota actualmente visualizada o los datos del formulario principal
+                const sourceDataForResolution = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : _collectFormData();
+                handleResolutionCopy(sourceDataForResolution);
             });
         }
 
         // El botón de resolución del modal de nota separada
         if (separateModalResolutionBtn) {
             separateModalResolutionBtn.addEventListener('click', () => {
-                // Usar _currentlyViewedNoteData.formData si está disponible, de lo contrario null.
-                const sourceData = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : null;
-                handleResolutionCopy(sourceData);
+                // Pasa los datos de la nota actualmente visualizada o los datos del formulario principal
+                const sourceDataForResolution = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : _collectFormData();
+                handleResolutionCopy(sourceDataForResolution);
             });
         }
 
@@ -3422,8 +3217,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modalSeparateBtn) {
             modalSeparateBtn.addEventListener('click', () => {
                 // Si la nota actual es la del historial, usamos sus datos. Si no, usamos la del editor.
-                const sourceData = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : null;
-                const finalNote = _currentlyViewedNoteData ? _currentlyViewedNoteData.finalNoteText : _currentFinalNoteContent; // Corregido typo aquí
+                const sourceData = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : _collectFormData(); // Usa _collectFormData para la nota actual
+                const finalNote = _currentlyViewedNoteData ? _currentlyViewedNoteData.finalNoteText : _currentFinalNoteContent; 
 
                 const part1CoreContent = _buildSection1Content(sourceData);
                 const section2Content = _buildSection2InitialContent(sourceData);
