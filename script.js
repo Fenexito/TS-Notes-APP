@@ -1,19 +1,19 @@
 /**
- * @summary Script para una aplicación de toma de notas para agentes de call center.
- * @description Gestiona la creación, guardado, edición y visualización de notas de llamadas.
- * Funciona sin servidor, utilizando IndexedDB (con Dexie.js) para la persistencia de datos.
- * La interfaz se actualiza dinámicamente según las selecciones del usuario.
+ * @summary Script for a note-taking application for call center agents.
+ * @description Manages the creation, saving, editing, and viewing of call notes.
+ * Works serverless, using IndexedDB (with Dexie.js) for data persistence.
+ * The interface updates dynamically based on user selections.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOMContentLoaded: El DOM ha sido cargado. Iniciando la aplicación...');
+    console.log('DOMContentLoaded: The DOM has been loaded. Initializing the application...');
 
     // =================================================================================
-    // 1. CONFIGURACIÓN Y ESTADO GLOBAL
+    // 1. GLOBAL CONFIGURATION AND STATE
     // =================================================================================
 
     // ------------------------------------------
-    // A. Constantes de la Aplicación y Configuración de la Base de Datos
+    // A. Application Constants and Database Configuration
     // ------------------------------------------
     const CHARACTER_LIMIT = 995;
     const TWO_PART_SPLIT_THRESHOLD = 995;
@@ -21,33 +21,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const RESOLUTION_COPY_CHAR_LIMIT = 999;
     const TS_CHAR_ORANGE_THRESHOLD = 875;
     const TS_CHAR_RED_THRESHOLD = 985;
-    const AGENT_NAME_KEY = 'agentNameSaved'; // Clave para la tabla de configuración
-    const APP_VERSION_KEY = 'appVersion'; // Clave para la versión de la app
+    const AGENT_NAME_KEY = 'agentNameSaved';
+    const APP_VERSION_KEY = 'appVersion';
 
-    // DEXIE.JS: CONFIGURACIÓN DE LA BASE DE DATOS INDEXEDDB
+    // DEXIE.JS: INDEXEDDB DATABASE CONFIGURATION
     const db = new Dexie('tsNotesAppDB');
     db.version(1).stores({
-        notes: 'id, timestamp', // Tabla de notas. 'id' es la clave primaria, 'timestamp' es un índice para ordenar.
-        settings: 'key' // Tabla de configuración simple (ej: para el nombre del agente). 'key' es la clave primaria.
+        notes: 'id, timestamp', // Notes table. 'id' is the primary key, 'timestamp' is an index for sorting.
+        settings: 'key' // Simple settings table (e.g., for agent name). 'key' is the primary key.
     });
 
     // ------------------------------------------
-    // B. Variables de Estado Global
+    // B. Global State Variables
     // ------------------------------------------
     let _currentFinalNoteContent = '';
     let _lastNoteIdBeforeModalTransition = null;
     let isEditingNoteFlag = false;
     let currentViewedNoteId = null;
     let currentEditingNoteId = null;
-    let _currentlyViewedNoteData = null; // Almacena la nota del historial que se está viendo
+    let _currentlyViewedNoteData = null;
     let _historyNotesCache = [];
     let highlightTimeout = null;
     let resolveConfirmPromise;
     let isAgentNameEditable = false;
-    let _awaitingChecklistCompletionForCopySave = false; // Bandera para la acción pendiente de copiar/guardar
+    let _awaitingChecklistCompletionForCopySave = false;
 
     // ------------------------------------------
-    // C. Configuración de Campos y Datos
+    // C. Field and Data Configuration
     // ------------------------------------------
     const fieldConfig = {
         'agentName': { label: 'PFTS', required: true, type: 'text' },
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'enablePhysicalCheck4': { label: 'Enable Phys. 4', required: false, type: 'checkbox' },
         'xVuStatusSelect': { label: 'xVu STATUS', required: true, type: 'select', conditional: true },
         'packetLossSelect': { label: 'PACKET LOSS', required: true, type: 'select', conditional: true },
-        'additionalinfoText': { label: 'ADDITIOANL INFO', required: false, type: 'textarea' },
+        'additionalinfoText': { label: 'ADDITIONAL INFO', required: false, type: 'textarea' },
         'troubleshootingProcessText': { label: 'TS STEPS', required: true, type: 'textarea' },
         'awaAlertsSelect': { label: 'AWA ALERTS', required: false, type: 'select' },
         'awaAlerts2Select': { label: 'AWA ALERTS 2', required: false, type: 'select', conditional: true },
@@ -214,11 +214,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // =================================================================================
-    // 2. REFERENCIAS A ELEMENTOS DEL DOM
+    // 2. DOM ELEMENT REFERENCES
     // =================================================================================
     const get = (id) => document.getElementById(id);
 
-    // Formulario principal
+    // Main Form
     const agentNameInput = get('agentName');
     const editAgentNameBtn = get('editAgentNameBtn');
     const mainNoteCharCountHeader = get('mainNoteCharCountHeader');
@@ -309,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sections = document.querySelectorAll('.form-section');
     const appVersionDisplay = get('appVersionDisplay');
 
-    // Modales
+    // Modals
     const noteModalOverlay = get('noteModalOverlay');
     const modalNoteTextarea = get('modalNoteTextarea');
     const modalCopyBtn = get('modalCopyBtn');
@@ -331,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmYesBtn = get('confirmYesBtn');
     const confirmNoBtn = get('confirmNoBtn');
     
-    // Historial
+    // History Sidebar
     const historySidebar = get('historySidebar');
     const closeSidebarBtn = get('closeHistoryBtn');
     const noteHistoryList = get('noteHistoryList');
@@ -339,14 +339,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const historySearchInput = get('historySearchInput');
     const noNotesMessage = get('noNotesMessage');
 
-    // Checklist
+    // Checklist Sidebar
     const btnChecklistMenu = get('btnChecklistMenu');
     const checklistSidebar = get('checklistSidebar');
     const closeChecklistBtn = get('closeChecklistBtn');
     const checklistSidebarOverlay = get('checklist-sidebar-overlay');
     const btnChecklistYesAll = get('btnChecklistYesAll');
+    const goCheckPhysicalLink = get('goCheckPhysicalLink');
+    const goTsCopilotLink = get('goTsCopilotLink');
     
-    // Feedback
+    // Feedback Modal
     const feedbackBtn = get('feedback-btn');
     const feedbackModalOverlay = get('feedbackModalOverlay');
     const closeFeedbackModalBtn = get('closeFeedbackModalBtn');
@@ -359,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // =================================================================================
-    // 3. LÓGICA PRINCIPAL DE LA APLICACIÓN
+    // 3. MAIN APPLICATION LOGIC
     // =================================================================================
 
     const _getFieldValue = (id, sourceData = null) => {
@@ -535,7 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const formattedDate = `${dayAbbreviations[dateObj.getDay()]} ${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}`;
                     resolutionDetails.push(`DISPATCH: ${formattedDate}, ${dispatchTime}`);
                 }
-            } else if (resolvedValue === 'No | Follow Up Required') {
+            } else if (resolvedValue === 'No | Follow Up Required' || resolvedValue === 'No | Follow Up Required | Set SCB with FVA') {
                 const followUpDate = _getFieldValue('dispatchDateInput', sourceData);
                 const followUpTime = _getFieldValue('dispatchTimeSlotSelect', sourceData);
                 if (followUpDate && followUpTime) {
@@ -580,6 +582,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCharCounter(rawNote.length, mainNoteCharCountHeader, CHARACTER_LIMIT, false, true);
         if (troubleshootingProcessText) updateTroubleshootingCharCounter(troubleshootingProcessText.value.length);
         updateStickyHeaderInfo();
+        updateChecklistState(); // Update checklist whenever the note is regenerated
     };
 
     const saveCurrentNote = async () => {
@@ -596,19 +599,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (!allChecklistFilled) {
-            showToast('Por favor, complete los campos obligatorios del Checklist.', 'warning');
+            showToast('Please complete the required Checklist items.', 'warning');
             checklistSidebar.classList.add('open');
             checklistSidebarOverlay.style.display = 'block';
             
             if (_awaitingChecklistCompletionForCopySave) {
-                closeModal(true); // Cierra el modal final, pero mantiene el sidebar
+                closeModal(true);
             }
             return false;
         }
 
         if (isAgentNameEditable) {
             if (!_getFieldValue('agentName')) {
-                showToast('Por favor, ingrese su nombre de agente (PFTS).', 'error');
+                showToast('Please enter your agent name (PFTS).', 'error');
                 if (agentNameInput) {
                     agentNameInput.classList.add('required-initial-border');
                     agentNameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -669,7 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!allRequiredFieldsFilled) {
-            showToast(`Por favor, complete todos los campos obligatorios.`, 'error');
+            showToast(`Please fill all required fields.`, 'error');
             if (firstMissingElement) {
                 const parentSection = firstMissingElement.closest('.form-section');
                 if (parentSection && parentSection.classList.contains('collapsed')) parentSection.classList.remove('collapsed');
@@ -684,7 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const noteToSave = _currentFinalNoteContent;
         if (noteToSave.trim() === '') {
-            showToast('No hay nota para guardar. Por favor, complete el formulario.', 'warning');
+            showToast('There is no note to save. Please fill the form.', 'warning');
             return false;
         }
 
@@ -747,12 +750,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 noteData.id = currentEditingNoteId;
                 noteData.isModified = true;
                 await db.notes.put(noteData);
-                showToast('Nota del historial actualizada.', 'success');
+                showToast('History note updated.', 'success');
             } else {
                 noteData.id = Date.now().toString();
                 noteData.isModified = false;
                 await db.notes.add(noteData);
-                showToast('Nota guardada al historial.', 'success');
+                showToast('Note saved to history.', 'success');
             }
 
             currentEditingNoteId = null;
@@ -768,8 +771,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             return true;
         } catch (e) {
-            console.error("Error al guardar la nota en IndexedDB:", e);
-            showToast('Error al guardar la nota en el historial. Intente de nuevo.', 'error');
+            console.error("Error saving note to IndexedDB:", e);
+            showToast('Error saving note to history. Please try again.', 'error');
             return false;
         }
     };
@@ -781,8 +784,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             _historyNotesCache = await db.notes.orderBy('timestamp').reverse().toArray();
         } catch (e) {
-            console.error("Error al cargar las notas desde IndexedDB:", e);
-            showToast("Error al cargar el historial de notas. La base de datos podría estar corrupta.", "error");
+            console.error("Error loading notes from IndexedDB:", e);
+            showToast("Error loading note history. The database might be corrupted.", "error");
             _historyNotesCache = [];
         }
 
@@ -790,7 +793,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (notes.length === 0) {
             if (noNotesMessage) {
-                noNotesMessage.textContent = 'No hay notas guardadas aún.';
+                noNotesMessage.textContent = 'No saved notes yet.';
                 noNotesMessage.style.display = 'block';
             }
             return;
@@ -821,17 +824,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const timestamp = new Date(dateKey);
             const isTodayGroupCheck = (dateKey === todayUTCKey);
 
-            const dayOfWeek = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][timestamp.getUTCDay()];
+            const dayOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][timestamp.getUTCDay()];
             const dayOfMonth = timestamp.getUTCDate();
-            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             const month = monthNames[timestamp.getUTCMonth()];
             const year = timestamp.getUTCFullYear();
 
-            let displayDateFormatted = `${dayOfWeek}, ${dayOfMonth}/${month}/${year}`;
+            let displayDateFormatted = `${dayOfWeek}, ${month} ${dayOfMonth}, ${year}`;
 
             let groupDisplayDate;
             if (isTodayGroupCheck) {
-                groupDisplayDate = 'Hoy';
+                groupDisplayDate = 'Today';
             } else {
                 groupDisplayDate = displayDateFormatted;
             }
@@ -966,7 +969,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="note-item-header">
                         <span class="${charCountClasses}">${noteLength}</span>
                         ${skill ? `<span class="note-skill-label">(${skill})</span>` : ''}
-                        <span class="note-modified-indicator" style="display:${isModified};" title="Nota modificada">
+                        <span class="note-modified-indicator" style="display:${isModified};" title="Modified note">
                             <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.000 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </span>
                     </div>
@@ -990,11 +993,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     ${additionalDetails.length > 0 ? `<div class="note-additional-details">${additionalDetails.join('<br>')}</div>` : ''}
                     <div class="note-actions">
-                        <button type="button" class="history-action-btn view-btn" data-note-id="${note.id}">VER</button>
-                        <button type="button" class="history-action-btn edit-btn" data-note-id="${note.id}">EDITAR</button>
+                        <button type="button" class="history-action-btn view-btn" data-note-id="${note.id}">VIEW</button>
+                        <button type="button" class="history-action-btn edit-btn" data-note-id="${note.id}">EDIT</button>
                         <button type="button" class="history-action-btn delete-btn" data-note-id="${note.id}">
                             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                            ELIMINAR
+                            DELETE
                         </button>
                     </div>
                 `;
@@ -1005,7 +1008,7 @@ document.addEventListener('DOMContentLoaded', () => {
         noteHistoryList.querySelectorAll('.date-group').forEach(group => {
             const groupHeader = group.querySelector('.date-group-header h3');
             const groupContent = group.querySelector('.date-group-content');
-            const isTodayGroupNow = groupHeader && groupHeader.textContent === 'Hoy';
+            const isTodayGroupNow = groupHeader && groupHeader.textContent === 'Today';
 
             if (isTodayGroupNow && groupContent.style.opacity !== '0') {
                 groupContent.style.maxHeight = 'none';
@@ -1022,7 +1025,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     hideSidebar();
                     viewNoteInModal(selectedNote);
                 } else {
-                    showToast('Nota no encontrada en el historial.', 'error');
+                    showToast('Note not found in history.', 'error');
                 }
             });
         });
@@ -1036,7 +1039,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     closeModal(true);
                     await editNote(selectedNote.formData, selectedNote.id);
                 } else {
-                    showToast('Nota no encontrada para editar.', 'error');
+                    showToast('Note not found for editing.', 'error');
                 }
             });
         });
@@ -1046,13 +1049,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const noteIdToDelete = event.currentTarget.dataset.noteId;
                 unhighlightAllNotes();
                 hideSidebar();
-                const confirmed = await customConfirm('¿Estás seguro de que quieres eliminar esta nota del historial? Esta acción no se puede rehacer.');
+                const confirmed = await customConfirm('Are you sure you want to delete this note from history? This action cannot be undone.');
                 currentViewedNoteId = null;
                 _lastNoteIdBeforeModalTransition = null;
                 if (confirmed) {
                     await deleteNote(noteIdToDelete);
                 } else {
-                    showToast('Eliminación cancelada.', 'info');
+                    showToast('Deletion canceled.', 'info');
                     showSidebarAndHighlightNote(noteIdToDelete);
                 }
             });
@@ -1063,13 +1066,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const deleteNote = async (noteId) => {
         try {
             await db.notes.delete(noteId);
-            showToast('Nota eliminada del historial.', 'success');
+            showToast('Note deleted from history.', 'success');
             await loadNotes();
             _lastNoteIdBeforeModalTransition = null;
             _currentlyViewedNoteData = null; 
         } catch (e) {
-            console.error("Error al eliminar la nota de IndexedDB:", e);
-            showToast('Error: No se pudo eliminar la nota.', 'error');
+            console.error("Error deleting note from IndexedDB:", e);
+            showToast('Error: Could not delete note.', 'error');
         }
     };
     
@@ -1077,9 +1080,9 @@ document.addEventListener('DOMContentLoaded', () => {
         hideSidebar();
         const hasData = checkCurrentFormHasData();
         if (hasData) {
-            const confirmed = await customConfirm('Hay datos en el editor actual. ¿Desea sobrescribirlos con los datos de la nota seleccionada?');
+            const confirmed = await customConfirm('There is data in the current editor. Do you want to overwrite it with the data from the selected note?');
             if (!confirmed) {
-                showToast('Edición cancelada. Los datos actuales se mantienen.', 'info');
+                showToast('Edit canceled. Current data remains.', 'info');
                 showSidebarAndHighlightNote(originalNoteId);
                 _lastNoteIdBeforeModalTransition = null;
                 return;
@@ -1200,7 +1203,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await new Promise(resolve => setTimeout(resolve, 10));
         applyInitialRequiredHighlight();
         generateFinalNote();
-        showToast('Nota cargada al editor para su edición.', 'success');
+        showToast('Note loaded into the editor.', 'success');
         _lastNoteIdBeforeModalTransition = null;
     };
 
@@ -1230,13 +1233,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        const checklistItems = checklistSidebar.querySelectorAll('.checklist-item');
-        checklistItems.forEach(item => {
-            const radios = item.querySelectorAll('input[type="radio"]');
-            radios.forEach(radio => radio.checked = false);
-            item.classList.remove('status-yes', 'status-no', 'status-na', 'checklist-item-required');
-            item.classList.add('status-pending');
-        });
+        resetChecklist();
 
         document.querySelectorAll('.checklist-section').forEach(section => {
             const title = section.querySelector('.checklist-section-title');
@@ -1342,7 +1339,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     // =================================================================================
-    // 4. FUNCIONES DE AYUDA Y UI
+    // 4. UI AND HELPER FUNCTIONS
     // =================================================================================
     
     const autoResizeTextarea = (element) => {
@@ -1389,7 +1386,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function copyToClipboard(textToCopy) {
         if (typeof textToCopy !== 'string' || textToCopy.trim() === '') {
-            showToast('Campo vacío. Nada que copiar.', 'error');
+            showToast('Empty field. Nothing to copy.', 'error');
             return false;
         }
 
@@ -1404,11 +1401,11 @@ document.addEventListener('DOMContentLoaded', () => {
             document.execCommand('copy');
             document.body.removeChild(tempTextArea);
 
-            showToast(`Texto copiado al portapapeles.`, 'success');
+            showToast(`Text copied to clipboard.`, 'success');
             return true;
         } catch (err) {
-            console.error('Error al copiar al portapapeles:', err);
-            showToast('No se pudo copiar el texto.', 'error');
+            console.error('Error copying to clipboard:', err);
+            showToast('Could not copy text.', 'error');
             return false;
         }
     };
@@ -1468,7 +1465,7 @@ document.addEventListener('DOMContentLoaded', () => {
             agentNameInput.setAttribute('readonly', 'readonly');
             agentNameInput.style.backgroundColor = '#f0f0f0';
             agentNameInput.style.cursor = 'not-allowed';
-            agentNameInput.title = 'Este campo solo puede ser editado al presionar el botón de editar.';
+            agentNameInput.title = 'This field can only be edited by pressing the edit button.';
             agentNameInput.removeEventListener('blur', saveAgentNameOnBlur);
             agentNameInput.removeEventListener('keydown', saveAgentNameOnEnter);
             isAgentNameEditable = false;
@@ -1481,7 +1478,7 @@ document.addEventListener('DOMContentLoaded', () => {
             agentNameInput.removeAttribute('readonly');
             agentNameInput.style.backgroundColor = '';
             agentNameInput.style.cursor = 'text';
-            agentNameInput.title = 'Edite su nombre. Se guardará al perder el foco o presionar Enter.';
+            agentNameInput.title = 'Edit your name. It will be saved on blur or by pressing Enter.';
             agentNameInput.focus();
             agentNameInput.select();
             agentNameInput.addEventListener('blur', saveAgentNameOnBlur);
@@ -1506,8 +1503,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch (e) {
-            console.error("Error al cargar nombre del agente desde IndexedDB:", e);
-            showToast('No se pudo cargar el nombre del agente.', 'error');
+            console.error("Error loading agent name from IndexedDB:", e);
+            showToast('Could not load agent name.', 'error');
             setAgentNameEditable();
         }
         generateFinalNote();
@@ -1519,22 +1516,22 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 await db.settings.put({ key: AGENT_NAME_KEY, value: name });
                 setAgentNameReadonly();
-                showToast('Nombre del agente guardado.', 'success');
+                showToast('Agent name saved.', 'success');
             }
             catch (e) {
-                console.error("Error al guardar el nombre del agente en IndexedDB:", e);
-                showToast('Error al guardar el nombre del agente.', 'error');
+                console.error("Error saving agent name to IndexedDB:", e);
+                showToast('Error saving agent name.', 'error');
             }
         } else {
             if (agentNameInput) agentNameInput.classList.add('required-initial-border');
-            showToast('El nombre del agente no puede estar vacío.', 'error');
+            showToast('Agent name cannot be empty.', 'error');
         }
         generateFinalNote();
     };
     
     const updateThirdRowLayout = (callerValue = null, xidValue = '') => {
         if (!callerSelect || !xidFieldContainer || !xidInput) {
-            console.error("Algunos elementos de la Sección 1 no se encontraron. No se pudo actualizar el layout.");
+            console.error("Some elements from Section 1 were not found. Could not update layout.");
             return;
         }
 
@@ -1560,7 +1557,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const populateIssueSelect = (service, selectedIssue = '') => {
         if (!issueSelect) return;
-        issueSelect.innerHTML = '<option value="">Seleccione un problema</option>';
+        issueSelect.innerHTML = '<option value="">Select an issue</option>';
         issueSelect.setAttribute('required', service ? 'required' : '');
         if (service && issueOptions[service]) {
             issueOptions[service].forEach(issue => {
@@ -1652,7 +1649,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (select.id === 'physicalCheckList2Select' && isSHS) {
                 const effectiveIssue = selectedIssueFromForm || currentIssueValue;
-                select.innerHTML = '<option value="">Seleccione una opción</option>';
+                select.innerHTML = '<option value="">Select an option</option>';
 
                 if (shsIssuesToDisableDevice.includes(effectiveIssue)) {
                     select.disabled = true;
@@ -1689,7 +1686,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             } else if (select.id === 'physicalCheckList3Select' && isSHS) {
-                select.innerHTML = '<option value="">Seleccione una opción</option>';
+                select.innerHTML = '<option value="">Select an option</option>';
                 const conditionOptions = ['Device OK', 'Low Battery', 'Not Responding', 'Malfunction', 'IDLE', 'Tamper', 'Bypassed', 'Not Connected to Wi-Fi', ];
                 conditionOptions.forEach(optionText => {
                     const option = document.createElement('option');
@@ -1705,7 +1702,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     select.value = '';
                 }
             } else {
-                select.innerHTML = '<option value="">Seleccione una opción</option>';
+                select.innerHTML = '<option value="">Select an option</option>';
                 const options = (service && equipmentOptions[service] && equipmentOptions[service][listKey]) ? equipmentOptions[service][listKey] : [];
                 options.forEach(optionText => {
                     const option = document.createElement('option');
@@ -1826,7 +1823,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!optikTvLegacySpecificFieldsContainer || !xVuStatusSelect || !packetLossSelect) return;
         if (service === 'Optik TV (Legacy)') {
             optikTvLegacySpecificFieldsContainer.style.display = 'flex';
-            xVuStatusSelect.innerHTML = '<option value="">Seleccione una opción</option>';
+            xVuStatusSelect.innerHTML = '<option value="">Select an option</option>';
             const xVuOptions = (equipmentOptions[service] && equipmentOptions[service].list5) ? equipmentOptions[service].list5 : [];
             xVuOptions.forEach(optionText => {
                 const option = document.createElement('option');
@@ -1843,7 +1840,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 xVuStatusSelect.value = '';
             }
-            packetLossSelect.innerHTML = '<option value="">Seleccione una opción</option>';
+            packetLossSelect.innerHTML = '<option value="">Select an option</option>';
             const packetLossOptions = (equipmentOptions[service] && equipmentOptions[service].list6) ? equipmentOptions[service].list6 : [];
             packetLossOptions.forEach(optionText => {
                 const option = document.createElement('option');
@@ -1877,7 +1874,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!awaAlertsSelect || !awaAlertsSelectLabel) return;
         const options = skill === 'SHS' ? awaAlertsOptionsSHS : awaAlertsOptionsFFH;
         awaAlertsSelectLabel.textContent = skill === 'SHS' ? 'ADC TROUBLE CONDITIONS' : 'AWA ALERTS';
-        awaAlertsSelect.innerHTML = '<option value="">Seleccione una opción</option>';
+        awaAlertsSelect.innerHTML = '<option value="">Select an option</option>';
         options.forEach(optionText => {
             const option = document.createElement('option');
             option.value = optionText;
@@ -1898,7 +1895,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentSkill = skillToggle.checked ? 'SHS' : 'FFH';
         const options = currentSkill === 'SHS' ? awaAlerts2OptionsSHS : awaAlerts2OptionsFFH;
         awaAlerts2SelectLabel.textContent = currentSkill === 'SHS' ? 'ADC TROUBLE CONDITIONS 2' : 'AWA ALERTS 2';
-        awaAlerts2Select.innerHTML = '<option value="">Seleccione una opción</option>';
+        awaAlerts2Select.innerHTML = '<option value="">Select an option</option>';
         options.forEach(optionText => {
             const option = document.createElement('option');
             option.value = optionText;
@@ -1928,7 +1925,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentSkill = skillToggle.checked ? 'SHS' : 'FFH';
         const options = currentSkill === 'SHS' ? awaStepsOptionsSHS : awaStepsOptionsFFH;
         awaStepsSelectLabel.textContent = currentSkill === 'SHS' ? 'ADC TROUBLE CONDITIONS 3' : 'AWA STEPS';
-        awaStepsSelect.innerHTML = '<option value="">Seleccione una opción</option>';
+        awaStepsSelect.innerHTML = '<option value="">Select an option</option>';
         options.forEach(optionText => {
             const option = document.createElement('option');
             option.value = optionText;
@@ -2040,7 +2037,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     populateTimeSlots("dispatch");
                 }
             }
-        } else if (resolvedValue === 'No | Follow Up Required') {
+        } else if (resolvedValue === 'No | Follow Up Required' || resolvedValue === 'No | Follow Up Required | Set SCB with FVA') {
             if (dispatchDateInputContainer) dispatchDateInputContainer.style.display = 'flex';
             if (dispatchTimeSlotSelectContainer) dispatchTimeSlotSelectContainer.style.display = 'flex';
             if (dispatchDateInput) {
@@ -2115,7 +2112,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const populateExtraStepsSelect = () => {
         if (!extraStepsSelect) return;
-        extraStepsSelect.innerHTML = '<option value="">Seleccione una opción</option>';
+        extraStepsSelect.innerHTML = '<option value="">Select an option</option>';
         extraStepsOptions.forEach(optionText => {
             const option = document.createElement('option');
             option.value = optionText;
@@ -2248,7 +2245,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (_awaitingChecklistCompletionForCopySave) {
             _awaitingChecklistCompletionForCopySave = false;
             viewNoteInModal(_currentlyViewedNoteData || { id: null, finalNoteText: _currentFinalNoteContent, formData: null });
-            showToast('Por favor, presione "Copiar y Guardar" de nuevo.', 'info');
+            showToast('Please press "Copy & Save" again.', 'info');
         }
     };
 
@@ -2350,7 +2347,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dateGroups = noteHistoryList.querySelectorAll('.date-group');
         if (dateGroups.length === 0) {
             if (noNotesMessage) {
-                noNotesMessage.textContent = 'No hay notas guardadas aún.';
+                noNotesMessage.textContent = 'No saved notes yet.';
                 noNotesMessage.style.display = 'block';
             }
             return;
@@ -2402,7 +2399,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
             if (searchText === '') {
-                const isTodayGroup = groupHeaderElement && groupHeaderElement.textContent === 'Hoy';
+                const isTodayGroup = groupHeaderElement && groupHeaderElement.textContent === 'Today';
                 if (isTodayGroup) {
                     groupContent.style.maxHeight = 'none';
                     groupContent.offsetHeight;
@@ -2439,10 +2436,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (noNotesMessage) {
             const notes = _historyNotesCache;
             if (notes.length === 0) {
-                noNotesMessage.textContent = 'No hay notas guardadas aún.';
+                noNotesMessage.textContent = 'No saved notes yet.';
                 noNotesMessage.style.display = 'block';
             } else if (!anyNoteVisibleInAnyGroupOverall && searchText !== '') {
-                noNotesMessage.textContent = 'No se encontraron notas que coincidan con la búsqueda.';
+                noNotesMessage.textContent = 'No notes found matching the search.';
                 noNotesMessage.style.display = 'block';
             } else {
                 noNotesMessage.style.display = 'none';
@@ -2451,7 +2448,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =================================================================================
-    // 5. MANEJADORES DE EVENTOS
+    // 5. EVENT HANDLERS
     // =================================================================================
 
     const saveAgentNameOnBlur = async () => {
@@ -2571,7 +2568,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const cxIssueVal = _getFieldValue('cxIssueText', sourceData);
         const tsStepsVal = _getFieldValue('troubleshootingProcessText', sourceData);
         if (!cxIssueVal && !tsStepsVal) {
-             showToast('No hay información de resolución para copiar.', 'warning');
+             showToast('No resolution information to copy.', 'warning');
              return;
         }
 
@@ -2585,20 +2582,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (combinedResolutionText.length > RESOLUTION_COPY_CHAR_LIMIT) {
             finalTextToCopy = tsStepsVal ? `TS STEPS: ${tsStepsVal}` : '';
             if (!finalTextToCopy) {
-                showToast('La resolución excede el límite y no hay pasos de troubleshooting para copiar.', 'warning');
+                showToast('Resolution exceeds character limit and there are no troubleshooting steps to copy.', 'warning');
                 return;
             }
         }
         if (finalTextToCopy) {
             await copyToClipboard(finalTextToCopy);
         } else {
-            showToast('No hay información de resolución para copiar.', 'warning');
+            showToast('No resolution information to copy.', 'warning');
         }
     };
 
     const handleCopilotCopy = async (sourceNoteText) => {
         if (!sourceNoteText) {
-            showToast('No hay nota para enviar a Copilot.', 'warning');
+            showToast('No note to send to Copilot.', 'warning');
             return;
         }
         const noteLines = sourceNoteText.split('\n');
@@ -2613,14 +2610,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const parentItem = radio.closest('.checklist-item');
         if (!parentItem) return;
 
-        parentItem.classList.remove('status-pending', 'status-yes', 'status-no', 'status-na', 'checklist-item-required');
+        parentItem.classList.remove('status-pending', 'status-yes', 'status-no', 'status-na', 'checklist-item-required', 'status-follow-up-yes', 'status-follow-up-no');
 
         switch (radio.value) {
             case 'yes':
-                parentItem.classList.add('status-yes');
+                if (radio.name === 'checklistFollowUp') {
+                    parentItem.classList.add('status-follow-up-yes');
+                } else {
+                    parentItem.classList.add('status-yes');
+                }
                 break;
             case 'no':
-                parentItem.classList.add('status-no');
+                 if (radio.name === 'checklistFollowUp') {
+                    parentItem.classList.add('status-follow-up-no');
+                } else {
+                    parentItem.classList.add('status-no');
+                }
                 break;
             case 'na':
                 parentItem.classList.add('status-na');
@@ -2629,7 +2634,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     // =================================================================================
-    // 6. INICIALIZACIÓN
+    // 6. INITIALIZATION
     // =================================================================================
 
     const initializeEventListeners = () => {
@@ -2650,9 +2655,9 @@ document.addEventListener('DOMContentLoaded', () => {
             btnReset.addEventListener('click', async () => {
                 const hasData = checkCurrentFormHasData();
                 if (hasData) {
-                    const confirmed = await customConfirm('¿Está seguro de que desea borrar toda la información del formulario? Esta acción no se puede deshacer.');
+                    const confirmed = await customConfirm('Are you sure you want to clear all information from the form? This action cannot be undone.');
                     if (!confirmed) {
-                        showToast('Reseteo cancelado.', 'info');
+                        showToast('Reset canceled.', 'info');
                         return;
                     }
                 }
@@ -2662,7 +2667,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (separateNoteModalOverlay) separateNoteModalOverlay.style.display = 'none';
                 clearAllFormFields();
                 hideSidebar();
-                showToast('Formulario restablecido.', 'info');
+                showToast('Form reset.', 'info');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 if (banInput) {
                     banInput.focus();
@@ -2690,6 +2695,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (closeChecklistBtn) closeChecklistBtn.addEventListener('click', closeChecklistSidebar);
         if (checklistSidebarOverlay) checklistSidebarOverlay.addEventListener('click', closeChecklistSidebar);
         if (checklistSidebar) checklistSidebar.addEventListener('change', handleChecklistChange);
+
+        if (goCheckPhysicalLink) {
+            goCheckPhysicalLink.addEventListener('click', () => {
+                setChecklistValue('checklistCheckPhysical', 'yes');
+            });
+        }
+        if (goTsCopilotLink) {
+            goTsCopilotLink.addEventListener('click', () => {
+                setChecklistValue('checklistTsCopilot', 'yes');
+            });
+        }
 
         document.querySelectorAll('.checklist-section-title').forEach(title => {
             title.addEventListener('click', (event) => {
@@ -2728,35 +2744,32 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        document.querySelectorAll('.clean-checklist-section-btn').forEach(button => {
+        document.querySelectorAll('.clean-section-btn').forEach(button => {
             button.addEventListener('click', (event) => {
-                event.stopPropagation();
-                const sectionIdentifier = event.currentTarget.dataset.section;
-                const sectionTitle = event.currentTarget.closest('.checklist-section').querySelector('.checklist-title-text').textContent;
-                const itemsToClear = document.querySelectorAll(`.checklist-section:has([data-section="${sectionIdentifier}"]) .checklist-item`);
-                
-                itemsToClear.forEach(item => {
-                    const radios = item.querySelectorAll('input[type="radio"]');
-                    radios.forEach(radio => radio.checked = false);
-                    item.classList.remove('status-yes', 'status-no', 'status-na', 'checklist-item-required');
-                    item.classList.add('status-pending');
-                });
-                showToast(`Sección "${sectionTitle}" del checklist limpiada.`, 'info');
+                cleanSection(event.currentTarget.dataset.sectionId);
             });
         });
 
         if(btnChecklistYesAll) {
             btnChecklistYesAll.addEventListener('click', () => {
-                const allRadios = checklistSidebar.querySelectorAll('.checklist-item input[type="radio"][value="yes"]');
-                allRadios.forEach(radio => {
-                    radio.checked = true;
-                    const parentItem = radio.closest('.checklist-item');
-                    if(parentItem) {
-                        parentItem.classList.remove('status-pending', 'status-no', 'status-na', 'checklist-item-required');
-                        parentItem.classList.add('status-yes');
+                const allChecklistItems = checklistSidebar.querySelectorAll('.checklist-item');
+                allChecklistItems.forEach(item => {
+                    const radios = item.querySelectorAll('input[type="radio"]');
+                    let isAlreadySelected = false;
+                    radios.forEach(radio => {
+                        if (radio.checked) {
+                            isAlreadySelected = true;
+                        }
+                    });
+
+                    if (!isAlreadySelected) {
+                        const yesRadio = item.querySelector('input[value="yes"]');
+                        if (yesRadio) {
+                           setChecklistValue(yesRadio.name, 'yes');
+                        }
                     }
                 });
-                showToast('Todas las opciones del checklist marcadas como "Sí".', 'success');
+                showToast('All remaining checklist options marked as "Yes".', 'success');
             });
         }
 
@@ -2972,8 +2985,8 @@ document.addEventListener('DOMContentLoaded', () => {
             applyInitialRequiredHighlight();
             generateFinalNote();
             const sectionTitleElement = section.querySelector('.section-title');
-            const sectionTitleText = sectionTitleElement ? sectionTitleElement.textContent.trim().replace('Limpiar sección', '').trim() : sectionId;
-            showToast(`Sección "${sectionTitleText}" limpiada.`, 'info');
+            const sectionTitleText = sectionTitleElement ? sectionTitleElement.textContent.trim().replace('Clean section', '').trim() : sectionId;
+            showToast(`Section "${sectionTitleText}" cleared.`, 'info');
         };
 
         document.querySelectorAll('.clean-section-btn').forEach(button => {
@@ -2986,7 +2999,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btnSee.addEventListener('click', () => {
                 const currentNote = _currentFinalNoteContent;
                 if (currentNote.trim() === '') {
-                    showToast('La nota actual está vacía. Por favor, complete el formulario.', 'warning');
+                    showToast('Current note is empty. Please fill the form.', 'warning');
                 } else {
                     viewNoteInModal({
                         id: null,
@@ -3169,10 +3182,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         closeModal(true);
                         await editNote(noteToLoad.formData, noteToLoad.id);
                     } else {
-                        showToast('Error: Nota no encontrada para editar.', 'error');
+                        showToast('Error: Note not found for editing.', 'error');
                     }
                 } else {
-                    showToast('No hay nota seleccionada del historial para editar.', 'warning');
+                    showToast('No note selected from history to edit.', 'warning');
                 }
             });
         }
@@ -3284,15 +3297,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 let partsToDisplay = [];
 
                 if (troubleshootingProcessLength > TS_PROCESS_THREE_PART_THRESHOLD) {
-                    partsToDisplay.push({ label: 'Parte 1', content: `1/3\n${part1String}` });
-                    partsToDisplay.push({ label: 'Parte 2', content: `2/3\n${tsString}` });
-                    partsToDisplay.push({ label: 'Parte 3', content: `3/3\n${section3String}\n${section4String}`.trim() });
+                    partsToDisplay.push({ label: 'Part 1', content: `1/3\n${part1String}` });
+                    partsToDisplay.push({ label: 'Part 2', content: `2/3\n${tsString}` });
+                    partsToDisplay.push({ label: 'Part 3', content: `3/3\n${section3String}\n${section4String}`.trim() });
                 } else if (finalNote.length > TWO_PART_SPLIT_THRESHOLD) {
                     const part2CombinedString = [tsString, section3String, section4String].filter(s => s).join('\n').trim();
-                    partsToDisplay.push({ label: 'Parte 1', content: `1/2\n${part1String}` });
-                    partsToDisplay.push({ label: 'Parte 2', content: `2/2\n${part2CombinedString}` });
+                    partsToDisplay.push({ label: 'Part 1', content: `1/2\n${part1String}` });
+                    partsToDisplay.push({ label: 'Part 2', content: `2/2\n${part2CombinedString}` });
                 } else {
-                    partsToDisplay.push({ label: 'Nota Completa', content: finalNote });
+                    partsToDisplay.push({ label: 'Full Note', content: finalNote });
                 }
 
                 partsToDisplay.forEach((partInfo, index) => {
@@ -3308,7 +3321,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <textarea id="${textareaId}" rows="auto" readonly>${partInfo.content}</textarea>
                         <button type="button" class="modal-action-btn copy-btn-style copy-separated-btn" data-target="${textareaId}">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v2"/></svg>
-                            COPIAR
+                            COPY
                         </button>
                     `;
                     dynamicPartsContainer.appendChild(partDiv);
@@ -3420,7 +3433,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         populateExtraStepsSelect();
         updateThirdRowLayout();
-        // Se mueve la lógica del agente y la versión al nuevo modal
         await handleWelcomeModal();
         initialResizeTextareas();
 
@@ -3431,7 +3443,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initialPhysicalCheckListIds.forEach(id => {
             const selectElement = get(id);
             if (selectElement) {
-                selectElement.innerHTML = '<option value="">Seleccione una opción</option>';
+                selectElement.innerHTML = '<option value="">Select an option</option>';
                 selectElement.disabled = true;
                 selectElement.removeAttribute('required');
                 if (id === 'physicalCheckList1Select' && physicalCheckList1Label) {
@@ -3482,61 +3494,125 @@ document.addEventListener('DOMContentLoaded', () => {
         const modalHeader = welcomeModalOverlay.querySelector('.modal-header h3');
 
         if (agentNameSetting && agentNameSetting.value) {
-            // Usuario recurrente
-            modalHeader.textContent = `Bienvenido de vuelta, ${agentNameSetting.value}`;
-            modalBody.innerHTML = `<p>¡Listo para tomar más notas!</p>`;
+            modalHeader.textContent = `Welcome back, ${agentNameSetting.value}`;
+            modalBody.innerHTML = `<p>Ready to take more notes!</p>`;
             agentNameInput.value = agentNameSetting.value;
             setAgentNameReadonly();
         } else {
-            // Primera visita
-            modalHeader.textContent = 'Bienvenido a APad';
-            // El contenido ya está en el HTML, solo nos aseguramos que el input esté visible
+            modalHeader.textContent = 'Welcome to APad';
             const inputGroup = modalBody.querySelector('.input-group');
             if(inputGroup) inputGroup.style.display = 'block';
+            const creatorP = modalBody.querySelector('p:nth-of-type(2)');
+            if(creatorP) creatorP.innerHTML = '<strong>Creator:</strong> x331671 | Alex Van Houtven | FFH PureFiber TS';
         }
 
         welcomeModalOverlay.style.display = 'flex';
 
         startTakingNotesBtn.addEventListener('click', async () => {
             if (!agentNameSetting || !agentNameSetting.value) {
-                // Lógica de primera visita
                 const newAgentName = welcomeAgentNameInput.value.trim();
                 if (newAgentName === '') {
-                    showToast('Por favor, ingresa tu nombre para continuar.', 'warning');
+                    showToast('Please enter your name to continue.', 'warning');
                     return;
                 }
                 agentNameInput.value = newAgentName;
                 await saveAgentName();
             }
             welcomeModalOverlay.style.display = 'none';
-        }, { once: true }); // El listener se ejecuta solo una vez
+        }, { once: true });
     };
+
+    const setChecklistValue = (radioName, value) => {
+        const radioToSelect = document.querySelector(`input[name="${radioName}"][value="${value}"]`);
+        if (radioToSelect && !radioToSelect.checked) {
+            radioToSelect.checked = true;
+            // Manually trigger the change event to update styles
+            radioToSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    };
+
+    const resetChecklist = () => {
+        const allRadios = checklistSidebar.querySelectorAll('.checklist-item input[type="radio"]');
+        allRadios.forEach(radio => {
+            radio.checked = false;
+            const parentItem = radio.closest('.checklist-item');
+            if (parentItem) {
+                parentItem.classList.remove('status-yes', 'status-no', 'status-na', 'checklist-item-required', 'status-follow-up-yes', 'status-follow-up-no');
+                parentItem.classList.add('status-pending');
+            }
+        });
+    };
+
+    const updateChecklistState = () => {
+        // Rule: CALLBACK NUMBER
+        setChecklistValue('checklistCallbackNumber', _getFieldValue('cbr') ? 'yes' : 'no');
+
+        // Rule: PROBING QUESTIONS & CORRECT INSIGHT WORKFLOW
+        const issueSelected = _getFieldValue('issueSelect') !== '';
+        setChecklistValue('checklistProbingQuestions', issueSelected ? 'yes' : 'no');
+        setChecklistValue('checklistCorrectWorkflow', issueSelected ? 'yes' : 'no');
+
+        // Rule: ADVANCED WIFI ANALYTICS
+        const isFFH = !skillToggle.checked;
+        const awaSelected = _getFieldValue('awaAlertsSelect') !== '';
+        setChecklistValue('checklistAdvancedWifi', isFFH && awaSelected ? 'yes' : 'no');
+
+        // Rule: TVS / ROUTE THIS
+        const tvsYes = _getFieldValue('tvsSelect') === 'YES';
+        const tvsKeyFilled = _getFieldValue('tvsKeyInput') !== '';
+        setChecklistValue('checklistTvs', tvsYes && tvsKeyFilled ? 'yes' : 'no');
+        
+        // Rule: REBOOT / FACTORY RESET
+        const tsText = _getFieldValue('troubleshootingProcessText').toLowerCase();
+        const rebootKeywords = ['fr', 'hr', 'factory reset', 'hard reset', 'reboot'];
+        if (rebootKeywords.some(keyword => tsText.includes(keyword))) {
+            setChecklistValue('checklistReboot', 'yes');
+        }
+
+        // Rule: SWAP
+        if (_getFieldValue('csrOrderInput')) {
+            setChecklistValue('checklistSwap', 'yes');
+        }
+
+        // Rule: CALLBACK
+        const resolvedValueForCallback = _getFieldValue('resolvedSelect');
+        if (resolvedValueForCallback === 'No | Follow Up Required | Set SCB with FVA') {
+            setChecklistValue('checklistCallback', 'yes');
+        }
+
+        // Rule: ALL SERVICES WORKING
+        setChecklistValue('checklistAllServices', _getFieldValue('serviceOnCsr') === 'ACTIVE' ? 'yes' : 'no');
+
+        // Rule: GO/SEND
+        setChecklistValue('checklistGoSend', _getFieldValue('extraStepsSelect') !== '' ? 'yes' : 'no');
+
+        // Rule: FOLLOW UP
+        const resolvedValueForFollowUp = _getFieldValue('resolvedSelect');
+        const followUpNeededValues = ['No | Follow Up Required', 'No | NC Ticket Created', 'No | BOSR Created'];
+        if (followUpNeededValues.includes(resolvedValueForFollowUp)) {
+            setChecklistValue('checklistFollowUp', 'yes');
+        } else {
+            setChecklistValue('checklistFollowUp', 'no');
+        }
+    };
+
 
     console.log('DOMContentLoaded: Initializing app...');
     initializeApp();
 });
 
 // =======================================================
-//  INICIO: LÓGICA PARA PROGRESSIVE WEB APP (PWA)
+//  PWA (PROGRESSIVE WEB APP) LOGIC
 // =======================================================
 
 const updateVersionInDOM = (version) => {
     if (!version) return;
-    // Actualizar el título del documento
-    document.title = `TS-Notes-APP - ${version}`;
-    // Actualizar el span en el h1
+    document.title = `APad | NoteApp - ${version}`;
     if (appVersionDisplay) {
         appVersionDisplay.textContent = version;
     }
-    // Actualizar el span en el modal de bienvenida
     if (welcomeAppVersionDisplay) {
         welcomeAppVersionDisplay.textContent = version;
-    }
-};
-
-const getVersionFromServiceWorker = () => {
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({ type: 'GET_VERSION' });
     }
 };
 
@@ -3544,39 +3620,37 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/service-worker.js')
             .then(registration => {
-                console.log('Service Worker registrado con éxito:', registration);
+                console.log('Service Worker registered successfully:', registration);
                 
-                // Escuchar mensajes del Service Worker (como la versión)
-                navigator.serviceWorker.addEventListener('message', event => {
-                    if (event.data && event.data.type === 'APP_VERSION') {
-                        console.log('Versión recibida del SW:', event.data.version);
-                        updateVersionInDOM(event.data.version);
-                        db.settings.put({ key: APP_VERSION_KEY, value: event.data.version });
-                    }
-                });
-
-                // Pedir la versión tan pronto como el SW esté activo
-                getVersionFromServiceWorker();
-
-                // Si hay un nuevo SW esperando, podríamos notificar al usuario
                 registration.onupdatefound = () => {
                     const installingWorker = registration.installing;
                     installingWorker.onstatechange = () => {
                         if (installingWorker.state === 'installed') {
                             if (navigator.serviceWorker.controller) {
-                                // Nueva actualización disponible.
-                                console.log('Nuevo contenido está disponible, por favor actualice.');
-                                // Podrías mostrar un toast aquí para que el usuario actualice.
+                                console.log('New content is available, please refresh.');
+                                showToast('A new version is available! Please close all tabs of this app and reopen to update.', 'info', 10000);
                             }
                         }
                     };
                 };
             })
             .catch(error => {
-                console.log('Error al registrar el Service Worker:', error);
+                console.log('Service Worker registration failed:', error);
             });
 
-        // Intentar obtener la versión de la DB al cargar, en caso de que el SW no responda a tiempo
+        navigator.serviceWorker.addEventListener('message', event => {
+            if (event.data && event.data.type === 'APP_VERSION') {
+                console.log('Version received from SW:', event.data.version);
+                updateVersionInDOM(event.data.version);
+                db.settings.put({ key: APP_VERSION_KEY, value: event.data.version });
+            }
+        });
+
+        navigator.serviceWorker.ready.then(registration => {
+            console.log('Service Worker is ready.');
+            registration.active.postMessage({ type: 'GET_VERSION' });
+        });
+
         db.settings.get(APP_VERSION_KEY).then(versionSetting => {
             if (versionSetting) {
                 updateVersionInDOM(versionSetting.value);
@@ -3584,6 +3658,3 @@ if ('serviceWorker' in navigator) {
         });
     });
 }
-// =======================================================
-//  FIN: LÓGICA PARA PROGRESSIVE WEB APP (PWA)
-// =======================================================

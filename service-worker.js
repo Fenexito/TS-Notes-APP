@@ -1,11 +1,12 @@
 // service-worker.js
 
-// Define el nombre de la caché y la versión.
-// ¡IMPORTANTE!: Cambia este nombre (ej. 'apad-v1.0.1') cada vez que hagas cambios
-// en tus archivos HTML, CSS, JS o cualquier otro activo que quieras que se actualice.
-const CACHE_NAME = 'v0.8.5'; // <-- ESTA ES LA VERSIÓN QUE SE MOSTRARÁ
+// Define the cache name and version.
+// IMPORTANT!: Change this name (e.g., 'apad-v1.0.1') every time you make changes
+// to your HTML, CSS, JS, or any other assets you want to be updated
+// for users. This forces the browser to install the new Service Worker.
+const CACHE_NAME = 'v0.9.0'; // <-- THIS IS THE VERSION THAT WILL BE DISPLAYED
 
-// Lista de URLs de los archivos que quieres que el Service Worker cachee.
+// List of URLs for the files you want the Service Worker to cache.
 const urlsToCache = [
   '/',
   '/index.html',
@@ -20,66 +21,66 @@ const urlsToCache = [
   'https://unpkg.com/dexie@latest/dist/dexie.js'
 ];
 
-// Evento 'install': Cacheamos todos los archivos esenciales.
+// 'install' event: We cache all essential files.
 self.addEventListener('install', event => {
-  console.log('[Service Worker] Instalando...');
-  // skipWaiting() fuerza al SW en espera a convertirse en el activo.
+  console.log('[Service Worker] Installing...');
+  // skipWaiting() forces the waiting SW to become the active one.
   self.skipWaiting(); 
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('[Service Worker] Cacheando archivos de la aplicación.');
+        console.log('[Service Worker] Caching app files.');
         return cache.addAll(urlsToCache);
       })
       .catch(error => {
-        console.error('[Service Worker] Error al cachear archivos durante la instalación:', error);
+        console.error('[Service Worker] Error caching files during installation:', error);
       })
   );
 });
 
-// Evento 'activate': Limpiamos cachés antiguas y tomamos control.
+// 'activate' event: We clear old caches and take control.
 self.addEventListener('activate', event => {
-  console.log('[Service Worker] Activando...');
+  console.log('[Service Worker] Activating...');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
-            console.log('[Service Worker] Eliminando caché antigua:', cacheName);
+            console.log('[Service Worker] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     }).then(() => {
-      console.log('[Service Worker] Reclamando clientes...');
-      // clients.claim() permite que un SW activado tome control de los clientes inmediatamente.
+      console.log('[Service Worker] Claiming clients...');
+      // clients.claim() allows an activated SW to take control of clients immediately.
       return self.clients.claim();
     })
   );
 });
 
-// Evento 'fetch': Interceptamos las solicitudes y servimos desde caché o red.
+// 'fetch' event: We intercept requests and serve from cache or network.
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Si la respuesta está en caché, la devolvemos. Si no, la buscamos en la red.
+        // If the response is in the cache, return it. Otherwise, fetch from the network.
         return response || fetch(event.request);
       })
       .catch(error => {
-        console.error('[Service Worker] Error en la solicitud fetch:', error);
-        // Opcional: Devolver una página offline si la solicitud falla.
+        console.error('[Service Worker] Fetch error:', error);
+        // Optional: Return an offline page if the request fails.
         // return caches.match('/offline.html');
       })
   );
 });
 
 
-// Manejador de mensajes para obtener la versión de la app
+// Message handler to get the app version.
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'GET_VERSION') {
-    console.log('[Service Worker] Solicitud de versión recibida. Enviando:', CACHE_NAME);
-    // Enviar la versión al cliente que la solicitó.
+    console.log('[Service Worker] Version request received. Sending:', CACHE_NAME);
+    // Send the version to the client that requested it.
     event.source.postMessage({ type: 'APP_VERSION', version: CACHE_NAME });
   }
 });
