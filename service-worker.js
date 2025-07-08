@@ -1,7 +1,7 @@
     // service-worker.js
 
     // Define el nombre de la caché y la versión.
-    // ¡IMPORTANTE!: Cambia este nombre (ej. 'v1.0.1') cada vez que hagas cambios
+    // ¡IMPORTANTE!: Cambia este nombre (ej. 'call-center-notes-v1.0.1') cada vez que hagas cambios
     // en tus archivos HTML, CSS, JS o cualquier otro activo que quieras que se actualice
     // para los usuarios. Esto fuerza al navegador a instalar el nuevo Service Worker.
     const CACHE_NAME = 'v0.8.5'; // <-- ESTA ES LA VERSIÓN QUE SE MOSTRARÁ

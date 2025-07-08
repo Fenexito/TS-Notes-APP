@@ -372,6 +372,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeFeedbackModalBtn = get('closeFeedbackModalBtn');
     // const submitFeedbackBtn = get('submitFeedbackBtn'); // Ya no es necesario con Google Form
 
+    // NUEVO: Referencias a elementos del modal de bienvenida
+    const welcomeModalOverlay = get('welcomeModalOverlay');
+    const welcomeAgentNameInput = get('welcomeAgentNameInput');
+    const startTakingNotesBtn = get('startTakingNotesBtn');
+    const appVersionDisplay = document.getElementById('appVersionDisplay'); // Referencia al span de la versión en el header
+    const welcomeAppVersionDisplay = document.getElementById('welcomeAppVersionDisplay'); // Referencia al span de la versión en el modal de bienvenida
+
+
     // =================================================================================
     // 3. LÓGICA PRINCIPAL DE LA APLICACIÓN
     // =================================================================================
@@ -2485,198 +2493,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 noNotesMessage.style.display = 'none';
             }
         }
-    }
+    };
 
     // =================================================================================
     // 5. MANEJADORES DE EVENTOS
-    // =================================================================================
-
-    const saveAgentNameOnBlur = async () => {
-        if (isAgentNameEditable) await saveAgentName();
-    };
-
-    const saveAgentNameOnEnter = async (event) => {
-        if (event.key === 'Enter' && isAgentNameEditable) {
-            event.preventDefault();
-            await saveAgentName();
-            if (agentNameInput) agentNameInput.blur();
-        }
-    };
-
-    const handleAwaAlertsMainDropdownChange = () => {
-        const isAwaAlertsMainSelected = _getFieldValue('awaAlertsSelect') !== '';
-        if (!isEditingNoteFlag) {
-            if (isAwaAlertsMainSelected && enableAwaAlerts2 && !enableAwaAlerts2.checked) {
-                enableAwaAlerts2.checked = true;
-                updateAwaAlerts2SelectState(enableAwaAlerts2.checked, awaAlerts2Select.value);
-            } else if (!isAwaAlertsMainSelected && enableAwaAlerts2 && enableAwaAlerts2.checked) {
-                enableAwaAlerts2.checked = false;
-                updateAwaAlerts2SelectState(enableAwaAlerts2.checked, awaAlerts2Select.value);
-            }
-        } else {
-            updateAwaAlerts2SelectState(enableAwaAlerts2.checked, awaAlerts2Select.value);
-        }
-        updateAwaStepsSelectState();
-    };
-
-    const handleAwaAlerts2CheckboxToggle = () => {
-        updateAwaAlerts2SelectState(enableAwaAlerts2.checked, awaAlerts2Select.value);
-    };
-
-    const handleResolvedSelectChange = () => {
-        if (!resolvedSelect || !transferCheckbox) return;
-        const resolvedValue = _getFieldValue('resolvedSelect');
-        const shouldShowTransfer = (resolvedValue === 'Cx need to be transfered');
-        if (!isEditingNoteFlag) {
-            if (shouldShowTransfer && !transferCheckbox.checked) {
-                transferCheckbox.checked = true;
-                updateTransferFieldState(transferCheckbox.checked, transferSelect.value);
-            } else if (!shouldShowTransfer && transferCheckbox.checked) {
-                transferCheckbox.checked = false;
-                updateTransferFieldState(transferCheckbox.checked, transferSelect.value);
-            }
-        } else {
-            updateTransferFieldState(transferCheckbox.checked, transferSelect.value);
-        }
-        updateTechFieldsVisibilityAndState(resolvedValue);
-        applyInitialRequiredHighlight();
-        generateFinalNote();
-    };
-
-    const handleSkillChange = () => {
-        const isSHS = skillToggle.checked;
-        if (skillTextIndicator) {
-            skillTextIndicator.textContent = isSHS ? 'SHS' : 'FFH';
-        }
-
-        const currentService = _getFieldValue('serviceSelect');
-
-        if (isSHS) {
-            serviceSelect.value = 'SHS Legacy';
-            serviceSelect.disabled = true;
-            serviceSelect.dispatchEvent(new Event('change'));
-
-            if (!isEditingNoteFlag) {
-                if (enablePhysicalCheck2) enablePhysicalCheck2.checked = false;
-                if (enablePhysicalCheck3) enablePhysicalCheck3.checked = false;
-                if (enablePhysicalCheck4) enablePhysicalCheck4.checked = false;
-            }
-            _populateAwaAlertsOptions('SHS', awaAlertsSelect.value);
-            updateAwaAlerts2SelectState(enableAwaAlerts2.checked, awaAlerts2Select.value);
-            updateAwaStepsSelectState(awaStepsSelect.value);
-
-            if (activeDevicesGroup) activeDevicesGroup.style.display = 'none';
-            if (totalDevicesGroup) totalDevicesGroup.style.display = 'none';
-            if (downloadBeforeGroup) downloadBeforeGroup.style.display = 'none';
-            if (uploadBeforeGroup) uploadBeforeGroup.style.display = 'none';
-            if (downloadAfterGroup) downloadAfterGroup.style.display = 'none';
-            if (uploadAfterGroup) uploadAfterGroup.style.display = 'none';
-
-            if (activeDevicesInput) activeDevicesInput.value = '';
-            if (totalDevicesInput) totalDevicesInput.value = '';
-            if (downloadBeforeInput) downloadBeforeInput.value = '';
-            if (uploadBeforeInput) uploadBeforeInput.value = '';
-            if (downloadAfterInput) downloadAfterInput.value = '';
-            if (uploadAfterInput) uploadAfterInput.value = '';
-
-        } else {
-            serviceSelect.disabled = false;
-            if (currentService === 'SHS Legacy') {
-                serviceSelect.value = '';
-                serviceSelect.dispatchEvent(new Event('change'));
-            }
-
-            _populatePhysicalCheckListLabelsAndOptions(_getFieldValue('serviceSelect'));
-            _updatePhysicalCheckListEnablement(_getFieldValue('serviceSelect'), enablePhysicalCheck2.checked, enablePhysicalCheck3.checked, enablePhysicalCheck4.checked);
-
-            _populateAwaAlertsOptions('FFH', awaAlertsSelect.value);
-            updateAwaAlerts2SelectState(enableAwaAlerts2.checked, awaAlerts2Select.value);
-            updateAwaStepsSelectState(awaStepsSelect.value);
-
-            if (activeDevicesGroup) activeDevicesGroup.style.display = 'flex';
-            if (totalDevicesGroup) totalDevicesGroup.style.display = 'flex';
-            if (downloadBeforeGroup) downloadBeforeGroup.style.display = 'flex';
-            if (uploadBeforeGroup) uploadBeforeGroup.style.display = 'flex';
-            if (downloadAfterGroup) downloadAfterGroup.style.display = 'flex';
-            if (uploadAfterGroup) uploadAfterGroup.style.display = 'flex';
-        }
-        applyInitialRequiredHighlight();
-        generateFinalNote();
-    };
-
-    const handleResolutionCopy = async (sourceData = null) => {
-        const cxIssueVal = _getFieldValue('cxIssueText', sourceData);
-        const tsStepsVal = _getFieldValue('troubleshootingProcessText', sourceData);
-        if (!cxIssueVal && !tsStepsVal) {
-             showToast('No hay información de resolución para copiar.', 'warning');
-             return;
-        }
-
-        let combinedResolutionText = '';
-        if (cxIssueVal) combinedResolutionText += `CX ISSUE: ${cxIssueVal}`;
-        if (tsStepsVal) {
-            if (combinedResolutionText) combinedResolutionText += '\n';
-            combinedResolutionText += `TS STEPS: ${tsStepsVal}`;
-        }
-        let finalTextToCopy = combinedResolutionText;
-        if (combinedResolutionText.length > RESOLUTION_COPY_CHAR_LIMIT) {
-            finalTextToCopy = tsStepsVal ? `TS STEPS: ${tsStepsVal}` : '';
-            if (!finalTextToCopy) {
-                showToast('La resolución excede el límite y no hay pasos de troubleshooting para copiar.', 'warning');
-                return;
-            }
-        }
-        if (finalTextToCopy) {
-            await copyToClipboard(finalTextToCopy);
-        } else {
-            showToast('No hay información de resolución para copiar.', 'warning');
-        }
-    };
-
-    const handleCopilotCopy = async (sourceNoteText) => {
-        if (!sourceNoteText) {
-            showToast('No hay nota para enviar a Copilot.', 'warning');
-            return;
-        }
-        const noteLines = sourceNoteText.split('\n');
-        const filteredNote = noteLines.filter(line => !line.startsWith('PFTS |') && !line.startsWith('SKILL:') && !line.startsWith('BAN:') && !line.startsWith('CID:') && !line.startsWith('NAME:') && !line.startsWith('CBR:') && !line.startsWith('CALLER:') && !line.startsWith('VERIFIED BY:') && !line.startsWith('ADDRESS:') && !line.startsWith('XID:')).join('\n');
-        await copyToClipboard(filteredNote);
-    };
-
-    const handleChecklistChange = (event) => {
-        const radio = event.target;
-        if (radio.type !== 'radio') return;
-
-        const parentItem = radio.closest('.checklist-item');
-        if (!parentItem) return;
-
-        parentItem.classList.remove('status-pending', 'status-yes', 'status-no', 'status-na', 'checklist-item-required');
-
-        switch (radio.value) {
-            case 'yes':
-                parentItem.classList.add('status-yes');
-                break;
-            case 'no':
-                parentItem.classList.add('status-no');
-                break;
-            case 'na':
-                parentItem.classList.add('status-na');
-                break;
-        }
-    };
-    
-    // =================================================================================
-    // 6. INICIALIZACIÓN
     // =================================================================================
 
     const initializeEventListeners = () => {
         console.log('initializeEventListeners: Setting up all event listeners...'); // Debugging log
 
         // NUEVO: Event listeners para el modal de bienvenida
-        const welcomeModalOverlay = get('welcomeModalOverlay');
-        const welcomeAgentNameInput = get('welcomeAgentNameInput');
-        const startTakingNotesBtn = get('startTakingNotesBtn');
-
         if (startTakingNotesBtn) {
             startTakingNotesBtn.addEventListener('click', async () => {
                 const name = welcomeAgentNameInput.value.trim();
@@ -3350,7 +3176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             modalSeparateBtn.addEventListener('click', () => {
                 // Si la nota actual es la del historial, usamos sus datos. Si no, usamos la del editor.
                 const sourceData = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : null;
-                const finalNote = _currentlyViewedNoteData ? _currentlyViewedNoteData.finalNoteText : _currentFinalNoteContent;
+                const finalNote = _currentlyViewedNoteData ? _currentlyYViewedNoteData.finalNoteText : _currentFinalNoteContent;
 
                 const part1CoreContent = _buildSection1Content(sourceData);
                 const section2Content = _buildSection2InitialContent(sourceData);
@@ -3522,22 +3348,15 @@ document.addEventListener('DOMContentLoaded', () => {
         updateThirdRowLayout();
         
         // NUEVO: Lógica para el modal de bienvenida
-        const welcomeModalOverlay = get('welcomeModalOverlay');
-        const welcomeAgentNameInput = get('welcomeAgentNameInput');
-        const appVersionDisplay = document.getElementById('appVersionDisplay');
-        const welcomeAppVersionDisplay = document.getElementById('welcomeAppVersionDisplay');
-
-        // Obtener la versión del Service Worker (si ya está registrado) o usar un valor por defecto
-        let appVersion = 'X.Y.Z'; // Valor por defecto
+        // La versión de la app se actualizará por el Service Worker.
+        // Si el Service Worker ya está activo, intentará obtener la versión de inmediato.
         if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-            // Si ya hay un SW activo, intentar obtener la versión de inmediato
             navigator.serviceWorker.controller.postMessage({ type: 'GET_VERSION' });
         } else {
-            // Si no hay SW activo, mostrar la versión por defecto o una de tu elección
-            if (appVersionDisplay) appVersionDisplay.textContent = `v${appVersion}`;
-            if (welcomeAppVersionDisplay) welcomeAppVersionDisplay.textContent = `v${appVersion}`;
+            // Si no hay Service Worker activo (primera carga o error), mostrar versión por defecto
+            if (appVersionDisplay) appVersionDisplay.textContent = `vX.Y.Z`;
+            if (welcomeAppVersionDisplay) welcomeAppVersionDisplay.textContent = `vX.Y.Z`;
         }
-
 
         const agentNameLoaded = await loadAgentName(); // Cargar el nombre del agente
         if (!agentNameLoaded) {
