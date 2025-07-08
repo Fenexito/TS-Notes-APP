@@ -1,4 +1,4 @@
-/* ==========================================================================
+/* ==========================================================================\
    1. ESTILOS GLOBALES Y RESET
    ========================================================================== */
 
@@ -548,6 +548,46 @@ input:checked + .slider:before {
     flex-basis: 100%;
 }
 
+/* NUEVO: Estilos para la fila de enlaces */
+.input-row.links-row {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 8px;
+    background-color: #e9f5ff;
+    border: 1px solid #cce5ff;
+    border-radius: 5px;
+}
+
+.input-row.links-row .input-group {
+    flex-basis: calc(50% - 10px); /* Dos columnas */
+    text-align: center;
+    margin-bottom: 0; /* Eliminar margen inferior predeterminado */
+}
+
+.input-row.links-row p {
+    margin: 0;
+    font-size: 0.8em;
+    color: #333;
+    white-space: nowrap; /* Evita que el texto se rompa en varias líneas */
+}
+
+.input-row.links-row a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.2s ease;
+}
+
+.input-row.links-row a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+
 /* ==========================================================================
    6. ESTILOS DE INPUTS, TEXTAREAS Y SELECTS
    ========================================================================== */
@@ -743,6 +783,41 @@ textarea {
     flex-direction: column;
     overflow: hidden;
 }
+
+/* NUEVO: Estilos específicos para el modal de bienvenida */
+#welcomeModalOverlay .modal-content {
+    max-width: 400px;
+    text-align: center;
+}
+
+#welcomeModalOverlay .modal-body p {
+    font-size: 0.9em;
+    margin-bottom: 10px;
+    color: #555;
+}
+
+#welcomeModalOverlay .modal-body .input-group {
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+#welcomeModalOverlay .modal-body input[type="text"] {
+    font-size: 0.9em;
+    height: 35px;
+    text-align: center;
+}
+
+#welcomeModalOverlay .modal-actions-confirm {
+    justify-content: center;
+    margin-top: 15px;
+}
+
+#welcomeModalOverlay #startTakingNotesBtn {
+    width: auto;
+    padding: 10px 20px;
+    font-size: 0.9em;
+}
+
 
 .modal-header {
     display: flex;
@@ -1572,7 +1647,4 @@ textarea {
     .checklist-sidebar.open {
         transform: translateX(0);
     }
-  
-  
-  
-  
+}

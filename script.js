@@ -14,10 +14,28 @@ document.addEventListener('DOMContentLoaded', () => {
             navigator.serviceWorker.register('/service-worker.js')
                 .then(registration => {
                     console.log('Service Worker registrado con éxito:', registration.scope);
+                    // NUEVO: Obtener la versión del Service Worker y mostrarla en la UI
+                    if (registration.active) {
+                        registration.active.postMessage({ type: 'GET_VERSION' });
+                    }
                 })
                 .catch(error => {
                     console.error('Fallo el registro del Service Worker:', error);
                 });
+        });
+
+        // NUEVO: Escuchar mensajes del Service Worker (para obtener la versión)
+        navigator.serviceWorker.addEventListener('message', event => {
+            if (event.data && event.data.type === 'APP_VERSION') {
+                const appVersionDisplay = document.getElementById('appVersionDisplay');
+                const welcomeAppVersionDisplay = document.getElementById('welcomeAppVersionDisplay');
+                if (appVersionDisplay) {
+                    appVersionDisplay.textContent = `v${event.data.version}`;
+                }
+                if (welcomeAppVersionDisplay) {
+                    welcomeAppVersionDisplay.textContent = `v${event.data.version}`;
+                }
+            }
         });
     }
 
@@ -1507,18 +1525,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (agentNameSetting && agentNameSetting.value) {
                 if (agentNameInput) agentNameInput.value = agentNameSetting.value;
                 setAgentNameReadonly();
+                return true; // Nombre cargado
             } else {
                 setAgentNameEditable();
                 if (agentNameInput && !_getFieldValue('agentName')) {
                     agentNameInput.classList.add('required-initial-border');
                 }
+                return false; // Nombre no encontrado, se necesita entrada
             }
         } catch (e) {
             console.error("Error al cargar nombre del agente desde IndexedDB:", e);
             showToast('No se pudo cargar el nombre del agente.', 'error');
             setAgentNameEditable();
+            return false; // Error al cargar, se necesita entrada
         }
-        generateFinalNote();
     };
 
     const saveAgentName = async () => {
@@ -1528,16 +1548,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 await db.settings.put({ key: AGENT_NAME_KEY, value: name });
                 setAgentNameReadonly();
                 showToast('Nombre del agente guardado.', 'success');
+                return true;
             }
             catch (e) {
                 console.error("Error al guardar el nombre del agente en IndexedDB:", e);
                 showToast('Error al guardar el nombre del agente.', 'error');
+                return false;
             }
         } else {
             if (agentNameInput) agentNameInput.classList.add('required-initial-border');
             showToast('El nombre del agente no puede estar vacío.', 'error');
+            return false;
         }
-        generateFinalNote();
     };
     
     const updateThirdRowLayout = (callerValue = null, xidValue = '') => {
@@ -2447,7 +2469,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     groupContent.style.maxHeight = '0px';
                     groupContent.style.opacity = '0';
                     if (iconDown) iconDown.style.display = 'none';
-                    if (iconUp) iconUp.style.display = 'block';
                 }
             }
         });
@@ -2650,6 +2671,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const initializeEventListeners = () => {
         console.log('initializeEventListeners: Setting up all event listeners...'); // Debugging log
+
+        // NUEVO: Event listeners para el modal de bienvenida
+        const welcomeModalOverlay = get('welcomeModalOverlay');
+        const welcomeAgentNameInput = get('welcomeAgentNameInput');
+        const startTakingNotesBtn = get('startTakingNotesBtn');
+
+        if (startTakingNotesBtn) {
+            startTakingNotesBtn.addEventListener('click', async () => {
+                const name = welcomeAgentNameInput.value.trim();
+                if (name) {
+                    agentNameInput.value = name;
+                    const saved = await saveAgentName(); // Guardar el nombre del agente
+                    if (saved) {
+                        if (welcomeModalOverlay) welcomeModalOverlay.style.display = 'none';
+                        agentNameInput.focus(); // Enfocar el campo de agente principal
+                        showToast('¡Bienvenido! Empieza a tomar notas.', 'success');
+                    }
+                } else {
+                    showToast('Por favor, ingresa tu nombre.', 'warning');
+                    welcomeAgentNameInput.classList.add('required-initial-border');
+                }
+            });
+        }
+        if (welcomeAgentNameInput) {
+            welcomeAgentNameInput.addEventListener('input', () => {
+                if (welcomeAgentNameInput.value.trim() !== '') {
+                    welcomeAgentNameInput.classList.remove('required-initial-border');
+                }
+            });
+            welcomeAgentNameInput.addEventListener('keydown', async (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    startTakingNotesBtn.click(); // Simular clic en el botón
+                }
+            });
+        }
+
 
         if (editAgentNameBtn) {
             editAgentNameBtn.addEventListener('click', () => {
@@ -3462,7 +3520,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
         populateExtraStepsSelect();
         updateThirdRowLayout();
-        await loadAgentName();
+        
+        // NUEVO: Lógica para el modal de bienvenida
+        const welcomeModalOverlay = get('welcomeModalOverlay');
+        const welcomeAgentNameInput = get('welcomeAgentNameInput');
+        const appVersionDisplay = document.getElementById('appVersionDisplay');
+        const welcomeAppVersionDisplay = document.getElementById('welcomeAppVersionDisplay');
+
+        // Obtener la versión del Service Worker (si ya está registrado) o usar un valor por defecto
+        let appVersion = 'X.Y.Z'; // Valor por defecto
+        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+            // Si ya hay un SW activo, intentar obtener la versión de inmediato
+            navigator.serviceWorker.controller.postMessage({ type: 'GET_VERSION' });
+        } else {
+            // Si no hay SW activo, mostrar la versión por defecto o una de tu elección
+            if (appVersionDisplay) appVersionDisplay.textContent = `v${appVersion}`;
+            if (welcomeAppVersionDisplay) welcomeAppVersionDisplay.textContent = `v${appVersion}`;
+        }
+
+
+        const agentNameLoaded = await loadAgentName(); // Cargar el nombre del agente
+        if (!agentNameLoaded) {
+            // Si el nombre del agente no se ha cargado (es la primera vez o hay error), mostrar modal de bienvenida
+            if (welcomeModalOverlay) {
+                welcomeModalOverlay.style.display = 'flex';
+                if (welcomeAgentNameInput) {
+                    welcomeAgentNameInput.focus();
+                }
+            }
+        } else {
+            // Si el nombre del agente ya está guardado, no mostrar el modal de bienvenida
+            if (welcomeModalOverlay) welcomeModalOverlay.style.display = 'none';
+        }
+        
         initialResizeTextareas();
 
         if (affectedTextGroup) affectedTextGroup.style.display = 'none';

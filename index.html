@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TS Notes - Soporte Técnico</title>
+    <title>APad - NoteApp</title>
     <link rel="stylesheet" href="style.css">
     
     <!-- NUEVO: Enlace al manifiesto de la aplicación web -->
@@ -28,8 +28,8 @@
                     <button type="button" id="btnChecklistMenu" class="menu-toggle-btn">
                         <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                     </button>
-                    <h1 class="ts-notes-title">TS Notes</h1>
-                    <span class="app-version">v0.8a</span>
+                    <h1 class="ts-notes-title">APad</h1>
+                    <span class="app-version" id="appVersionDisplay">vX.Ya</span>
                 </div>
                 <div class="top-actions">
                     <button type="button" id="btnSee">
@@ -317,6 +317,15 @@
                             <textarea id="troubleshootingProcessText" name="troubleshootingProcessText" rows="6" required autocomplete="off"></textarea>
                         </div>
                     </div>
+                    <!-- NUEVO: Fila con enlaces de GO/CHECKPHYSICAL y GO/TSCOPILOT -->
+                    <div class="input-row links-row">
+                        <div class="input-group go-link-group">
+                            <p>Remember to use <a href="https://script.google.com/a/macros/telus.com/s/AKfycbyTMDWK_8dFPd_RDHDBlY0V7YbLp4f46G6YCrL-bBtxteVLo0kxwMD7EVOonljBSL6o/exec" target="_blank" rel="noopener noreferrer"><strong>GO/CHECKPHYSICAL</strong></a></p>
+                        </div>
+                        <div class="input-group go-link-group">
+                            <p>Remember to use <a href="https://app.fuelix.ai/en/copilots/copilot-490597fe4c554160b59b/chats/new" target="_blank" rel="noopener noreferrer"><strong>GO/TSCOPILOT</strong></a></p>
+                        </div>
+                    </div>
                 </div>
             </section>
             <section id="seccion3" class="form-section">
@@ -480,6 +489,27 @@
             </form>
     </div>
 
+    <!-- NUEVO: Modal de Bienvenida -->
+    <div id="welcomeModalOverlay" class="modal-overlay" style="display:none;">
+        <div class="modal-content small-modal">
+            <div class="modal-header">
+                <h3>Bienvenido a APad</h3>
+            </div>
+            <div class="modal-body">
+                <p>Esta aplicación te ayuda a tomar notas de llamadas de soporte técnico de manera eficiente y organizada.</p>
+                <p><strong>Creador:</strong> x331671 | Alex Van Houtven</p>
+                <p><strong>Versión Actual:</strong> <span id="welcomeAppVersionDisplay"></span></p>
+                <div class="input-group">
+                    <label for="welcomeAgentNameInput">Ingresa tu nombre (el que aparecera en tus notas):</label>
+                    <input type="text" id="welcomeAgentNameInput" placeholder="Tu nombre de agente" required autocomplete="off">
+                </div>
+            </div>
+            <div class="modal-actions-confirm">
+                <button type="button" id="startTakingNotesBtn" class="modal-action-btn copy-btn-style">EMPEZAR</button>
+            </div>
+        </div>
+    </div>
+    
     <div id="noteModalOverlay" class="modal-overlay" style="display:none">
         <div class="modal-content large-modal">
             <div class="modal-header">

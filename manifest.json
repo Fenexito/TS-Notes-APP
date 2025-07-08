@@ -1,6 +1,6 @@
 {
-  "name": "TS Notes App",
-  "short_name": "TS Notes",
+  "name": "APad | NoteApp for TS Agents",
+  "short_name": "APad",
   "description": "Aplicación de toma de notas para agentes de call center con historial.",
   "start_url": "/index.html",
   "display": "standalone",
