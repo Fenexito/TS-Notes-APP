@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const TS_CHAR_ORANGE_THRESHOLD = 875;
     const TS_CHAR_RED_THRESHOLD = 985;
     const AGENT_NAME_KEY = 'agentNameSaved'; // Clave para la tabla de configuración
+    const APP_VERSION_KEY = 'appVersion'; // Clave para la versión de la app
 
     // DEXIE.JS: CONFIGURACIÓN DE LA BASE DE DATOS INDEXEDDB
     const db = new Dexie('tsNotesAppDB');
@@ -43,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let highlightTimeout = null;
     let resolveConfirmPromise;
     let isAgentNameEditable = false;
-    let _awaitingChecklistCompletionForCopySave = false; // NUEVO: Bandera para la acción pendiente de copiar/guardar
+    let _awaitingChecklistCompletionForCopySave = false; // Bandera para la acción pendiente de copiar/guardar
 
     // ------------------------------------------
     // C. Configuración de Campos y Datos
@@ -217,6 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================================
     const get = (id) => document.getElementById(id);
 
+    // Formulario principal
     const agentNameInput = get('agentName');
     const editAgentNameBtn = get('editAgentNameBtn');
     const mainNoteCharCountHeader = get('mainNoteCharCountHeader');
@@ -303,6 +305,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSave = get('btnSave');
     const btnReset = get('btnReset');
     const btnHistory = get('btnHistory');
+    const callNoteForm = get('callNoteForm');
+    const sections = document.querySelectorAll('.form-section');
+    const appVersionDisplay = get('appVersionDisplay');
+
+    // Modales
     const noteModalOverlay = get('noteModalOverlay');
     const modalNoteTextarea = get('modalNoteTextarea');
     const modalCopyBtn = get('modalCopyBtn');
@@ -319,27 +326,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const separateModalCopySaveBtn = get('separateModalCopySaveBtn');
     const separateModalResolutionBtn = get('separateModalResolutionBtn');
     const separateModalCopilotBtn = get('separateModalCopilotBtn');
+    const customConfirmModal = get('customConfirmModal');
+    const confirmMessage = get('confirmMessage');
+    const confirmYesBtn = get('confirmYesBtn');
+    const confirmNoBtn = get('confirmNoBtn');
+    
+    // Historial
     const historySidebar = get('historySidebar');
     const closeSidebarBtn = get('closeHistoryBtn');
     const noteHistoryList = get('noteHistoryList');
     const historySidebarOverlay = get('history-sidebar-overlay');
     const historySearchInput = get('historySearchInput');
     const noNotesMessage = get('noNotesMessage');
-    const customConfirmModal = get('customConfirmModal');
-    const confirmMessage = get('confirmMessage');
-    const confirmYesBtn = get('confirmYesBtn');
-    const confirmNoBtn = get('confirmNoBtn');
-    const callNoteForm = get('callNoteForm');
-    const sections = document.querySelectorAll('.form-section');
+
+    // Checklist
     const btnChecklistMenu = get('btnChecklistMenu');
     const checklistSidebar = get('checklistSidebar');
     const closeChecklistBtn = get('closeChecklistBtn');
     const checklistSidebarOverlay = get('checklist-sidebar-overlay');
     const btnChecklistYesAll = get('btnChecklistYesAll');
+    
+    // Feedback
     const feedbackBtn = get('feedback-btn');
     const feedbackModalOverlay = get('feedbackModalOverlay');
     const closeFeedbackModalBtn = get('closeFeedbackModalBtn');
-    // const submitFeedbackBtn = get('submitFeedbackBtn'); // Ya no es necesario con Google Form
+
+    // Welcome Modal
+    const welcomeModalOverlay = get('welcomeModalOverlay');
+    const welcomeAppVersionDisplay = get('welcomeAppVersionDisplay');
+    const welcomeAgentNameInput = get('welcomeAgentNameInput');
+    const startTakingNotesBtn = get('startTakingNotesBtn');
+
 
     // =================================================================================
     // 3. LÓGICA PRINCIPAL DE LA APLICACIÓN
@@ -583,17 +600,12 @@ document.addEventListener('DOMContentLoaded', () => {
             checklistSidebar.classList.add('open');
             checklistSidebarOverlay.style.display = 'block';
             
-            // NUEVO: Si la validación falla y la acción es de copiar/guardar desde el modal, cerrar el modal.
             if (_awaitingChecklistCompletionForCopySave) {
                 closeModal(true); // Cierra el modal final, pero mantiene el sidebar
             }
             return false;
         }
 
-        // --- INICIO DE LA LÓGICA CORREGIDA ---
-
-        // PASO 1: Manejar el guardado del nombre del agente PRIMERO si es necesario.
-        // Esto estabiliza el estado del formulario antes de la validación general.
         if (isAgentNameEditable) {
             if (!_getFieldValue('agentName')) {
                 showToast('Por favor, ingrese su nombre de agente (PFTS).', 'error');
@@ -602,12 +614,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     agentNameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     agentNameInput.focus();
                 }
-                return false; // Salir temprano si el nombre falta.
+                return false;
             }
-            await saveAgentName(); // Guardar y esperar a que el campo se vuelva readonly.
+            await saveAgentName();
         }
 
-        // PASO 2: Ahora, realizar una validación UNIFICADA para todos los campos.
         let allRequiredFieldsFilled = true;
         let firstMissingElement = null;
 
@@ -665,14 +676,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 firstMissingElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 firstMissingElement.focus();
             }
-            // NUEVO: Si la validación falla y la acción es de copiar/guardar desde el modal, cerrar el modal.
             if (_awaitingChecklistCompletionForCopySave) {
-                closeModal(true); // Cierra el modal final, pero mantiene el sidebar
+                closeModal(true);
             }
             return false;
         }
-
-        // --- FIN DE LA LÓGICA DE VALIDACIÓN ---
 
         const noteToSave = _currentFinalNoteContent;
         if (noteToSave.trim() === '') {
@@ -689,10 +697,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (element.checked) formData[element.name] = element.value;
                 } else if (element.type === 'checkbox') {
                     formData[element.id] = element.checked;
-                } else if (element.id) { // Solo si tiene ID, para evitar elementos sin ID pero con nombre
+                } else if (element.id) {
                     formData[element.id] = element.value;
                 }
-            } else if (element.id && element.tagName === 'SELECT') { // Para selects sin name pero con ID
+            } else if (element.id && element.tagName === 'SELECT') {
                 formData[element.id] = element.value;
             }
         }
@@ -710,7 +718,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (checkedRadio) {
                 formData[radioName] = checkedRadio.value;
             } else {
-                 formData[radioName] = 'pending'; // Guardar el estado 'pending' si no hay radio seleccionado
+                 formData[radioName] = 'pending';
             }
         });
 
@@ -728,21 +736,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const noteData = {
                 finalNoteText: noteToSave,
                 formData: formData,
-                timestamp: new Date().toISOString() // Valor por defecto para nuevas notas
+                timestamp: new Date().toISOString()
             };
 
             if (currentEditingNoteId) {
-                // Si se está editando una nota existente, recuperar su timestamp original
                 const originalNote = await db.notes.get(currentEditingNoteId);
                 if (originalNote && originalNote.timestamp) {
-                    noteData.timestamp = originalNote.timestamp; // Preservar timestamp original
+                    noteData.timestamp = originalNote.timestamp;
                 }
                 noteData.id = currentEditingNoteId;
                 noteData.isModified = true;
                 await db.notes.put(noteData);
                 showToast('Nota del historial actualizada.', 'success');
             } else {
-                // Para nuevas notas, usar el timestamp actual
                 noteData.id = Date.now().toString();
                 noteData.isModified = false;
                 await db.notes.add(noteData);
@@ -753,11 +759,8 @@ document.addEventListener('DOMContentLoaded', () => {
             isEditingNoteFlag = false;
             await loadNotes();
             _lastNoteIdBeforeModalTransition = null;
-            // CORRECCIÓN: Reiniciar _currentlyViewedNoteData aquí al guardar,
-            // ya que la nota actual del editor es la que se acaba de guardar.
             _currentlyViewedNoteData = null; 
             
-            // NUEVO: Llevar al usuario a la sección 1 y enfocar el campo BAN
             window.scrollTo({ top: 0, behavior: 'smooth' });
             if (banInput) {
                 banInput.focus();
@@ -795,13 +798,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (noNotesMessage) noNotesMessage.style.display = 'none';
         }
 
-        // Objeto para agrupar notas por fecha y contar
         const notesByDate = {};
 
         notes.forEach((note) => {
             const timestamp = note.timestamp ? new Date(note.timestamp) : new Date();
-            // Formatear la fecha para agrupar (ej. "YYYY-MM-DD")
-            // Usar métodos UTC para asegurar que la clave de fecha no se desplace por la zona horaria local
             const dateKey = `${timestamp.getUTCFullYear()}-${(timestamp.getUTCMonth() + 1).toString().padStart(2, '0')}-${timestamp.getUTCDate().toString().padStart(2, '0')}`; 
 
             if (!notesByDate[dateKey]) {
@@ -810,21 +810,17 @@ document.addEventListener('DOMContentLoaded', () => {
             notesByDate[dateKey].push(note);
         });
 
-        // Ordenar las fechas de forma descendente (más reciente primero)
         const sortedDateKeys = Object.keys(notesByDate).sort((a, b) => new Date(b) - new Date(a));
 
         const today = new Date();
-        // Obtener la fecha de hoy en UTC para una comparación consistente
         const todayUTCKey = `${today.getUTCFullYear()}-${(today.getUTCMonth() + 1).toString().padStart(2, '0')}-${today.getUTCDate().toString().padStart(2, '0')}`;
 
 
         sortedDateKeys.forEach((dateKey) => {
             const notesForThisDay = notesByDate[dateKey];
-            const timestamp = new Date(dateKey); // Usar la clave de fecha para obtener la fecha correcta
-            // Comparar con la clave UTC de hoy
+            const timestamp = new Date(dateKey);
             const isTodayGroupCheck = (dateKey === todayUTCKey);
 
-            // Usar métodos UTC para formatear la fecha de visualización
             const dayOfWeek = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][timestamp.getUTCDay()];
             const dayOfMonth = timestamp.getUTCDate();
             const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -845,7 +841,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const groupHeader = document.createElement('div');
             groupHeader.classList.add('date-group-header');
-            // Añadir el contador de notas aquí, sin paréntesis
             groupHeader.innerHTML = `
                 <h3>${groupDisplayDate}</h3>
                 <span class="note-count">${notesForThisDay.length}</span>
@@ -898,7 +893,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Iterar sobre las notas de este día para añadirlas a la lista
             notesForThisDay.forEach((note) => {
                 const ban = note.formData?.ban || '';
                 const cid = note.formData?.cid || '';
@@ -909,7 +903,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const issue = note.formData?.issueSelect || '';
                 const resolved = note.formData?.resolvedSelect || '';
                 const dispatchDate = note.formData?.dispatchDateInput || '';
-                const dispatchTime = note.formData?.dispatchSlotSelect || ''; // Corregido: Usar dispatchSlotSelect
+                const dispatchTime = note.formData?.dispatchSlotSelect || '';
                 const cbr2 = note.formData?.cbr2Input || '';
                 const skill = note.formData?.skill || '';
                 const noteLength = note.finalNoteText ? note.finalNoteText.length : 0;
@@ -1039,7 +1033,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const selectedNote = _historyNotesCache.find(n => n.id === noteId);
                 if (selectedNote) {
                     _lastNoteIdBeforeModalTransition = noteId;
-                    closeModal(true); // Cerrar el modal actual si está abierto
+                    closeModal(true);
                     await editNote(selectedNote.formData, selectedNote.id);
                 } else {
                     showToast('Nota no encontrada para editar.', 'error');
@@ -1070,9 +1064,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await db.notes.delete(noteId);
             showToast('Nota eliminada del historial.', 'success');
-            await loadNotes(); // Recargar el historial desde la DB
+            await loadNotes();
             _lastNoteIdBeforeModalTransition = null;
-            // CORRECCIÓN: Reiniciar _currentlyViewedNoteData aquí al eliminar una nota.
             _currentlyViewedNoteData = null; 
         } catch (e) {
             console.error("Error al eliminar la nota de IndexedDB:", e);
@@ -1094,8 +1087,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         currentEditingNoteId = originalNoteId;
         isEditingNoteFlag = true;
-        // CORRECCIÓN: Reiniciar _currentlyViewedNoteData aquí al cargar una nota para edición,
-        // ya que la nota del historial se "mueve" al editor principal.
         _currentlyViewedNoteData = null; 
         clearAllFormFields(true);
 
@@ -1136,18 +1127,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         case 'na':
                             parentItem.classList.add('status-na');
                             break;
-                        case 'pending': // Manejar 'pending' explícitamente si se guarda así
+                        case 'pending':
                             parentItem.classList.add('status-pending');
                             break;
                     }
                 } else {
-                    // Si no hay valor en formData para este radio, asegurar que esté en 'pending'
-                    const defaultRadio = item.querySelector(`input[value="pending"]`); // Si tu default es 'pending'
+                    const defaultRadio = item.querySelector(`input[value="pending"]`);
                     if(defaultRadio) defaultRadio.checked = true;
                     item.classList.add('status-pending');
                 }
             } else {
-                 // Si no hay key en formData, asegurar que esté en 'pending'
                  const radios = item.querySelectorAll('input[type="radio"]');
                  radios.forEach(radio => radio.checked = false);
                  item.classList.remove('status-yes', 'status-no', 'status-na', 'checklist-item-required');
@@ -1224,7 +1213,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (element.tagName === 'BUTTON' || element.tagName === 'FIELDSET' || (!element.id && !element.name)) continue;
             if (element.id === 'agentName' && agentNameInput && agentNameInput.readOnly) continue;
 
-            // Resetear el borde y el estilo de los campos
             element.classList.remove('required-initial-border');
             element.style.border = '';
 
@@ -1247,19 +1235,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const radios = item.querySelectorAll('input[type="radio"]');
             radios.forEach(radio => radio.checked = false);
             item.classList.remove('status-yes', 'status-no', 'status-na', 'checklist-item-required');
-            item.classList.add('status-pending'); // Asegura que estén en estado pendiente
+            item.classList.add('status-pending');
         });
 
-        // Corregir el comportamiento de los desplegables del checklist
         document.querySelectorAll('.checklist-section').forEach(section => {
             const title = section.querySelector('.checklist-section-title');
             const container = section.querySelector('.checklist-items-container');
-            if (title) title.classList.remove('collapsed'); // Mostrar todos los títulos por defecto
+            if (title) title.classList.remove('collapsed');
             if (container) {
-                container.classList.remove('collapsed'); // Mostrar el contenido por defecto
-                container.style.maxHeight = '1000px'; // Permitir que el contenido se ajuste
+                container.classList.remove('collapsed');
+                container.style.maxHeight = '1000px';
                 container.style.opacity = '1';
-                // Asegurar que los íconos de chevron estén en el estado correcto para "desplegado"
                 const iconDown = section.querySelector('.icon-chevron-down');
                 const iconUp = section.querySelector('.icon-chevron-up');
                 if (iconDown) iconDown.style.display = 'block';
@@ -1292,7 +1278,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         updateTvsKeyFieldState();
-        if (transferCheckbox) transferCheckbox.checked = false; // Reset transfer checkbox on full clear
+        if (transferCheckbox) transferCheckbox.checked = false;
         updateTransferFieldState();
         updateTechFieldsVisibilityAndState('');
         populateTimeSlots("dispatch");
@@ -1304,8 +1290,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isForEdit) {
             currentEditingNoteId = null;
             isEditingNoteFlag = false;
-            // CORRECCIÓN: Reiniciar _currentlyViewedNoteData aquí si no es para edición,
-            // lo que asegura que al resetear el formulario, no haya una nota "vista" previa.
             _currentlyViewedNoteData = null; 
         }
         applyInitialRequiredHighlight();
@@ -2261,10 +2245,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if(checklistSidebar) checklistSidebar.classList.remove('open');
         if(checklistSidebarOverlay) checklistSidebarOverlay.style.display = 'none';
 
-        // NUEVO: Si había una acción de copiar/guardar pendiente desde el modal, reabrir el modal
         if (_awaitingChecklistCompletionForCopySave) {
-            _awaitingChecklistCompletionForCopySave = false; // Resetear la bandera
-            // Reabrir el modal con la nota que se estaba visualizando o la nota actual del editor
+            _awaitingChecklistCompletionForCopySave = false;
             viewNoteInModal(_currentlyViewedNoteData || { id: null, finalNoteText: _currentFinalNoteContent, formData: null });
             showToast('Por favor, presione "Copiar y Guardar" de nuevo.', 'info');
         }
@@ -2320,7 +2302,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         currentViewedNoteId = null;
-        // CORRECCIÓN: NO reiniciar _currentlyViewedNoteData aquí. Se mantiene para poder restaurar la nota del historial.
         
         if (modalEditFromHistoryBtn) modalEditFromHistoryBtn.style.display = 'none';
         if (modalNoteTextarea) modalNoteTextarea.value = '';
@@ -2338,24 +2319,19 @@ document.addEventListener('DOMContentLoaded', () => {
             dynamicPartsContainer.innerHTML = '';
         }
 
-        // CORRECCIÓN: Si _currentlyViewedNoteData tiene una nota del historial, la mostramos en el modal principal.
         if (_currentlyViewedNoteData) {
             viewNoteInModal(_currentlyViewedNoteData);
         } else if (_currentFinalNoteContent.trim() !== '') {
-            // Si no hay nota del historial (porque se abrió desde la nota actual del editor),
-            // y hay contenido en el editor, mostramos la nota del editor.
             viewNoteInModal({
                 id: null,
                 finalNoteText: _currentFinalNoteContent,
                 formData: null
             });
         }
-        // Si ambos están vacíos, no se abre el modal principal (queda como `display: none`)
     };
 
     const viewNoteInModal = (noteObject) => {
         if (!noteObject) return;
-        // CORRECCIÓN: Almacenar la nota que se está visualizando para poder restaurarla.
         _currentlyViewedNoteData = noteObject; 
         
         if (modalNoteTextarea) modalNoteTextarea.value = noteObject.finalNoteText;
@@ -2390,7 +2366,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const iconUp = group.querySelector('.icon-chevron-up');
             const noteItems = group.querySelectorAll('.note-item');
             let anyNoteVisibleInThisGroupAfterFilter = false;
-            let notesVisibleInThisGroup = 0; // Contador para notas visibles después del filtro
+            let notesVisibleInThisGroup = 0;
 
             noteItems.forEach(item => {
                 const ban = item.dataset.ban.toLowerCase();
@@ -2413,16 +2389,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     item.style.display = 'flex';
                     anyNoteVisibleInThisGroupAfterFilter = true;
                     anyNoteVisibleInAnyGroupOverall = true;
-                    notesVisibleInThisGroup++; // Incrementar el contador
+                    notesVisibleInThisGroup++;
                 } else {
                     item.style.display = 'none';
                 }
             });
 
-            // Actualizar el contador de notas en el encabezado del grupo
             const noteCountSpan = group.querySelector('.note-count');
             if (noteCountSpan) {
-                noteCountSpan.textContent = `${notesVisibleInThisGroup}`; // Sin paréntesis aquí
+                noteCountSpan.textContent = `${notesVisibleInThisGroup}`;
             }
 
 
@@ -2658,7 +2633,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================================
 
     const initializeEventListeners = () => {
-        console.log('initializeEventListeners: Setting up all event listeners...'); // Debugging log
+        console.log('initializeEventListeners: Setting up all event listeners...');
 
         if (editAgentNameBtn) {
             editAgentNameBtn.addEventListener('click', () => {
@@ -2683,13 +2658,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 currentViewedNoteId = null;
                 _lastNoteIdBeforeModalTransition = null;
-                // CORRECCIÓN: _currentlyViewedNoteData se reinicia en clearAllFormFields(false)
                 if (noteModalOverlay) noteModalOverlay.style.display = 'none';
                 if (separateNoteModalOverlay) separateNoteModalOverlay.style.display = 'none';
                 clearAllFormFields();
                 hideSidebar();
                 showToast('Formulario restablecido.', 'info');
-                // NUEVO: Llevar al usuario a la sección 1 y enfocar el campo BAN
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 if (banInput) {
                     banInput.focus();
@@ -2705,7 +2678,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 unhighlightAllNotes();
                 _lastNoteIdBeforeModalTransition = null;
                 currentViewedNoteId = null;
-                // CORRECCIÓN: NO reiniciar _currentlyViewedNoteData aquí. El historial es solo una vista.
             });
         }
 
@@ -2729,14 +2701,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     content.classList.toggle('collapsed');
                     title.classList.toggle('collapsed');
 
-                    // Ajustar maxHeight y opacity para transiciones suaves
                     if (!content.classList.contains('collapsed')) {
-                        content.style.maxHeight = 'none'; // Permitir que se expanda a su contenido
-                        content.offsetHeight; // Forzar reflow
+                        content.style.maxHeight = 'none';
+                        content.offsetHeight;
                         content.style.maxHeight = content.scrollHeight + 'px';
                         content.style.opacity = '1';
                     } else {
-                        content.style.maxHeight = content.scrollHeight + 'px'; // Establecer altura para la transición
+                        content.style.maxHeight = content.scrollHeight + 'px';
                         requestAnimationFrame(() => {
                             content.style.maxHeight = '0px';
                             content.style.opacity = '0';
@@ -3195,7 +3166,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const noteToLoad = _historyNotesCache.find(n => n.id === noteIdToEdit);
                     if (noteToLoad) {
                         _lastNoteIdBeforeModalTransition = noteIdToEdit;
-                        closeModal(true); // Cerrar el modal actual si está abierto
+                        closeModal(true);
                         await editNote(noteToLoad.formData, noteToLoad.id);
                     } else {
                         showToast('Error: Nota no encontrada para editar.', 'error');
@@ -3214,7 +3185,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (separateModalCopilotBtn) {
             separateModalCopilotBtn.addEventListener('click', () => {
-                // CORRECCIÓN: Usar _currentlyViewedNoteData si está disponible, de lo contrario _currentFinalNoteContent.
                 const sourceNote = _currentlyViewedNoteData ? _currentlyViewedNoteData.finalNoteText : _currentFinalNoteContent;
                 handleCopilotCopy(sourceNote);
             });
@@ -3222,26 +3192,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (modalCopySaveBtn) {
             modalCopySaveBtn.addEventListener('click', async () => {
-                // NUEVO: Establecer la bandera antes de intentar guardar/copiar
                 _awaitingChecklistCompletionForCopySave = true;
-                const saved = await saveCurrentNote(); // saveCurrentNote ahora maneja el cierre del modal si falla la validación
+                const saved = await saveCurrentNote();
                 
-                if (saved) { // Si saveCurrentNote fue exitoso
-                    const copied = await copyToClipboard(modalNoteTextarea.value); // Copiar solo si se guardó
+                if (saved) {
+                    const copied = await copyToClipboard(modalNoteTextarea.value);
                     if (copied) {
                         clearAllFormFields();
                         closeModal(true);
                         _lastNoteIdBeforeModalTransition = null;
-                        // NUEVO: Llevar al usuario a la sección 1 y enfocar el campo BAN
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                         if (banInput) {
                             banInput.focus();
                         }
                     }
-                } else {
-                    // Si saveCurrentNote falló (y cerró el modal), la bandera ya está en true y
-                    // closeChecklistSidebar se encargará de reabrir el modal y el toast.
-                    // No necesitamos hacer nada más aquí.
                 }
             });
         }
@@ -3256,7 +3220,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (separateModalCopySaveBtn) {
             separateModalCopySaveBtn.addEventListener('click', async () => {
-                // CORRECCIÓN: Usar _currentlyViewedNoteData.formData si está disponible, de lo contrario null.
                 const sourceData = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : null;
                 const noteToCopy = [
                     ..._buildSection1Content(sourceData),
@@ -3272,7 +3235,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (saved) {
                         clearAllFormFields();
                         closeSeparateModal();
-                        closeModal(true); // Cierra el modal principal si estaba abierto por la nota separada
+                        closeModal(true);
                         _lastNoteIdBeforeModalTransition = null;
                     }
                 }
@@ -3281,7 +3244,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (separateModalResolutionBtn) {
             modalResolutionBtn.addEventListener('click', () => {
-                // CORRECCIÓN: Usar _currentlyViewedNoteData.formData si está disponible, de lo contrario null.
                 const sourceData = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : null;
                 handleResolutionCopy(sourceData);
             });
@@ -3299,7 +3261,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (modalSeparateBtn) {
             modalSeparateBtn.addEventListener('click', () => {
-                // CORRECCIÓN: Si la nota actual es la del historial, usamos sus datos. Si no, usamos la del editor.
                 const sourceData = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : null;
                 const finalNote = _currentlyViewedNoteData ? _currentlyViewedNoteData.finalNoteText : _currentFinalNoteContent;
 
@@ -3377,7 +3338,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (modalResolutionBtn) {
             modalResolutionBtn.addEventListener('click', () => {
-                // CORRECCIÓN: Usar _currentlyViewedNoteData.formData si está disponible, de lo contrario null.
                 const sourceData = _currentlyViewedNoteData ? _currentlyViewedNoteData.formData : null;
                 handleResolutionCopy(sourceData);
             });
@@ -3405,39 +3365,30 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         
-        // Manejador global para cerrar modales/sidebars con ESC
         window.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
-                let somethingWasClosed = false;
                 if (noteModalOverlay && noteModalOverlay.style.display !== 'none') {
                     closeModal();
-                    somethingWasClosed = true;
                 }
                 if (separateNoteModalOverlay && separateNoteModalOverlay.style.display !== 'none') {
                     closeSeparateModal();
-                    somethingWasClosed = true;
                 }
                 if (historySidebar && historySidebar.classList.contains('open')) {
                     hideSidebar();
-                    somethingWasClosed = true;
                 }
                 if (checklistSidebar && checklistSidebar.classList.contains('open')) {
                     closeChecklistSidebar();
-                    somethingWasClosed = true;
                 }
                 if (customConfirmModal && customConfirmModal.style.display !== 'none') {
                     customConfirmModal.style.display = 'none';
                     if (resolveConfirmPromise) resolveConfirmPromise(false);
-                    somethingWasClosed = true;
                 }
                 if (feedbackModalOverlay && feedbackModalOverlay.style.display !== 'none') {
                     feedbackModalOverlay.style.display = 'none';
-                    somethingWasClosed = true;
                 }
             }
         });
 
-        // Event Listeners para el modal de Feedback
         if (feedbackBtn) {
             feedbackBtn.addEventListener('click', () => {
                 if (feedbackModalOverlay) feedbackModalOverlay.style.display = 'flex';
@@ -3448,7 +3399,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (feedbackModalOverlay) feedbackModalOverlay.style.display = 'none';
             });
         }
-        // NUEVO: Cerrar modal de feedback al hacer clic en el overlay
         if (feedbackModalOverlay) {
             feedbackModalOverlay.addEventListener('click', (event) => {
                 if (event.target === feedbackModalOverlay) {
@@ -3458,9 +3408,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    // La función de inicialización ahora es asíncrona
     const initializeApp = async () => {
-        console.log('initializeApp: Starting initialization...'); // Log de depuración
+        console.log('initializeApp: Starting initialization...');
 
         ['FFH CARE', 'FFH LOYALTY', 'FFH CAM - COLLECTIONS', 'C2F', 'SHS', 'MOB TS', 'MOB CARE', 'MOB LOYALTY', 'MOB CAM', 'wHSIA TS', 'SATELLITE TS', 'SMARTHOME CARE', 'SMARTHOME LOYALTY', 'SMARTHOME PLUS', 'ACQUISITIONS CARE', 'ACQUISITIONS TS', 'CUSTOM HOME CARE & MOVES', 'CUSTOM HOME LOYALTY', 'CUSTOM HOME TS'].forEach(optionText => {
             const option = document.createElement('option');
@@ -3471,7 +3420,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         populateExtraStepsSelect();
         updateThirdRowLayout();
-        await loadAgentName();
+        // Se mueve la lógica del agente y la versión al nuevo modal
+        await handleWelcomeModal();
         initialResizeTextareas();
 
         if (affectedTextGroup) affectedTextGroup.style.display = 'none';
@@ -3488,7 +3438,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     physicalCheckList1Label.textContent = fieldConfig[id].label;
                 }
             } 
-        }); // Cierre correcto del forEach
+        });
 
         if (enablePhysicalCheck2) { enablePhysicalCheck2.checked = false; enablePhysicalCheck2.disabled = true; }
         if (enablePhysicalCheck3) { enablePhysicalCheck3.checked = false; enablePhysicalCheck3.disabled = true; }
@@ -3521,12 +3471,48 @@ document.addEventListener('DOMContentLoaded', () => {
         updateStickyHeaderInfo();
 
         handleSkillChange();
-        console.log('initializeApp: Calling initializeEventListeners...'); // Log de depuración
+        console.log('initializeApp: Calling initializeEventListeners...');
         initializeEventListeners();
-        console.log('initializeApp: Initialization complete.'); // Log de depuración
+        console.log('initializeApp: Initialization complete.');
     };
 
-    console.log('DOMContentLoaded: Initializing app...'); // Log de depuración
+    const handleWelcomeModal = async () => {
+        const agentNameSetting = await db.settings.get(AGENT_NAME_KEY);
+        const modalBody = welcomeModalOverlay.querySelector('.modal-body');
+        const modalHeader = welcomeModalOverlay.querySelector('.modal-header h3');
+
+        if (agentNameSetting && agentNameSetting.value) {
+            // Usuario recurrente
+            modalHeader.textContent = `Bienvenido de vuelta, ${agentNameSetting.value}`;
+            modalBody.innerHTML = `<p>¡Listo para tomar más notas!</p>`;
+            agentNameInput.value = agentNameSetting.value;
+            setAgentNameReadonly();
+        } else {
+            // Primera visita
+            modalHeader.textContent = 'Bienvenido a APad';
+            // El contenido ya está en el HTML, solo nos aseguramos que el input esté visible
+            const inputGroup = modalBody.querySelector('.input-group');
+            if(inputGroup) inputGroup.style.display = 'block';
+        }
+
+        welcomeModalOverlay.style.display = 'flex';
+
+        startTakingNotesBtn.addEventListener('click', async () => {
+            if (!agentNameSetting || !agentNameSetting.value) {
+                // Lógica de primera visita
+                const newAgentName = welcomeAgentNameInput.value.trim();
+                if (newAgentName === '') {
+                    showToast('Por favor, ingresa tu nombre para continuar.', 'warning');
+                    return;
+                }
+                agentNameInput.value = newAgentName;
+                await saveAgentName();
+            }
+            welcomeModalOverlay.style.display = 'none';
+        }, { once: true }); // El listener se ejecuta solo una vez
+    };
+
+    console.log('DOMContentLoaded: Initializing app...');
     initializeApp();
 });
 
@@ -3534,21 +3520,69 @@ document.addEventListener('DOMContentLoaded', () => {
 //  INICIO: LÓGICA PARA PROGRESSIVE WEB APP (PWA)
 // =======================================================
 
-// Comprueba si el navegador soporta Service Workers
+const updateVersionInDOM = (version) => {
+    if (!version) return;
+    // Actualizar el título del documento
+    document.title = `TS-Notes-APP - ${version}`;
+    // Actualizar el span en el h1
+    if (appVersionDisplay) {
+        appVersionDisplay.textContent = version;
+    }
+    // Actualizar el span en el modal de bienvenida
+    if (welcomeAppVersionDisplay) {
+        welcomeAppVersionDisplay.textContent = version;
+    }
+};
+
+const getVersionFromServiceWorker = () => {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'GET_VERSION' });
+    }
+};
+
 if ('serviceWorker' in navigator) {
-  // Espera a que la página cargue completamente para no retrasar el renderizado inicial
-  window.addEventListener('load', () => {
-    // Registra el archivo del Service Worker
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(registration => {
-        // Si el registro es exitoso, lo muestra en la consola
-        console.log('Service Worker registrado con éxito:', registration);
-      })
-      .catch(error => {
-        // Si hay un error, lo muestra en la consola
-        console.log('Error al registrar el Service Worker:', error);
-      });
-  });
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+                console.log('Service Worker registrado con éxito:', registration);
+                
+                // Escuchar mensajes del Service Worker (como la versión)
+                navigator.serviceWorker.addEventListener('message', event => {
+                    if (event.data && event.data.type === 'APP_VERSION') {
+                        console.log('Versión recibida del SW:', event.data.version);
+                        updateVersionInDOM(event.data.version);
+                        db.settings.put({ key: APP_VERSION_KEY, value: event.data.version });
+                    }
+                });
+
+                // Pedir la versión tan pronto como el SW esté activo
+                getVersionFromServiceWorker();
+
+                // Si hay un nuevo SW esperando, podríamos notificar al usuario
+                registration.onupdatefound = () => {
+                    const installingWorker = registration.installing;
+                    installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed') {
+                            if (navigator.serviceWorker.controller) {
+                                // Nueva actualización disponible.
+                                console.log('Nuevo contenido está disponible, por favor actualice.');
+                                // Podrías mostrar un toast aquí para que el usuario actualice.
+                            }
+                        }
+                    };
+                };
+            })
+            .catch(error => {
+                console.log('Error al registrar el Service Worker:', error);
+            });
+
+        // Intentar obtener la versión de la DB al cargar, en caso de que el SW no responda a tiempo
+        db.settings.get(APP_VERSION_KEY).then(versionSetting => {
+            if (versionSetting) {
+                updateVersionInDOM(versionSetting.value);
+            }
+        });
+    });
 }
 // =======================================================
 //  FIN: LÓGICA PARA PROGRESSIVE WEB APP (PWA)
