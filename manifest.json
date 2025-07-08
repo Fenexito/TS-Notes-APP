@@ -1,0 +1,22 @@
+    {
+      "name": "TS Notes App",
+      "short_name": "TS Notes",
+      "description": "Aplicación de toma de notas para agentes de call center con historial.",
+      "start_url": "/index.html",
+      "display": "standalone",
+      "background_color": "#ffffff",
+      "theme_color": "#0056b3",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        },
+        {
+          "src": "/icons/icon-512x512.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    }
+    
