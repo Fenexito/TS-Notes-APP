@@ -1,22 +1,44 @@
+{
+  "name": "TS Notes App",
+  "short_name": "TS Notes",
+  "description": "Aplicación de toma de notas para agentes de call center con historial.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0056b3",
+  "icons": [
     {
-      "name": "TS Notes App",
-      "short_name": "TS Notes",
-      "description": "Aplicación de toma de notas para agentes de call center con historial.",
-      "start_url": "/index.html",
-      "display": "standalone",
-      "background_color": "#ffffff",
-      "theme_color": "#0056b3",
-      "icons": [
-        {
-          "src": "/icons/icon-192x192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        },
-        {
-          "src": "/icons/icon-512x512.png",
-          "sizes": "512x512",
-          "type": "image/png"
-        }
-      ]
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
     }
-    
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop-screenshot-1.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Vista principal de la aplicación"
+    },
+    {
+      "src": "/screenshots/desktop-screenshot-2.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Historial de notas"
+    },
+    {
+      "src": "/screenshots/mobile-screenshot-1.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Vista móvil de la aplicación"
+    }
+  ]
+}
