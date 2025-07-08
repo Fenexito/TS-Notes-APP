@@ -3027,7 +3027,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Lógica específica para cada sección para restablecer estados y disparar eventos
             if (sectionId === 'seccion1') {
-                updateThirdRowLayout(); // Restablece la visibilidad de XID
                 // Clear specific fields in section 1
                 if (banInput) banInput.value = '';
                 if (cidInput) cidInput.value = '';
@@ -3037,6 +3036,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (verifiedBySelect) verifiedBySelect.value = '';
                 if (addressInput) addressInput.value = '';
                 if (xidInput) xidInput.value = '';
+                updateThirdRowLayout(); // Restablece la visibilidad de XID
             } else if (sectionId === 'seccion2') {
                 if (serviceOnCsrSelect) serviceOnCsrSelect.value = '';
                 // Resetear radios de Outage, NetCracker, Suspended
@@ -3046,7 +3046,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (serviceSelect) {
                     serviceSelect.value = '';
-                    // Do not dispatch change here, as handleSkillChange will handle it globally
+                    // No dispatch change here, as handleSkillChange will handle it globally
                     // when it's called at the end of cleanSection.
                 }
                 if (issueSelect) issueSelect.value = '';
