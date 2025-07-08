@@ -222,7 +222,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const awaAlerts2OptionsFFH = ['Occasional Slowspeed in ONE device', 'Occasional Slowspeed in some devices', 'Occasional Disconnections in ONE device', 'Occasional Disconnections in some devices', 'Devices operating in legacy WiFi Mode', 'Multiple gateway/modem reboots', 'Password problems', 'Low-memory issues detected in the router', 'High number of devices connected detected', 'The gateways has been disconnecting from the service provider network (PPP down)'];
     const awaAlertsOptionsSHS = ['No Active Trouble Conditions', 'Dual Path Communication Failure', 'Radio Not Responding', 'AC Power Failure', 'Customer NOT Arming system from app (past 2 weeks)'];
     const awaAlerts2OptionsSHS = ['No Errors Found', 'Sensor Low Battery', 'Panel Low Battery', 'Device Low Battery', 'Tamper Alert', 'Device Bypassed', 'IDLE'];
-    const awaStepsOptionsFFH = ['Advice cx about AWA alerts but is not facing the problems so far. (everything working fine on their end). No TS needed/performed about this', 'Advice cx about issues but cx dont want to troubheshoot this now', 'Inform cx about the problem. Offer WiFi Plus and cx refuses for now, but he will think about the feature', 'Inform cx about the problem. Cx already paying for Wifi Plus. No actions taken', 'Advice cx about issues. Most likely this alerts are causing the problem. Proceed with troubleshooting for the AWA alerts', 'Advice cx about the problem. Suggest internet plan speed upgrade or disconnect some devices from network', 'Advice cx about the problem. Suggest internet plan speed upgrade or disconnect some devices from network. Cx will take a look at that later. No TS performed'];
     const awaStepsOptionsSHS = ['Device not Responding', 'Video Quota Exceeded', 'Video Rule not configured', 'Video Device - No DDNS Messages', 'Malfunction (Z-Wave)', 'Malfunction (Sensor)', 'Malfunction (LiftMaster)'];
     const extraStepsOptions = ['Advice cx about new equipment delivery (3 to 5 business days)', 'Provide instructions for the installation of new equipment | Use go/send to share "How to" video/Instructions', 'Inform about the Equipment Return process | Share instructions with go/send', 'Use go/send to share PIN reset instructions', 'Use go/send to share "How To" video / Instructions', 'Perform a consultation with PIWS based on workflow suggestion', 'Fill the Connect APP Feedback. Advice cx about 7 to 10 days waiting time for the response. Share instructions to try again in the next 7 days. '];
     const issueOptions = {
@@ -418,19 +417,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (serviceSelect) {
             if (isSHS) {
                 serviceSelect.value = 'SHS Legacy';
+                // Populate issue select immediately for SHS Legacy
+                populateIssueSelect('SHS Legacy'); // Populate before disabling
                 serviceSelect.disabled = true; // Deshabilitar para que no se cambie manualmente
             } else {
                 serviceSelect.value = ''; // Resetear el servicio al cambiar de skill a FFH
                 serviceSelect.disabled = false; // Habilitar si es FFH
+                populateIssueSelect(''); // Clear issue select for FFH
             }
             // Disparar el evento change para que se actualicen los campos dependientes
+            // This dispatch is crucial for cascading updates after setting serviceSelect.value
             serviceSelect.dispatchEvent(new Event('change'));
         }
 
-        if (issueSelect) {
-            issueSelect.innerHTML = '<option value="">Seleccione un problema</option>';
-            issueSelect.disabled = true;
-        }
+        // Issue select is handled by serviceSelect's change event, so no direct manipulation here.
+        // if (issueSelect) {
+        //     issueSelect.innerHTML = '<option value="">Seleccione un problema</option>';
+        //     issueSelect.disabled = true;
+        // }
 
         // Mostrar/ocultar campos de velocidad y dispositivos según el skill
         if (isSHS) {
@@ -509,7 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target.type === 'radio' && event.target.name.startsWith('checklist_')) {
             const parentItem = event.target.closest('.checklist-item');
             if (parentItem) {
-                parentItem.classList.remove('status-pending', 'status-yes', 'status-no', 'status-na', 'checklist-item-required');
+                parentItem.classList.remove('status-pending', 'status-yes', 'status-no', 'status-na', 'checklist-item-required'); // Remove required class on any selection
                 switch (event.target.value) {
                     case 'yes':
                         parentItem.classList.add('status-yes');
@@ -520,7 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     case 'na':
                         parentItem.classList.add('status-na');
                         break;
-                    case 'pending':
+                    case 'pending': // Should not be directly selected by user, but for completeness
                         parentItem.classList.add('status-pending');
                         break;
                 }
@@ -1391,6 +1395,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 formData.serviceSelect,
                 formData.xVuStatusSelect,
                 formData.packetLossSelect
+
             );
         }
 
@@ -1868,6 +1873,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 labelEl.textContent = customLabel || fieldConfig[select.id].label;
             }
 
+            // Specific logic for SHS physical checklist dropdowns
             if (select.id === 'physicalCheckList2Select' && isSHS) {
                 const effectiveIssue = selectedIssueFromForm || currentIssueValue;
                 select.innerHTML = '<option value="">Seleccione una opción</option>';
@@ -1878,12 +1884,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     select.value = '';
                 } else if (shsDeviceOptionsMap[effectiveIssue] || effectiveIssue === 'General Issues') {
                     const optionsSource = effectiveIssue === 'General Issues' ? shsDeviceOptionsMap['Main Panel'] : shsDeviceOptionsMap[effectiveIssue];
-                    optionsSource.forEach(optionText => {
-                        const option = document.createElement('option');
-                        option.value = optionText;
-                        option.textContent = optionText;
-                        select.appendChild(option);
-                    });
+                    if (optionsSource) { // Ensure optionsSource is defined
+                        optionsSource.forEach(optionText => {
+                            const option = document.createElement('option');
+                            option.value = optionText;
+                            option.textContent = optionText;
+                            select.appendChild(option);
+                        });
+                    }
                     select.disabled = false;
                     select.setAttribute('required', 'required');
                 } else if (directIssueToDeviceMap.includes(effectiveIssue)) {
@@ -1922,7 +1930,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     select.value = '';
                 }
-            } else {
+            } else { // Default population for other physical checklists or non-SHS
                 select.innerHTML = '<option value="">Seleccione una opción</option>';
                 const options = (service && equipmentOptions[service] && equipmentOptions[service][listKey]) ? equipmentOptions[service][listKey] : [];
                 options.forEach(optionText => {
@@ -1973,7 +1981,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const select = item.select;
                 const checkbox = item.checkbox;
                 if (!select) return;
-                if (checkbox === null) {
+                if (checkbox === null) { // physicalCheckList1Select (IQ PANEL) is always enabled and required for SHS
                     select.disabled = false;
                     select.setAttribute('required', 'required');
                 } else {
@@ -1992,7 +2000,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             });
-        } else {
+        } else { // FFH logic
             const shouldHidePhysicalCheckForFFHService = SERVICES_TO_HIDE_PHYSICAL_CHECK.includes(service);
             if (shouldHidePhysicalCheckForFFHService) {
                 physicalCheckListsContainer.classList.add('hidden-field');
@@ -2157,7 +2165,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const isAwaAlertsMainSelected = _getFieldValue('awaAlertsSelect') !== '';
         if (isAwaAlertsMainSelected) {
             awaStepsSelect.disabled = false;
-            awaStepsSelect.setAttribute('required', 'required');
+            // Only set required if it's not SHS and there are actual steps, or if SHS has steps.
+            // For SHS, awaStepsSelect is required if awaAlertsSelect is selected.
+            if (currentSkill === 'SHS' || options.length > 0) {
+                awaStepsSelect.setAttribute('required', 'required');
+            } else {
+                awaStepsSelect.removeAttribute('required');
+            }
+            
             if (awaStepsValue && Array.from(awaStepsSelect.options).some(option => option.value === awaStepsValue)) {
                 awaStepsSelect.value = awaStepsValue;
             } else if (awaStepsValue) {
@@ -3012,47 +3027,89 @@ document.addEventListener('DOMContentLoaded', () => {
             // Lógica específica para cada sección para restablecer estados y disparar eventos
             if (sectionId === 'seccion1') {
                 updateThirdRowLayout(); // Restablece la visibilidad de XID
+                // Clear specific fields in section 1
+                if (banInput) banInput.value = '';
+                if (cidInput) cidInput.value = '';
+                if (nameInput) nameInput.value = '';
+                if (cbrInput) cbrInput.value = '';
+                if (callerSelect) callerSelect.value = '';
+                if (verifiedBySelect) verifiedBySelect.value = '';
+                if (addressInput) addressInput.value = '';
+                if (xidInput) xidInput.value = '';
             } else if (sectionId === 'seccion2') {
-                if (serviceSelect) {
-                    serviceSelect.value = '';
-                    serviceSelect.dispatchEvent(new Event('change')); // Dispara el cambio para resetear issues y physical checks
-                }
+                if (serviceOnCsrSelect) serviceOnCsrSelect.value = '';
                 // Resetear radios de Outage, NetCracker, Suspended
                 document.querySelectorAll('input[name="outage"]').forEach(radio => radio.checked = false);
                 document.querySelectorAll('input[name="errorsInNC"]').forEach(radio => radio.checked = false);
                 document.querySelectorAll('input[name="accountSuspended"]').forEach(radio => radio.checked = false);
 
-                // Asegurar que los campos de Optik TV Legacy se oculten si no es el servicio
-                updateOptikTvLegacySpecificFields('');
+                if (serviceSelect) {
+                    serviceSelect.value = '';
+                    // Do not dispatch change here, as handleSkillChange will handle it globally
+                    // when it's called at the end of cleanSection.
+                }
+                if (issueSelect) issueSelect.value = '';
+                if (cxIssueText) cxIssueText.value = '';
+                if (affectedText) affectedText.value = '';
+                if (physicalCheckList1Select) physicalCheckList1Select.value = '';
+                if (physicalCheckList2Select) physicalCheckList2Select.value = '';
+                if (physicalCheckList3Select) physicalCheckList3Select.value = '';
+                if (physicalCheckList4Select) physicalCheckList4Select.value = '';
+                if (enablePhysicalCheck2) enablePhysicalCheck2.checked = false;
+                if (enablePhysicalCheck3) enablePhysicalCheck3.checked = false;
+                if (enablePhysicalCheck4) enablePhysicalCheck4.checked = false;
+                if (xVuStatusSelect) xVuStatusSelect.value = '';
+                if (packetLossSelect) packetLossSelect.value = '';
+                if (additionalinfoText) additionalinfoText.value = '';
+                if (troubleshootingProcessText) troubleshootingProcessText.value = '';
+
+                // Ensure visibility is reset by calling relevant update functions
+                updateAffectedFieldVisibilityAndLabel(''); // Reset affected field visibility
+                _updatePhysicalCheckListEnablement('', false, false, false); // Hide and disable physical checks
+                updateOptikTvLegacySpecificFields(''); // Hide Optik TV legacy fields
 
             } else if (sectionId === 'seccion3') {
-                if (awaAlertsSelect) {
-                    awaAlertsSelect.value = '';
-                    awaAlertsSelect.dispatchEvent(new Event('change')); // Dispara el cambio para resetear awa steps
-                }
-                if (tvsSelect) {
-                    tvsSelect.value = '';
-                    tvsSelect.dispatchEvent(new Event('change')); // Dispara el cambio para resetear tvs key
-                }
-                if (extraStepsSelect) {
-                    extraStepsSelect.value = '';
-                    extraStepsSelect.dispatchEvent(new Event('change'));
-                }
-                // Los campos de velocidad/dispositivos se manejan con handleSkillChange,
-                // que se llama al final. Sus valores ya se limpiaron arriba.
+                if (awaAlertsSelect) awaAlertsSelect.value = '';
+                if (awaAlerts2Select) awaAlerts2Select.value = '';
+                if (enableAwaAlerts2) enableAwaAlerts2.checked = false;
+                if (awaStepsSelect) awaStepsSelect.value = '';
+                if (activeDevicesInput) activeDevicesInput.value = '';
+                if (totalDevicesInput) totalDevicesInput.value = '';
+                if (downloadBeforeInput) downloadBeforeInput.value = '';
+                if (uploadBeforeInput) uploadBeforeInput.value = '';
+                if (downloadAfterInput) downloadAfterInput.value = '';
+                if (uploadAfterInput) uploadAfterInput.value = '';
+                if (tvsSelect) tvsSelect.value = '';
+                if (tvsKeyInput) tvsKeyInput.value = '';
+                if (extraStepsSelect) extraStepsSelect.value = '';
+
+                // Ensure visibility is reset by calling relevant update functions
+                updateAwaAlerts2SelectState(false); // Reset AWA2 state
+                updateAwaStepsSelectState(''); // Reset AWA Steps state
+                updateTvsKeyFieldState(''); // Reset TVS Key state
+
             } else if (sectionId === 'seccion4') {
-                if (resolvedSelect) {
-                    resolvedSelect.value = '';
-                    resolvedSelect.dispatchEvent(new Event('change')); // Dispara el cambio para resetear campos de tech/followup
-                }
-                if (transferCheckbox) transferCheckbox.checked = false; // Asegurar que el checkbox de transferencia se resetee
-                updateTransferFieldState(); // Actualizar el estado del select de transferencia
+                if (resolvedSelect) resolvedSelect.value = '';
+                if (transferCheckbox) transferCheckbox.checked = false;
+                if (transferSelect) transferSelect.value = '';
+                if (cbr2Input) cbr2Input.value = '';
+                if (aocInput) aocInput.value = fieldConfig.aocInput.defaultValue; // Reset to default value
+                if (dispatchDateInput) dispatchDateInput.value = '';
+                if (dispatchTimeSlotSelect) dispatchTimeSlotSelect.value = '';
+                if (csrOrderInput) csrOrderInput.value = '';
+                if (ticketInput) ticketInput.value = '';
+
+                // Ensure visibility is reset by calling relevant update functions
+                updateTransferFieldState(false); // Reset transfer field state
+                updateTechFieldsVisibilityAndState(''); // Reset tech fields visibility
             }
 
             // Llamadas globales para re-evaluar el estado del formulario después de limpiar
-            handleSkillChange(); // Re-evalúa la visibilidad de campos basados en el skill
-            applyInitialRequiredHighlight(); // Re-aplica los bordes de campos requeridos
-            generateFinalNote(); // Regenera la nota final
+            // Estas llamadas son importantes para que los campos condicionales se actualicen
+            // correctamente en toda la UI después de limpiar una sección.
+            handleSkillChange(); 
+            applyInitialRequiredHighlight(); 
+            generateFinalNote(); 
             
             const sectionTitleElement = section.querySelector('.section-title');
             const sectionTitleText = sectionTitleElement ? sectionTitleElement.textContent.trim().replace('Limpiar sección', '').trim() : sectionId;
