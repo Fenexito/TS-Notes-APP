@@ -3573,6 +3573,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 parentItem.classList.remove('status-yes', 'status-no', 'status-na', 'checklist-item-required', 'status-follow-up-yes', 'status-follow-up-no', 'status-pending');
             }
         });
+        setChecklistValue('checklistCheckPhysical', 'no');
+        setChecklistValue('checklistTsCopilot', 'no');
     };
 
     const updateChecklistState = () => {
