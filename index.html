@@ -1,21 +1,18 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>APad - NoteApp</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- NUEVO: Enlace al manifiesto de la aplicación web -->
-    <!-- Este archivo JSON le dice al navegador cómo debe "instalar" y presentar tu aplicación. -->
+    <!-- Web Application Manifest -->
     <link rel="manifest" href="/manifest.json">
     
-    <!-- Opcional: Meta tags para iOS/Safari si quieres un icono de pantalla de inicio -->
-    <!-- Estas etiquetas mejoran la experiencia en dispositivos Apple. -->
+    <!-- Meta tags for iOS/Safari -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="Notas CC">
-    <!-- Asegúrate de que este icono exista en la ruta especificada -->
+    <meta name="apple-mobile-web-app-title" content="APad Notes">
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
     
 </head>
@@ -29,7 +26,7 @@
                         <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                     </button>
                     <h1 class="ts-notes-title">APad | NoteApp</h1>
-                    <span class="app-version" id="appVersionDisplay">vX.Y</span>
+                    <span class="app-version" id="appVersionDisplay">v.X.Y</span>
                 </div>
                 <div class="top-actions">
                     <button type="button" id="btnSee">
@@ -77,7 +74,7 @@
         <div class="agent-info">
             <label for="agentName">AGENT:</label>
             <div class="input-with-edit-button">
-                <input type="text" id="agentName" name="agentName" value="Nombre del Agente" readonly required autocomplete="off">
+                <input type="text" id="agentName" name="agentName" value="Agent Name" readonly required autocomplete="off">
                 <button type="button" id="editAgentNameBtn" class="edit-button">
                     <svg class="edit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
                 </button>
@@ -95,7 +92,7 @@
             <section id="seccion1" class="form-section">
                 <h2 class="section-title">
                     <span>Account Info & Verification</span>
-                    <button type="button" class="clean-section-btn" data-section-id="seccion1" title="Limpiar sección">
+                    <button type="button" class="clean-section-btn" data-section-id="seccion1" title="Clear section">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l3 0l0 18l12 0l0-18l3 0"></path><path d="M1 6l22 0"></path><path d="M8 6l0-3l8 0l0 3"></path></svg>
                     </button>
                 </h2>
@@ -105,7 +102,7 @@
                             <label for="ban">BAN</label>
                             <div class="input-with-copy-button">
                                 <input type="text" id="ban" name="ban" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
-                                <button type="button" class="copy-button" data-target="ban" title="Copiar BAN">
+                                <button type="button" class="copy-button" data-target="ban" title="Copy BAN">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v2"/></svg>
                                 </button>
                             </div>
@@ -114,7 +111,7 @@
                             <label for="cid">CID</label>
                             <div class="input-with-copy-button">
                                 <input type="text" id="cid" name="cid" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
-                                <button type="button" class="copy-button" data-target="cid" title="Copiar CID">
+                                <button type="button" class="copy-button" data-target="cid" title="Copy CID">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v2"/></svg>
                                 </button>
                             </div>
@@ -127,7 +124,7 @@
                             <label for="cbr">CBR</label>
                             <div class="input-with-copy-button">
                                 <input type="text" id="cbr" name="cbr" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
-                                <button type="button" class="copy-button" data-target="cbr" title="Copiar CBR">
+                                <button type="button" class="copy-button" data-target="cbr" title="Copy CBR">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v2"/></svg>
                                 </button>
                             </div>
@@ -137,7 +134,7 @@
                         <div class="input-group">
                             <label for="caller">CALLER</label>
                             <select id="caller" name="caller" required>
-                                <option value="">Seleccione una opción</option>
+                                <option value="">Select an option</option>
                                 <option value="Owner">Owner</option>
                                 <option value="Auth User">Auth User</option>
                                 <option value="Consultation">Consultation</option>
@@ -147,7 +144,7 @@
                         <div class="input-group">
                             <label for="verifiedBy">VERIFIED BY</label>
                             <select id="verifiedBy" name="verifiedBy" required>
-                                <option value="">Seleccione una opción</option>
+                                <option value="">Select an option</option>
                                 <option value="PIN">PIN</option>
                                 <option value="IVR">IVR</option>
                                 <option value="Security Questions">Security Questions</option>
@@ -173,7 +170,7 @@
             <section id="seccion2" class="form-section">
                 <h2 class="section-title">
                     <span>Status, Issue and Troubleshoot Steps</span>
-                    <button type="button" class="clean-section-btn" data-section-id="seccion2" title="Limpiar sección">
+                    <button type="button" class="clean-section-btn" data-section-id="seccion2" title="Clear section">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l3 0l0 18l12 0l0-18l3 0"></path><path d="M1 6l22 0"></path><path d="M8 6l0-3l8 0l0 3"></path></svg>
                     </button>
                 </h2>
@@ -222,7 +219,7 @@
                         <div class="input-group">
                             <label for="serviceSelect">SERVICE</label>
                             <select id="serviceSelect" name="serviceSelect" required>
-                                <option value="">Seleccione un servicio</option>
+                                <option value="">Select a service</option>
                                 <option value="HighSpeed / Fiber">HighSpeed / Fiber</option>
                                 <option value="HighSpeed / Copper">HighSpeed / Copper</option>
                                 <option value="Optik TV (Legacy)">Optik TV (Legacy)</option>
@@ -243,7 +240,7 @@
                         <div class="input-group">
                             <label for="issueSelect">WORKFLOW</label>
                             <select id="issueSelect" name="issueSelect" required disabled>
-                                <option value="">Seleccione un problema</option>
+                                <option value="">Select an issue</option>
                             </select>
                         </div>
                     </div>
@@ -267,7 +264,7 @@
                         <div class="input-group physical-check-item-with-label-above">
                             <label for="physicalCheckList1Select" id="physicalCheckList1Label">ONT/GATEWAY</label>
                             <select id="physicalCheckList1Select" name="physicalCheckList1" required>
-                                <option value="">Seleccione una opción</option>
+                                <option value="">Select an option</option>
                             </select>
                         </div>
                         <div class="input-group physical-check-item">
@@ -275,7 +272,7 @@
                             <div class="checkbox-and-select-wrapper">
                                 <input type="checkbox" id="enablePhysicalCheck2" class="physical-check-toggle">
                                 <select id="physicalCheckList2Select" name="physicalCheckList2" disabled>
-                                    <option value="">Seleccione una opción</option>
+                                    <option value="">Select an option</option>
                                 </select>
                             </div>
                         </div>
@@ -284,7 +281,7 @@
                             <div class="checkbox-and-select-wrapper">
                                 <input type="checkbox" id="enablePhysicalCheck3" class="physical-check-toggle">
                                 <select id="physicalCheckList3Select" name="physicalCheckList3" disabled>
-                                    <option value="">Seleccione una opción</option>
+                                    <option value="">Select an option</option>
                                 </select>
                             </div>
                         </div>
@@ -293,7 +290,7 @@
                             <div class="checkbox-and-select-wrapper">
                                 <input type="checkbox" id="enablePhysicalCheck4" class="physical-check-toggle">
                                 <select id="physicalCheckList4Select" name="physicalCheckList4" disabled>
-                                    <option value="">Seleccione una opción</option>
+                                    <option value="">Select an option</option>
                                 </select>
                             </div>
                         </div>
@@ -317,13 +314,12 @@
                             <textarea id="troubleshootingProcessText" name="troubleshootingProcessText" rows="6" required autocomplete="off"></textarea>
                         </div>
                     </div>
-                    <!-- NUEVO: Fila con enlaces de GO/CHECKPHYSICAL y GO/TSCOPILOT -->
                     <div class="input-row links-row">
                         <div class="input-group go-link-group">
-                            <p>Remember to use <a href="https://script.google.com/a/macros/telus.com/s/AKfycbyTMDWK_8dFPd_RDHDBlY0V7YbLp4f46G6YCrL-bBtxteVLo0kxwMD7EVOonljBSL6o/exec" target="_blank" id="goCheckPhysicalLink" rel="noopener noreferrer"><strong>GO/CHECKPHYSICAL</strong></a></p>
+                            <p>Remember to use <a href="http://go/checkphysical" target="_blank" id="goCheckPhysicalLink" rel="noopener noreferrer"><strong>GO/CHECKPHYSICAL</strong></a></p>
                         </div>
                         <div class="input-group go-link-group">
-                            <p>Remember to use <a href="https://app.fuelix.ai/en/copilots/copilot-490597fe4c554160b59b/chats/new" target="_blank" id="goTsCopilotLink rel="noopener noreferrer"><strong>GO/TSCOPILOT</strong></a></p>
+                            <p>Remember to use <a href="http://go/tscopilot" target="_blank" id="goTsCopilotLink" rel="noopener noreferrer"><strong>GO/TSCOPILOT</strong></a></p>
                         </div>
                     </div>
                 </div>
@@ -331,7 +327,7 @@
             <section id="seccion3" class="form-section">
                 <h2 class="section-title">
                     <span>Advanced Wifi Analytics & TVS</span>
-                    <button type="button" class="clean-section-btn" data-section-id="seccion3" title="Limpiar sección">
+                    <button type="button" class="clean-section-btn" data-section-id="seccion3" title="Clear section">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l3 0l0 18l12 0l0-18l3 0"></path><path d="M1 6l22 0"></path><path d="M8 6l0-3l8 0l0 3"></path></svg>
                     </button>
                 </h2>
@@ -340,7 +336,7 @@
                         <div class="input-group">
                             <label for="awaAlertsSelect">AWA ALERTS</label>
                             <select id="awaAlertsSelect" name="awaAlerts" required>
-                                <option value="">Seleccione una opción</option>
+                                <option value="">Select an option</option>
                             </select>
                         </div>
                         <div class="input-group physical-check-item">
@@ -348,14 +344,14 @@
                             <div class="checkbox-and-select-wrapper">
                                 <input type="checkbox" id="enableAwaAlerts2" class="physical-check-toggle">
                                 <select id="awaAlerts2Select" name="awaAlerts2" disabled>
-                                    <option value="">Seleccione una opción</option>
+                                    <option value="">Select an option</option>
                                 </select>
                             </div>
                         </div>
                         <div class="input-group">
                             <label for="awaStepsSelect">AWA STEPS</label>
                             <select id="awaStepsSelect" name="awaSteps" disabled>
-                                <option value="">Seleccione una opción</option>
+                                <option value="">Select an option</option>
                             </select>
                         </div>
                     </div>
@@ -389,7 +385,7 @@
                         <div class="input-group">
                             <label for="tvsSelect">TVS</label>
                             <select id="tvsSelect" name="tvsSelect" required>
-                                <option value="">Seleccione una opción</option>
+                                <option value="">Select an option</option>
                                 <option value="YES">YES</option>
                                 <option value="NO / Offered but Cx refuses">NO / Offered but Cx refuses</option>
                                 <option value="NO / Offered but Cx don't have internet">NO / Offered but Cx don't have internet</option>
@@ -408,7 +404,7 @@
                         <div class="input-group full-width">
                             <label for="extraStepsSelect">EXTRA STEPS</label>
                             <select id="extraStepsSelect" name="extraStepsSelect">
-                                <option value="">Seleccione una opción</option>
+                                <option value="">Select an option</option>
                             </select>
                         </div>
                     </div>
@@ -417,7 +413,7 @@
             <section id="seccion4" class="form-section">
                 <h2 class="section-title">
                     <span>Resolution</span>
-                    <button type="button" class="clean-section-btn" data-section-id="seccion4" title="Limpiar sección">
+                    <button type="button" class="clean-section-btn" data-section-id="seccion4" title="Clear section">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l3 0l0 18l12 0l0-18l3 0"></path><path d="M1 6l22 0"></path><path d="M8 6l0-3l8 0l0 3"></path></svg>
                     </button>
                 </h2>
@@ -426,16 +422,13 @@
                         <div class="input-group">
                             <label for="resolvedSelect">RESOLVED</label>
                             <select id="resolvedSelect" name="resolvedSelect" required>
-                                <option value="">Seleccione una opción</option>
+                                <option value="">Select an option</option>
                                 <option value="Yes | EOC">Yes | EOC</option>
                                 <option value="No | Tech Booked">No | Tech Booked</option>
-                                <option value="No | Cx hang up the call">No | Cx hang up the call</option>
                                 <option value="No | Follow Up Required">No | Follow Up Required</option>
                                 <option value="No | Follow Up Required | Set SCB with FVA">No | Follow Up Required | Set SCB with FVA</option>
                                 <option value="No | BOSR Created">No | BOSR Created</option>
                                 <option value="No | NC Ticket Created">No | NC Ticket Created</option>
-                                <option value="Call disconnected | Call cx back | Not Reachable | Left VM">Call disconnected | Call cx back | Not Reachable | Left VM</option>
-                                <option value="Call disconnected | Call cx back | Not Reachable | Unable to Left VM">Call disconnected | Call cx back | Not Reachable | Unable to Left VM</option>
                                 <option value="Cx ask for a Manager | Unable to de escalate. Manager still needed | Escalate to EMT">Cx ask for a Manager | Unable to de escalate. Manager still needed | Escalate to EMT</option>
                                 <option value="Cx need to be transfered">Cx need to be transfered</option>
                             </select>
@@ -445,7 +438,7 @@
                             <div class="checkbox-and-select-wrapper">
                                 <input type="checkbox" id="transferCheckbox" class="physical-check-toggle">
                                 <select id="transferSelect" name="transferSelect" disabled>
-                                    <option value="">Seleccione una opción</option>
+                                    <option value="">Select an option</option>
                                 </select>
                             </div>
                         </div>
@@ -466,7 +459,7 @@
                         <div class="input-group" id="dispatchTimeSlotSelectContainer" style="display: none;">
                             <label for="dispatchTimeSlotSelect" id="dispatchTimeLabel">DISPATCH TIME</label>
                             <select id="dispatchTimeSlotSelect" name="dispatchTimeSlotSelect">
-                                <option value="">Seleccione una opción</option>
+                                <option value="">Select an option</option>
                             </select>
                         </div>
                     </div>
@@ -479,7 +472,7 @@
                             <label for="ticketInput">TICKET</label>
                             <div class="input-with-copy-button">
                                 <input type="text" id="ticketInput" name="ticketInput" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
-                                <button type="button" class="copy-button" data-target="ticketInput" title="Copiar Ticket">
+                                <button type="button" class="copy-button" data-target="ticketInput" title="Copy Ticket">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v2"/></svg>
                                 </button>
                             </div>
@@ -490,23 +483,23 @@
             </form>
     </div>
 
-    <!-- NUEVO: Modal de Bienvenida -->
+    <!-- Welcome Modal -->
     <div id="welcomeModalOverlay" class="modal-overlay" style="display:none;">
         <div class="modal-content small-modal">
             <div class="modal-header">
-                <h3>Bienvenido a APad</h3>
+                <h3>Welcome to APad</h3>
             </div>
             <div class="modal-body">
-                <p>Esta aplicación te ayuda a tomar notas de llamadas de soporte técnico de manera eficiente y organizada.</p>
-                <p><strong>Creador:</strong> x331671 | Alex Van Houtven</p>
-                <p><strong>Versión Actual:</strong> <span id="welcomeAppVersionDisplay">Loading...</span></p>
+                <p>This application helps you take technical support call notes efficiently and organized.</p>
+                <p><strong>Creator:</strong> x331671 | Alex Van Houtven | FFH PureFiber TS</p>
+                <p><strong>Current Version:</strong> <span id="welcomeAppVersionDisplay">Loading...</span></p>
                 <div class="input-group">
-                    <label for="welcomeAgentNameInput">Ingresa tu nombre (el que aparecera en tus notas):</label>
-                    <input type="text" id="welcomeAgentNameInput" placeholder="Tu nombre de agente" required autocomplete="off">
+                    <label for="welcomeAgentNameInput">Enter your name (it will appear in your notes):</label>
+                    <input type="text" id="welcomeAgentNameInput" placeholder="Your agent name" required autocomplete="off">
                 </div>
             </div>
             <div class="modal-actions-confirm">
-                <button type="button" id="startTakingNotesBtn" class="modal-action-btn copy-btn-style">EMPEZAR</button>
+                <button type="button" id="startTakingNotesBtn" class="modal-action-btn copy-btn-style">START</button>
             </div>
         </div>
     </div>
@@ -515,7 +508,7 @@
         <div class="modal-content large-modal">
             <div class="modal-header">
                 <h2>
-                    Nota Final
+                    Final Note
                     <div class="modal-char-counter-display">
                         <span id="modalNoteCharCount" class="char-counter">0</span>
                     </div>
@@ -530,23 +523,23 @@
             <div class="modal-actions">
                 <button type="button" class="modal-action-btn copy-btn-style" id="modalCopyBtn">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v2"/></svg>
-                    COPIAR
+                    COPY
                 </button>
                 <button type="button" class="modal-action-btn edit-btn-style" id="modalEditFromHistoryBtn" style="display: none;">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.000 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    EDITAR
+                    EDIT
                 </button>
                 <button type="button" class="modal-action-btn separate-btn-style" id="modalSeparateBtn">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2h6a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2h-6"/><path d="M6 2h6v20H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/></svg>
-                    SEPARAR
+                    SPLIT
                 </button>
                 <button type="button" class="modal-action-btn copy-save-btn-style" id="modalCopySaveBtn">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1H18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5"/><path d="m8 7 2 2 4-4"/><path d="M18 7v6h-6"/></svg>
-                    COPIAR Y GUARDAR
+                    COPY & SAVE
                 </button>
                 <button type="button" class="modal-action-btn edit-btn-style" id="modalResolutionBtn">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                    RESOLUCIÓN
+                    RESOLUTION
                 </button>
                 <button type="button" class="modal-action-btn" id="modalCopilotBtn">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
@@ -554,7 +547,7 @@
                 </button>
                 <button type="button" class="modal-action-btn close-btn-style" id="modalCloseBtnBottom">
                     <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    CERRAR
+                    CLOSE
                 </button>
             </div>
         </div>
@@ -563,7 +556,7 @@
     <div id="separateNoteModalOverlay" class="modal-overlay" style="display:none">
         <div class="modal-content large-modal">
             <div class="modal-header">
-                <h2>Nota Separada</h2>
+                <h2>Split Note</h2>
                 <button type="button" class="close-modal-btn" id="separateModalCloseBtn">
                     <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
@@ -573,11 +566,11 @@
             <div class="modal-actions">
                 <button type="button" class="modal-action-btn copy-save-btn-style" id="separateModalCopySaveBtn">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1H18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5"/><path d="m8 7 2 2 4-4"/><path d="M18 7v6h-6"/></svg>
-                    COPIAR Y GUARDAR
+                    COPY & SAVE
                 </button>
                 <button type="button" class="modal-action-btn edit-btn-style" id="separateModalResolutionBtn">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                    RESOLUCIÓN
+                    RESOLUTION
                 </button>
                 <button type="button" class="modal-action-btn" id="separateModalCopilotBtn">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
@@ -585,7 +578,7 @@
                 </button>
                 <button type="button" class="modal-action-btn close-btn-style" id="separateModalCloseBtnBottom">
                     <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    CERRAR
+                    CLOSE
                 </button>
             </div>
         </div>
@@ -594,14 +587,14 @@
     <div id="customConfirmModal" class="modal-overlay" style="display:none">
         <div class="modal-content small-modal">
             <div class="modal-header">
-                <h3>Advertencia</h3>
+                <h3>Warning</h3>
             </div>
             <div class="modal-body">
                 <p id="confirmMessage" class="confirm-message"></p>
             </div>
             <div class="modal-actions-confirm">
                 <button type="button" id="confirmNoBtn" class="modal-action-btn close-btn-style">NO</button>
-                <button type="button" id="confirmYesBtn" class="modal-action-btn copy-btn-style">SÍ</button>
+                <button type="button" id="confirmYesBtn" class="modal-action-btn copy-btn-style">YES</button>
             </div>
         </div>
     </div>
@@ -609,14 +602,14 @@
     <div id="feedbackModalOverlay" class="modal-overlay" style="display:none">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Enviar Feedback</h3>
+                <h3>Send Feedback</h3>
                 <button type="button" class="close-modal-btn" id="closeFeedbackModalBtn">
                     <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
             <div id="feedback-form-content" class="modal-body">
                 <div class="google-form-container">
-                    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLScDxUnncRkZSDfL8_G2H8Z5buuaDp63RoN4rdpqB7cA0KjawA/viewform?embedded=true" width="520" height="540" frameborder="0" marginheight="0" marginwidth="0">Cargando…</iframe>
+                    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLScDxUnncRkZSDfL8_G2H8Z5buuaDp63RoN4rdpqB7cA0KjawA/viewform?embedded=true" width="520" height="540" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
                 </div>
             </div>
             </div>
@@ -634,7 +627,7 @@
             <div class="checklist-section">
                 <h4 class="checklist-section-title">
                     <span class="checklist-title-text">Excellence Mandate</span>
-                    <button type="button" class="clean-checklist-section-btn" data-section="excellence" title="Limpiar sección">
+                    <button type="button" class="clean-checklist-section-btn" data-section="excellence" title="Clear section">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l3 0l0 18l12 0l0-18l3 0"></path><path d="M1 6l22 0"></path><path d="M8 6l0-3l8 0l0 3"></path></svg>
                     </button>
                 </h4>
@@ -642,57 +635,57 @@
                     <div class="checklist-item status-pending" data-required="true">
                         <label>Did you secure the call by asking for a <strong>CALLBACK NUMBER</strong>?</label>
                         <div class="checklist-options">
-                            <input type="radio" id="checkItem1_yes" name="checkItem1" value="yes"><label for="checkItem1_yes">Sí</label>
-                            <input type="radio" id="checkItem1_no" name="checkItem1" value="no"><label for="checkItem1_no">No</label>
-                            <input type="radio" id="checkItem1_na" name="checkItem1" value="na"><label for="checkItem1_na">N/A</label>
+                            <input type="radio" id="checklistCallbackNumber_yes" name="checklistCallbackNumber" value="yes"><label for="checklistCallbackNumber_yes">Yes</label>
+                            <input type="radio" id="checklistCallbackNumber_no" name="checklistCallbackNumber" value="no"><label for="checklistCallbackNumber_no">No</label>
+                            <input type="radio" id="checklistCallbackNumber_na" name="checklistCallbackNumber" value="na"><label for="checklistCallbackNumber_na">N/A</label>
                         </div>
                     </div>
                     <div class="checklist-item status-pending" data-required="true">
                         <label>Did you do all the relevant <strong>PROBING QUESTIONS</strong>?</label>
                         <div class="checklist-options">
-                            <input type="radio" id="checkItem2_yes" name="checkItem2" value="yes"><label for="checkItem2_yes">Sí</label>
-                            <input type="radio" id="checkItem2_no" name="checkItem2" value="no"><label for="checkItem2_no">No</label>
-                            <input type="radio" id="checkItem2_na" name="checkItem2" value="na"><label for="checkItem2_na">N/A</label>
+                            <input type="radio" id="checklistProbingQuestions_yes" name="checklistProbingQuestions" value="yes"><label for="checklistProbingQuestions_yes">Yes</label>
+                            <input type="radio" id="checklistProbingQuestions_no" name="checklistProbingQuestions" value="no"><label for="checklistProbingQuestions_no">No</label>
+                            <input type="radio" id="checklistProbingQuestions_na" name="checklistProbingQuestions" value="na"><label for="checklistProbingQuestions_na">N/A</label>
                         </div>
                     </div>
                     <div class="checklist-item status-pending" data-required="true">
                         <label>Have you researched <strong>ADVANCED WIFI ANALYTICS</strong>?</label>
                         <div class="checklist-options">
-                            <input type="radio" id="checkItem3_yes" name="checkItem3" value="yes"><label for="checkItem3_yes">Sí</label>
-                            <input type="radio" id="checkItem3_no" name="checkItem3" value="no"><label for="checkItem3_no">No</label>
-                            <input type="radio" id="checkItem3_na" name="checkItem3" value="na"><label for="checkItem3_na">N/A</label>
+                            <input type="radio" id="checklistAdvancedWifi_yes" name="checklistAdvancedWifi" value="yes"><label for="checklistAdvancedWifi_yes">Yes</label>
+                            <input type="radio" id="checklistAdvancedWifi_no" name="checklistAdvancedWifi" value="no"><label for="checklistAdvancedWifi_no">No</label>
+                            <input type="radio" id="checklistAdvancedWifi_na" name="checklistAdvancedWifi" value="na"><label for="checklistAdvancedWifi_na">N/A</label>
                         </div>
                     </div>
                     <div class="checklist-item status-pending" data-required="true">
                         <label>Have you used <strong>TVS / ROUTE THIS</strong>? Did you use video, photos, scan network and deadspots detector?</label>
                         <div class="checklist-options">
-                            <input type="radio" id="checkItem4_yes" name="checkItem4" value="yes"><label for="checkItem4_yes">Sí</label>
-                            <input type="radio" id="checkItem4_no" name="checkItem4" value="no"><label for="checkItem4_no">No</label>
-                            <input type="radio" id="checkItem4_na" name="checkItem4" value="na"><label for="checkItem4_na">N/A</label>
+                            <input type="radio" id="checklistTvs_yes" name="checklistTvs" value="yes"><label for="checklistTvs_yes">Yes</label>
+                            <input type="radio" id="checklistTvs_no" name="checklistTvs" value="no"><label for="checklistTvs_no">No</label>
+                            <input type="radio" id="checklistTvs_na" name="checklistTvs" value="na"><label for="checklistTvs_na">N/A</label>
                         </div>
                     </div>
                     <div class="checklist-item status-pending" data-required="true">
                         <label>Did you do a <strong>REBOOT / FACTORY RESET</strong>? If that fixed the issue, are you sure this is not a <strong>TEMPORARY FIX</strong>?</label>
                         <div class="checklist-options">
-                            <input type="radio" id="checkItem5_yes" name="checkItem5" value="yes"><label for="checkItem5_yes">Sí</label>
-                            <input type="radio" id="checkItem5_no" name="checkItem5" value="no"><label for="checkItem5_no">No</label>
-                            <input type="radio" id="checkItem5_na" name="checkItem5" value="na"><label for="checkItem5_na">N/A</label>
+                            <input type="radio" id="checklistReboot_yes" name="checklistReboot" value="yes"><label for="checklistReboot_yes">Yes</label>
+                            <input type="radio" id="checklistReboot_no" name="checklistReboot" value="no"><label for="checklistReboot_no">No</label>
+                            <input type="radio" id="checklistReboot_na" name="checklistReboot" value="na"><label for="checklistReboot_na">N/A</label>
                         </div>
                     </div>
                     <div class="checklist-item status-pending" data-required="true">
                         <label>Did you perform a device <strong>SWAP</strong>? Is absolutely <strong>NECESSARY</strong>? Are you sure this will <strong>FIX THE ISSUE</strong>?</label>
                         <div class="checklist-options">
-                            <input type="radio" id="checkItem6_yes" name="checkItem6" value="yes"><label for="checkItem6_yes">Sí</label>
-                            <input type="radio" id="checkItem6_no" name="checkItem6" value="no"><label for="checkItem6_no">No</label>
-                            <input type="radio" id="checkItem6_na" name="checkItem6" value="na"><label for="checkItem6_na">N/A</label>
+                            <input type="radio" id="checklistSwap_yes" name="checklistSwap" value="yes"><label for="checklistSwap_yes">Yes</label>
+                            <input type="radio" id="checklistSwap_no" name="checklistSwap" value="no"><label for="checklistSwap_no">No</label>
+                            <input type="radio" id="checklistSwap_na" name="checklistSwap" value="na"><label for="checklistSwap_na">N/A</label>
                         </div>
                     </div>
                     <div class="checklist-item status-pending" data-required="true">
                         <label>Did you try to Set Automated Callback Instead of proactively offering a <strong>CALLBACK</strong>?</label>
                         <div class="checklist-options">
-                            <input type="radio" id="checkItem7_yes" name="checkItem7" value="yes"><label for="checkItem7_yes">Sí</label>
-                            <input type="radio" id="checkItem7_no" name="checkItem7" value="no"><label for="checkItem7_no">No</label>
-                            <input type="radio" id="checkItem7_na" name="checkItem7" value="na"><label for="checkItem7_na">N/A</label>
+                            <input type="radio" id="checklistCallback_yes" name="checklistCallback" value="yes"><label for="checklistCallback_yes">Yes</label>
+                            <input type="radio" id="checklistCallback_no" name="checklistCallback" value="no"><label for="checklistCallback_no">No</label>
+                            <input type="radio" id="checklistCallback_na" name="checklistCallback" value="na"><label for="checklistCallback_na">N/A</label>
                         </div>
                     </div>
                 </div>
@@ -701,7 +694,7 @@
             <div class="checklist-section">
                 <h4 class="checklist-section-title">
                     <span class="checklist-title-text">Troubleshoot Steps</span>
-                    <button type="button" class="clean-checklist-section-btn" data-section="troubleshoot" title="Limpiar sección">
+                    <button type="button" class="clean-checklist-section-btn" data-section="troubleshoot" title="Clear section">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l3 0l0 18l12 0l0-18l3 0"></path><path d="M1 6l22 0"></path><path d="M8 6l0-3l8 0l0 3"></path></svg>
                     </button>
                 </h4>
@@ -709,57 +702,41 @@
                     <div class="checklist-item status-pending">
                         <label>Did you select and follow the <strong>CORRECT INSIGHT WORKFLOW</strong>?</label>
                         <div class="checklist-options">
-                            <input type="radio" id="checkItem8_yes" name="checkItem8" value="yes"><label for="checkItem8_yes">Sí</label>
-                            <input type="radio" id="checkItem8_no" name="checkItem8" value="no"><label for="checkItem8_no">No</label>
-                            <input type="radio" id="checkItem8_na" name="checkItem8" value="na"><label for="checkItem8_na">N/A</label>
+                            <input type="radio" id="checklistCorrectWorkflow_yes" name="checklistCorrectWorkflow" value="yes"><label for="checklistCorrectWorkflow_yes">Yes</label>
+                            <input type="radio" id="checklistCorrectWorkflow_no" name="checklistCorrectWorkflow" value="no"><label for="checklistCorrectWorkflow_no">No</label>
+                            <input type="radio" id="checklistCorrectWorkflow_na" name="checklistCorrectWorkflow" value="na"><label for="checklistCorrectWorkflow_na">N/A</label>
                         </div>
                     </div>
                     <div class="checklist-item status-pending">
-                        <label>Did you use <a href="https://script.google.com/a/macros/telus.com/s/AKfycbyTMDWK_8dFPd_RDHDBlY0V7YbLp4f46G6YCrL-bBtxteVLo0kxwMD7EVOonljBSL6o/exec" target="_blank"><strong>CHECK PHYSICAL</strong></a> to review the equipment and connections / lights / cables / damage?</label>
+                        <label>Did you use <a href="http://go/checkphysical" target="_blank" id="goCheckPhysicalLink" rel="noopener noreferrer"><strong>CHECK PHYSICAL</strong></a> to review the equipment and connections / lights / cables / damage?</label>
                         <div class="checklist-options">
-                            <input type="radio" id="checkItem9_yes" name="checkItem9" value="yes"><label for="checkItem9_yes">Sí</label>
-                            <input type="radio" id="checkItem9_no" name="checkItem9" value="no"><label for="checkItem9_no">No</label>
-                            <input type="radio" id="checkItem9_na" name="checkItem9" value="na"><label for="checkItem9_na">N/A</label>
+                            <input type="radio" id="checklistCheckPhysical_yes" name="checklistCheckPhysical" value="yes"><label for="checklistCheckPhysical_yes">Yes</label>
+                            <input type="radio" id="checklistCheckPhysical_no" name="checklistCheckPhysical" value="no"><label for="checklistCheckPhysical_no">No</label>
+                            <input type="radio" id="checklistCheckPhysical_na" name="checklistCheckPhysical" value="na"><label for="checklistCheckPhysical_na">N/A</label>
                         </div>
                     </div>
                     <div class="checklist-item status-pending">
-                        <label>Did you use the <a href="https://app.fuelix.ai/en/copilots/copilot-490597fe4c554160b59b/chats/new" target="_blank"><strong>TS COPILOT AI</strong></a> to confirm you perform all the necesary steps to resolve the issue?</label>
+                        <label>Did you use the <a href="http://go/tscopilot" target="_blank" id="goTsCopilotLink" rel="noopener noreferrer"><strong>TS COPILOT AI</strong></a> to confirm you perform all the necesary steps to resolve the issue?</label>
                         <div class="checklist-options">
-                            <input type="radio" id="checkItem10_yes" name="checkItem10" value="yes"><label for="checkItem10_yes">Sí</label>
-                            <input type="radio" id="checkItem10_no" name="checkItem10" value="no"><label for="checkItem10_no">No</label>
-                            <input type="radio" id="checkItem10_na" name="checkItem10" value="na"><label for="checkItem10_na">N/A</label>
+                            <input type="radio" id="checklistTsCopilot_yes" name="checklistTsCopilot" value="yes"><label for="checklistTsCopilot_yes">Yes</label>
+                            <input type="radio" id="checklistTsCopilot_no" name="checklistTsCopilot" value="no"><label for="checklistTsCopilot_no">No</label>
+                            <input type="radio" id="checklistTsCopilot_na" name="checklistTsCopilot" value="na"><label for="checklistTsCopilot_na">N/A</label>
                         </div>
                     </div>
                     <div class="checklist-item status-pending">
                         <label>Did you confirm with the cx that <strong>ALL SERVICES</strong> are <strong>WORKING</strong> now?</label>
                         <div class="checklist-options">
-                            <input type="radio" id="checkItem11_yes" name="checkItem11" value="yes"><label for="checkItem11_yes">Sí</label>
-                            <input type="radio" id="checkItem11_no" name="checkItem11" value="no"><label for="checkItem11_no">No</label>
-                            <input type="radio" id="checkItem11_na" name="checkItem11" value="na"><label for="checkItem11_na">N/A</label>
+                            <input type="radio" id="checklistAllServices_yes" name="checklistAllServices" value="yes"><label for="checklistAllServices_yes">Yes</label>
+                            <input type="radio" id="checklistAllServices_no" name="checklistAllServices" value="no"><label for="checklistAllServices_no">No</label>
+                            <input type="radio" id="checklistAllServices_na" name="checklistAllServices" value="na"><label for="checklistAllServices_na">N/A</label>
                         </div>
                     </div>
                     <div class="checklist-item status-pending">
                         <label>Did you use <strong>GO/SEND</strong> in this interaction?</label>
                         <div class="checklist-options">
-                            <input type="radio" id="checkItem12_yes" name="checkItem12" value="yes"><label for="checkItem12_yes">Sí</label>
-                            <input type="radio" id="checkItem12_no" name="checkItem12" value="no"><label for="checkItem12_no">No</label>
-                            <input type="radio" id="checkItem12_na" name="checkItem12" value="na"><label for="checkItem12_na">N/A</label>
-                        </div>
-                    </div>
-                    <div class="checklist-item status-pending">
-                        <label>Did you perform a <strong>RECAP</strong> about what happend on the call, <strong>CHECK FOR UNDERSTANDING</strong> with the cx and provide <strong>RECOMENDATIONS</strong> if the issue happens again?</label>
-                        <div class="checklist-options">
-                            <input type="radio" id="checkItem13_yes" name="checkItem13" value="yes"><label for="checkItem13_yes">Sí</label>
-                            <input type="radio" id="checkItem13_no" name="checkItem13" value="no"><label for="checkItem13_no">No</label>
-                            <input type="radio" id="checkItem13_na" name="checkItem13" value="na"><label for="checkItem13_na">N/A</label>
-                        </div>
-                    </div>
-                    <div class="checklist-item status-pending">
-                        <label>Do you need to perform a <strong>FOLLOW UP</strong> for this issue?</label>
-                        <div class="checklist-options">
-                            <input type="radio" id="checkItem14_yes" name="checkItem14" value="yes"><label for="checkItem14_yes">Sí</label>
-                            <input type="radio" id="checkItem14_no" name="checkItem14" value="no"><label for="checkItem14_no">No</label>
-                            <input type="radio" id="checkItem14_na" name="checkItem14" value="na"><label for="checkItem14_na">N/A</label>
+                            <input type="radio" id="checklistGoSend_yes" name="checklistGoSend" value="yes"><label for="checklistGoSend_yes">Yes</label>
+                            <input type="radio" id="checklistGoSend_no" name="checklistGoSend" value="no"><label for="checklistGoSend_no">No</label>
+                            <input type="radio" id="checklistGoSend_na" name="checklistGoSend" value="na"><label for="checklistGoSend_na">N/A</label>
                         </div>
                     </div>
                 </div>
@@ -772,47 +749,32 @@
     <div class="sidebar-overlay" id="checklist-sidebar-overlay"></div>
     <div id="historySidebar" class="history-sidebar">
         <div class="sidebar-header">
-            <h3>Historial de Notas</h3>
+            <h3>Note History</h3>
             <button type="button" class="close-sidebar-btn" id="closeHistoryBtn">
                 <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
         </div>
         <div class="history-search-container">
-            <input type="text" id="historySearchInput" placeholder="Buscar por BAN, CID, CBR o Ticket..." autocomplete="off">
+            <input type="text" id="historySearchInput" placeholder="Search by BAN, CID, CBR or Ticket..." autocomplete="off">
         </div>
         <div class="note-history-list" id="noteHistoryList">
-            <p class="no-notes-message" id="noNotesMessage">No hay notas guardadas aún.</p>
+            <p class="no-notes-message" id="noNotesMessage">No saved notes yet.</p>
         </div>
     </div>
     <div class="sidebar-overlay" id="history-sidebar-overlay"></div>
     <div id="feedback-widget">
-        <div class="feedback-tooltip">¿Tienes alguna idea para mejorar la app? ¡Envíala aquí!</div>
-        <button type="button" id="feedback-btn" title="Enviar Feedback">
+        <div class="feedback-tooltip">Have an idea to improve the app? Send it here!</div>
+        <button type="button" id="feedback-btn" title="Send Feedback">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         </button>
     </div>
     
     <footer class="app-footer">
-        <p>TELUS FFH TS | x331671 | Alex Van Houtven | Junio 2025</p>
+        <p>TELUS FFH TS | x331671 | Alex Van Houtven | June 2025</p>
     </footer>
 
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
     <script src="script.js"></script>
 
-    <!-- NUEVO: Registro del Service Worker al final del body -->
-    <!-- Es importante que esto se ejecute después de que el DOM esté completamente cargado -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
-                        console.log('Service Worker registrado con éxito:', registration.scope);
-                    })
-                    .catch(error => {
-                        console.error('Fallo el registro del Service Worker:', error);
-                    });
-            });
-        }
-    </script>
 </body>
 </html>
