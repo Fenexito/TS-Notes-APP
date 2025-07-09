@@ -537,7 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const formattedDate = `${dayAbbreviations[dateObj.getDay()]} ${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}`;
                     resolutionDetails.push(`DISPATCH: ${formattedDate}, ${dispatchTime}`);
                 }
-            } else if (resolvedValue === 'No | Follow Up Required' || resolvedValue === 'No | Follow Up Required | Set SCB with FVA') {
+            } else if (resolvedValue === 'No | Follow Up Required' || resolvedValue === 'Cx Need a Follow Up. Set SCB on FVA') {
                 const followUpDate = _getFieldValue('dispatchDateInput', sourceData);
                 const followUpTime = _getFieldValue('dispatchTimeSlotSelect', sourceData);
                 if (followUpDate && followUpTime) {
@@ -2695,7 +2695,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (closeChecklistBtn) closeChecklistBtn.addEventListener('click', closeChecklistSidebar);
         if (checklistSidebarOverlay) checklistSidebarOverlay.addEventListener('click', closeChecklistSidebar);
         if (checklistSidebar) checklistSidebar.addEventListener('change', handleChecklistChange);
-
+       
         if (goCheckPhysicalLink) {
             goCheckPhysicalLink.addEventListener('click', () => {
                 setChecklistValue('checklistCheckPhysical', 'yes');
@@ -3433,6 +3433,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         populateExtraStepsSelect();
         updateThirdRowLayout();
+        
+        console.log('initializeApp: Calling initializeEventListeners...');
+        initializeEventListeners();
+
         await handleWelcomeModal();
         initialResizeTextareas();
 
@@ -3473,6 +3477,8 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTransferFieldState();
         updateTechFieldsVisibilityAndState('');
         populateTimeSlots("dispatch");
+        
+        resetChecklist();
         generateFinalNote();
 
         if (troubleshootingProcessText) updateTroubleshootingCharCounter(troubleshootingProcessText.value.length);
@@ -3483,8 +3489,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateStickyHeaderInfo();
 
         handleSkillChange();
-        console.log('initializeApp: Calling initializeEventListeners...');
-        initializeEventListeners();
         console.log('initializeApp: Initialization complete.');
     };
 
@@ -3492,6 +3496,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const agentNameSetting = await db.settings.get(AGENT_NAME_KEY);
         const modalBody = welcomeModalOverlay.querySelector('.modal-body');
         const modalHeader = welcomeModalOverlay.querySelector('.modal-header h3');
+        let enterKeyHandler;
+
+        const closeWelcomeModal = async () => {
+            if (!agentNameSetting || !agentNameSetting.value) {
+                const newAgentName = welcomeAgentNameInput.value.trim();
+                if (newAgentName === '') {
+                    showToast('Please enter your name to continue.', 'warning');
+                    return;
+                }
+                agentNameInput.value = newAgentName;
+                await saveAgentName();
+            }
+            welcomeModalOverlay.style.display = 'none';
+            document.removeEventListener('keydown', enterKeyHandler);
+        };
+
+        enterKeyHandler = (event) => {
+            if (event.key === 'Enter' && welcomeModalOverlay.style.display === 'flex') {
+                event.preventDefault();
+                closeWelcomeModal();
+            }
+        };
 
         if (agentNameSetting && agentNameSetting.value) {
             modalHeader.textContent = `Welcome back, ${agentNameSetting.value}`;
@@ -3507,27 +3533,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         welcomeModalOverlay.style.display = 'flex';
-
-        startTakingNotesBtn.addEventListener('click', async () => {
-            if (!agentNameSetting || !agentNameSetting.value) {
-                const newAgentName = welcomeAgentNameInput.value.trim();
-                if (newAgentName === '') {
-                    showToast('Please enter your name to continue.', 'warning');
-                    return;
-                }
-                agentNameInput.value = newAgentName;
-                await saveAgentName();
-            }
-            welcomeModalOverlay.style.display = 'none';
-        }, { once: true });
+        document.addEventListener('keydown', enterKeyHandler);
+        startTakingNotesBtn.addEventListener('click', closeWelcomeModal, { once: true });
     };
 
     const setChecklistValue = (radioName, value) => {
         const radioToSelect = document.querySelector(`input[name="${radioName}"][value="${value}"]`);
-        if (radioToSelect && !radioToSelect.checked) {
-            radioToSelect.checked = true;
-            // Manually trigger the change event to update styles
-            radioToSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        if (radioToSelect) {
+            if (!radioToSelect.checked) {
+                radioToSelect.checked = true;
+                radioToSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+    };
+    
+    const clearChecklistValue = (radioName) => {
+        const radios = document.querySelectorAll(`input[name="${radioName}"]`);
+        let wasChanged = false;
+        radios.forEach(radio => {
+            if (radio.checked) {
+                radio.checked = false;
+                wasChanged = true;
+            }
+        });
+        if (wasChanged) {
+            const parentItem = radios[0].closest('.checklist-item');
+            if (parentItem) {
+                parentItem.classList.remove('status-yes', 'status-no', 'status-na', 'status-follow-up-yes', 'status-follow-up-no');
+            }
         }
     };
 
@@ -3537,8 +3570,7 @@ document.addEventListener('DOMContentLoaded', () => {
             radio.checked = false;
             const parentItem = radio.closest('.checklist-item');
             if (parentItem) {
-                parentItem.classList.remove('status-yes', 'status-no', 'status-na', 'checklist-item-required', 'status-follow-up-yes', 'status-follow-up-no');
-                parentItem.classList.add('status-pending');
+                parentItem.classList.remove('status-yes', 'status-no', 'status-na', 'checklist-item-required', 'status-follow-up-yes', 'status-follow-up-no', 'status-pending');
             }
         });
     };
@@ -3567,24 +3599,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const rebootKeywords = ['fr', 'hr', 'factory reset', 'hard reset', 'reboot'];
         if (rebootKeywords.some(keyword => tsText.includes(keyword))) {
             setChecklistValue('checklistReboot', 'yes');
+        } else {
+            setChecklistValue('checklistReboot', 'na');
         }
 
         // Rule: SWAP
         if (_getFieldValue('csrOrderInput')) {
             setChecklistValue('checklistSwap', 'yes');
+        } else {
+            setChecklistValue('checklistSwap', 'na');
         }
 
         // Rule: CALLBACK
         const resolvedValueForCallback = _getFieldValue('resolvedSelect');
-        if (resolvedValueForCallback === 'No | Follow Up Required | Set SCB with FVA') {
+        if (resolvedValueForCallback === 'Cx Need a Follow Up. Set SCB on FVA') {
             setChecklistValue('checklistCallback', 'yes');
+        } else {
+            setChecklistValue('checklistCallback', 'na');
         }
 
         // Rule: ALL SERVICES WORKING
-        setChecklistValue('checklistAllServices', _getFieldValue('serviceOnCsr') === 'ACTIVE' ? 'yes' : 'no');
+        setChecklistValue('checklistAllServices', _getFieldValue('serviceOnCsr') === 'Active' ? 'yes' : 'no');
 
         // Rule: GO/SEND
         setChecklistValue('checklistGoSend', _getFieldValue('extraStepsSelect') !== '' ? 'yes' : 'no');
+
+        // Rule: RECAP
+        setChecklistValue('checklistRecap', 'no'); // Default to No
 
         // Rule: FOLLOW UP
         const resolvedValueForFollowUp = _getFieldValue('resolvedSelect');
@@ -3608,6 +3649,8 @@ document.addEventListener('DOMContentLoaded', () => {
 const updateVersionInDOM = (version) => {
     if (!version) return;
     document.title = `APad | NoteApp - ${version}`;
+    const appVersionDisplay = document.getElementById('appVersionDisplay');
+    const welcomeAppVersionDisplay = document.getElementById('welcomeAppVersionDisplay');
     if (appVersionDisplay) {
         appVersionDisplay.textContent = version;
     }
@@ -3642,7 +3685,8 @@ if ('serviceWorker' in navigator) {
             if (event.data && event.data.type === 'APP_VERSION') {
                 console.log('Version received from SW:', event.data.version);
                 updateVersionInDOM(event.data.version);
-                db.settings.put({ key: APP_VERSION_KEY, value: event.data.version });
+                const db = new Dexie('tsNotesAppDB');
+                db.settings.put({ key: 'appVersion', value: event.data.version });
             }
         });
 
@@ -3651,7 +3695,9 @@ if ('serviceWorker' in navigator) {
             registration.active.postMessage({ type: 'GET_VERSION' });
         });
 
-        db.settings.get(APP_VERSION_KEY).then(versionSetting => {
+        const db = new Dexie('tsNotesAppDB');
+        db.version(1).stores({ settings: 'key' });
+        db.settings.get('appVersion').then(versionSetting => {
             if (versionSetting) {
                 updateVersionInDOM(versionSetting.value);
             }
