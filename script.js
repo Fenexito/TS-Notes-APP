@@ -338,6 +338,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const historySidebarOverlay = get('history-sidebar-overlay');
     const historySearchInput = get('historySearchInput');
     const noNotesMessage = get('noNotesMessage');
+    // --- BEGIN: Import/Export Elements ---
+    const exportBtn = get('exportBtn');
+    const importBtn = get('importBtn');
+    const importFile = get('importFile');
+    // --- END: Import/Export Elements ---
 
     // Checklist Sidebar
     const btnChecklistMenu = get('btnChecklistMenu');
@@ -2447,6 +2452,82 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- BEGIN: Import/Export Functions ---
+    /**
+     * Exports all notes from the database to a JSON file.
+     */
+    const exportNotes = async () => {
+        hideSidebar();
+        try {
+            const allNotes = await db.notes.toArray();
+            if (allNotes.length === 0) {
+                showToast('There are no notes to export.', 'warning');
+                return;
+            }
+
+            const jsonString = JSON.stringify(allNotes, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `apad_notes_backup_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Notes successfully exported!', 'success');
+        } catch (error) {
+            console.error('Error exporting notes:', error);
+            showToast('An error occurred while exporting notes.', 'error');
+        }
+    };
+
+    /**
+     * Imports notes from a selected JSON file into the database.
+     * @param {Event} event - The file input change event.
+     */
+    const importNotes = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+
+                if (!Array.isArray(data) || data.some(item => !item.id || !item.formData)) {
+                    throw new Error('Invalid file format. The file must be an array of notes from this application.');
+                }
+                
+                const confirmed = await customConfirm(`You are about to import ${data.length} notes. This will add them to your existing history and overwrite any notes with the same ID. Do you want to continue?`);
+
+                if (!confirmed) {
+                    showToast('Import canceled.', 'info');
+                    if (importFile) importFile.value = ''; // Reset file input
+                    return;
+                }
+
+                // Using bulkPut to add new notes and update existing ones.
+                await db.notes.bulkPut(data);
+                
+                showToast(`${data.length} notes have been successfully imported.`, 'success');
+                await loadNotes(); // Refresh the history list
+                hideSidebar();
+
+            } catch (error) {
+                console.error('Error importing notes:', error);
+                showToast(error.message || 'Error importing notes. Please check the file and try again.', 'error');
+            } finally {
+                if (importFile) importFile.value = ''; // Reset file input
+            }
+        };
+        reader.onerror = () => {
+            showToast('Failed to read the file.', 'error');
+        };
+        reader.readAsText(file);
+    };
+    // --- END: Import/Export Functions ---
+
     // =================================================================================
     // 5. EVENT HANDLERS
     // =================================================================================
@@ -2685,6 +2766,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentViewedNoteId = null;
             });
         }
+
+        // --- BEGIN: Import/Export Event Listeners ---
+        if (exportBtn) {
+            exportBtn.addEventListener('click', exportNotes);
+        }
+        if (importBtn) {
+            importBtn.addEventListener('click', () => importFile.click());
+        }
+        if (importFile) {
+            importFile.addEventListener('change', importNotes);
+        }
+        // --- END: Import/Export Event Listeners ---
 
         if (btnChecklistMenu) {
             btnChecklistMenu.addEventListener('click', () => {
@@ -3638,7 +3731,6 @@ document.addEventListener('DOMContentLoaded', () => {
             setChecklistValue('checklistFollowUp', 'no');
         }
     };
-
 
     console.log('DOMContentLoaded: Initializing app...');
     initializeApp();

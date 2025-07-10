@@ -747,6 +747,7 @@
         </div>
     </div>
     <div class="sidebar-overlay" id="checklist-sidebar-overlay"></div>
+    
     <div id="historySidebar" class="history-sidebar">
         <div class="sidebar-header">
             <h3>Note History</h3>
@@ -760,8 +761,22 @@
         <div class="note-history-list" id="noteHistoryList">
             <p class="no-notes-message" id="noNotesMessage">No saved notes yet.</p>
         </div>
+        <!-- INICIO: Contenido Añadido para Importar/Exportar -->
+        <div class="history-actions-footer">
+            <button type="button" id="exportBtn" class="history-footer-btn export-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>EXPORTAR</span>
+            </button>
+            <button type="button" id="importBtn" class="history-footer-btn import-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span>IMPORTAR</span>
+            </button>
+            <input type="file" id="importFile" class="hidden-file-input" accept="application/json">
+        </div>
+        <!-- FIN: Contenido Añadido para Importar/Exportar -->
     </div>
     <div class="sidebar-overlay" id="history-sidebar-overlay"></div>
+
     <div id="feedback-widget">
         <div class="feedback-tooltip">Have an idea to improve the app? Send it here!</div>
         <button type="button" id="feedback-btn" title="Send Feedback">
@@ -770,7 +785,7 @@
     </div>
     
     <footer class="app-footer">
-        <p>TELUS FFH TS | x331671 | Alex Van Houtven | June 2025</p>
+        <p>TELUS FFH PURE FIBER Tech Support | x331671 | Alex Van Houtven | June 2025</p>
     </footer>
 
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>

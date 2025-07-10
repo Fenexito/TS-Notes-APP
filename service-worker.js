@@ -4,7 +4,7 @@
 // IMPORTANT!: Change this name (e.g., 'apad-v1.0.1') every time you make changes
 // to your HTML, CSS, JS, or any other assets you want to be updated
 // for users. This forces the browser to install the new Service Worker.
-const CACHE_NAME = 'v0.9.0'; // <-- THIS IS THE VERSION THAT WILL BE DISPLAYED
+const CACHE_NAME = 'v0.9.5'; // <-- THIS IS THE VERSION THAT WILL BE DISPLAYED
 
 // List of URLs for the files you want the Service Worker to cache.
 const urlsToCache = [

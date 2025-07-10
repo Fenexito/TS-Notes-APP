@@ -1,4 +1,4 @@
-/* ==========================================================================\
+/* ==========================================================================
    1. ESTILOS GLOBALES Y RESET
    ========================================================================== */
 
@@ -1489,8 +1489,8 @@ textarea {
     padding: 4px;
     font-size: 0.65em;
     color: #000000;
-    background-color: #959595;
-    border-top: 1px solid #eee;
+    background-color: #ffffff;
+    border-top: 1px solid #bbbbbb;
     z-index: 1005; 
 }
 
@@ -1650,3 +1650,52 @@ textarea {
         transform: translateX(0);
     }
 }
+
+/* INICIO: Estilos para Importar/Exportar */
+.history-actions-footer {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    gap: 8px;
+    justify-content: space-around;
+}
+
+.history-footer-btn {
+    flex-grow: 1;
+    padding: 8px 10px;
+    border-radius: 5px;
+    font-size: 0.7em;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.history-footer-btn:hover {
+    transform: translateY(-1px);
+}
+
+.history-footer-btn.export-btn {
+    background-color: #28a745; /* Verde */
+}
+.history-footer-btn.export-btn:hover {
+    background-color: #218838;
+}
+
+.history-footer-btn.import-btn {
+    background-color: #6f42c1; /* Morado */
+}
+.history-footer-btn.import-btn:hover {
+    background-color: #5a32a3;
+}
+
+.hidden-file-input {
+    display: none;
+}
+/* FIN: Estilos para Importar/Exportar */
