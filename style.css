@@ -1769,8 +1769,3 @@ textarea {
 .driver-popover-progress-text {
   color: #ccc;
 }
-
-.driver-popover {
-    z-index: 10001 !important;
-}
-
