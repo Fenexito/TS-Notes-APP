@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>APad - NoteApp</title>
-    <link rel="stylesheet" href="/driver.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css"/>
     <link rel="stylesheet" href="/style.css">
    
     <!-- Web Application Manifest -->
@@ -790,7 +790,47 @@
     </footer>
 
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
-    <script src="/driver.js.umd.min.js"></script>  
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.umd.min.js"></script>
+    <script>
+      // Este código se ejecuta después de que las librerías se cargan
+      
+      if (!localStorage.getItem('tutorialDriverCompletado')) {
+        
+        const driverObj = driver({
+          showProgress: true,
+          animate: true,
+          allowClose: true,
+          onDestroyStarted: () => {
+            if (!driverObj.isLastStep() && driverObj.getActiveIndex() !== undefined) {
+              localStorage.setItem('tutorialDriverCompletado', 'true');
+              return;
+            }
+            driverObj.destroy();
+            localStorage.setItem('tutorialDriverCompletado', 'true');
+          },
+          steps: [
+            { popover: { title: '¡Bienvenido/a a tu Asistente de Notas!', description: 'Este es un recorrido rápido por las funciones principales.' }},
+            { element: '#agentinfo', popover: { title: 'Información del Agente', description: 'Asegúrate de que tu nombre y "Skill" estén correctos.', side: "bottom" }},
+            { element: '#callNoteForm', popover: { title: 'Formulario Principal', description: 'Aquí documentarás toda la interacción.', side: "top" }},
+            { element: '#seccion1', popover: { title: 'Cuenta y Verificación', description: 'Ingresa los detalles de la cuenta y los pasos de verificación.', side: "top" }},
+            { element: '#seccion2', popover: { title: 'Problema y Diagnóstico', description: 'Describe el problema reportado y los pasos de diagnóstico.', side: "top" }},
+            { element: '#seccion3', popover: { title: 'AWA y TVS', description: 'Documenta aquí la información relacionada con AWA y TVS.', side: "top" }},
+            { element: '#seccion4', popover: { title: 'Resolución', description: 'Detalla la resolución del caso y los próximos pasos.', side: "top" }},
+            { element: '#topactions', popover: { title: 'Acciones Principales', description: 'Desde aquí puedes copiar la nota, generarla o limpiarla.', side: "bottom" }},
+            { element: '#noteModalOverlay', popover: { title: 'Vista Previa de la Nota', description: 'Aquí puedes ver una vista previa de la nota final.', side: "top" }},
+            { element: '#separateNoteModalOverlay', popover: { title: 'Nota Separada', description: 'Este modal te permite trabajar con la nota en otro formato.', side: "top" }},
+            { element: '#historySidebar', popover: { title: 'Historial de Notas', description: 'Este panel contiene el historial de tus notas.', side: "left" }},
+            { element: '#historySearchInput', popover: { title: 'Buscador en Historial', description: 'Usa este campo para buscar rápidamente en tu historial.', side: "bottom" }},
+            { element: '#historyactionsfooter', popover: { title: 'Exportar e Importar', description: 'Desde aquí puedes exportar o importar tu historial.', side: "top" }},
+            { element: '#checklistSidebar', popover: { title: 'Excellence Mandate', description: 'Este menú te da acceso a checklists y mandatos de excelencia.', side: "right" }},
+            { element: '#feedback-btn', popover: { title: 'Tu Opinión Importa', description: 'Si tienes sugerencias o encuentras un error, contáctanos aquí.', side: "top" }},
+            { popover: { title: '¡Tour Completado!', description: '¡Ya estás listo para empezar!' }}
+          ]
+        });
+    
+        driverObj.drive();
+      }
+    </script>
     <script src="/script.js"></script>
     <script src="/tutorial.js"></script>
 
