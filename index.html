@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>APad - NoteApp</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shepherd.js@10.0.2/dist/css/shepherd.css"/>
     <link rel="stylesheet" href="style.css">
-    
+   
     <!-- Web Application Manifest -->
     <link rel="manifest" href="/manifest.json">
     
@@ -28,7 +29,7 @@
                     <h1 class="ts-notes-title">APad | NoteApp</h1>
                     <span class="app-version" id="appVersionDisplay">v.X.Y</span>
                 </div>
-                <div class="top-actions">
+                <div id="topactions" class="top-actions">
                     <button type="button" id="btnSee">
                         <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                         <span>SEE</span>
@@ -71,7 +72,7 @@
                 </div>
             </div>
         </div>
-        <div class="agent-info">
+        <div id="agentinfo" class="agent-info">
             <label for="agentName">AGENT:</label>
             <div class="input-with-edit-button">
                 <input type="text" id="agentName" name="agentName" value="Agent Name" readonly required autocomplete="off">
@@ -316,10 +317,10 @@
                     </div>
                     <div class="input-row links-row">
                         <div class="input-group go-link-group">
-                            <p>Remember to use <a href="http://go/checkphysical" target="_blank" id="goCheckPhysicalLink" rel="noopener noreferrer"><strong>GO/CHECKPHYSICAL</strong></a></p>
+                            <p>Always use <a href="http://go/checkphysical" target="_blank" id="goCheckPhysicalLink" rel="noopener noreferrer"><strong>GO/CHECKPHYSICAL</strong></a></p>
                         </div>
                         <div class="input-group go-link-group">
-                            <p>Remember to use <a href="http://go/tscopilot" target="_blank" id="goTsCopilotLink" rel="noopener noreferrer"><strong>GO/TSCOPILOT</strong></a></p>
+                            <p>Always use <a href="http://go/tscopilot" target="_blank" id="goTsCopilotLink" rel="noopener noreferrer"><strong>GO/TSCOPILOT</strong></a></p>
                         </div>
                     </div>
                 </div>
@@ -762,7 +763,7 @@
             <p class="no-notes-message" id="noNotesMessage">No saved notes yet.</p>
         </div>
         <!-- INICIO: Contenido Añadido para Importar/Exportar -->
-        <div class="history-actions-footer">
+        <div id="historyactionsfooter" class="history-actions-footer">
             <button type="button" id="exportBtn" class="history-footer-btn export-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 <span>EXPORTAR</span>
@@ -789,7 +790,9 @@
     </footer>
 
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/shepherd.js@10.0.2/dist/js/shepherd.min.js"></script>    
     <script src="script.js"></script>
+    <script src="tutorial.js"></script>
 
 </body>
 </html>
