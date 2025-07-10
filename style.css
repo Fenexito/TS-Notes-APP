@@ -1610,8 +1610,10 @@ textarea {
         margin-bottom: 10px;
     }
     .top-actions {
-        width: 100%;
-        justify-content: center;
+        width: 50%;                          
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 5px;
     }
     .input-row {
         flex-direction: column;
