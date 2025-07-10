@@ -1716,6 +1716,16 @@ textarea {
 
 /* DRIVER.JS /*
 /* ---- EJEMPLOS PARA PERSONALIZAR DRIVER.JS ---- */
+/* FIX: Hace que el fondo del escenario de Driver.js sea transparente 
+   para evitar conflictos con los modales de la aplicación. */
+.driver-stage-background {
+    background: transparent !important;
+}
+
+/* Popover principal (la ventana con el texto) */
+.driver-popover {
+  background-color: #333;
+}
 
 /* Popover principal (la ventana con el texto) */
 .driver-popover {
@@ -1769,14 +1779,4 @@ textarea {
 .driver-popover-progress-text {
   color: #ccc;
 }
-/* FIX: Hace que el fondo del escenario de Driver.js sea transparente 
-   para evitar conflictos con los modales de la aplicación. */
-.driver-stage-background {
-    background: transparent !important;
-}
 
-/* Popover principal (la ventana con el texto) */
-.driver-popover {
-  background-color: #333;
-  /* ... resto de tus estilos ... */
-}
