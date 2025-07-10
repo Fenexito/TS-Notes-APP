@@ -1602,6 +1602,14 @@ textarea {
       gap: 5px;                              /* Mantiene el espacio entre botones */
       flex-shrink: 0;                        /* Evita que este bloque se encoja si el título es largo */
     }
+    .top-actions button {
+      height: 24px;        /* Reduce la altura fija del botón (originalmente era de 30px) */
+      padding: 4px 6px;    /* Ajusta el relleno interno para que el texto no se vea apretado */
+    }
+    .top-actions button svg {
+      width: 11px;
+      height: 11px;
+    }
   
 }
 
@@ -1618,22 +1626,6 @@ textarea {
     }
     .sticky-header-container {
         border-radius: 0;
-    }
-    .header-top-row {
-        flex-direction: row;          /* Fuerza a que los elementos (título y botones) estén en una fila */
-        flex-wrap: nowrap;            /* Evita que el bloque de botones baje a la siguiente línea */
-        justify-content: space-between; /* Pone el título a la izquierda y los botones a la derecha */
-        align-items: center;          /* Centra verticalmente ambos bloques */
-    }
-    .ts-notes-title {
-        margin-bottom: 0;
-    }
-    .top-actions {
-        width: auto;                           /* El contenedor se ajusta al tamaño de los botones */
-        display: grid;                         /* Usa CSS Grid para la cuadrícula */
-        grid-template-columns: repeat(2, 1fr); /* Crea 2 columnas de igual tamaño */
-        gap: 5px;                              /* Mantiene el espacio entre botones */
-        flex-shrink: 0;                        /* Evita que este bloque se encoja si el título es largo */
     }
     .input-row {
         flex-direction: column;
