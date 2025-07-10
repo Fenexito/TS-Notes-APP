@@ -1,18 +1,17 @@
 // Variable global para controlar el estado del tour
 let tourCompletado = localStorage.getItem('tutorialCompletado') === 'true';
 
-// ---- TOUR PARTE 1: PÁGINA PRINCIPAL ----
+// ---- TOUR PARTE 1: PÁGINA PRINCIPAL (CORREGIDO) ----
 function iniciarTourPrincipal() {
+    // Solo se ejecuta si el tutorial no se ha completado
     if (tourCompletado) return;
 
     const driver = new Driver({
         animate: true,
-        allowClose: false, // El usuario no puede cerrarlo
+        allowClose: false,
         doneBtnText: 'Entendido',
-        onNext: () => {
-            // Cuando el usuario avance desde el último paso de esta sección, finaliza esta parte.
-            // La siguiente instrucción le dirá qué hacer.
-            if (driver.currentStep === 2) { 
+        onNext: (element) => {
+            if (driver.currentStep === 2) {
                 driver.reset();
             } else {
                 driver.moveNext();
@@ -21,9 +20,24 @@ function iniciarTourPrincipal() {
     });
 
     driver.defineSteps([
-        { title: '¡Bienvenido/a!', description: 'Te guiaremos a través de las funciones principales.' },
-        { element: '#agentinfo', title: 'Información del Agente', description: 'Primero, asegúrate de que tus datos aquí sean correctos.', position: 'bottom' },
-        { element: '#btnSee', title: 'Ver la Nota', description: 'Para continuar con el tour, haz clic en el botón <strong>VER (SEE)</strong>.', position: 'bottom' }
+        {
+            element: 'body', // <-- AÑADIDO: Asociamos el paso al cuerpo de la página
+            title: '¡Bienvenido/a!',
+            description: 'Te guiaremos a través de las funciones principales.',
+            position: 'top-center' // <-- AÑADICKDO: Para centrar el mensaje
+        },
+        {
+            element: '#agentinfo',
+            title: 'Información del Agente',
+            description: 'Asegúrate de que tus datos aquí sean correctos.',
+            position: 'bottom'
+        },
+        {
+            element: '#btnSee',
+            title: 'Ver la Nota',
+            description: 'Para continuar con el tour, haz clic en el botón <strong>VER (SEE)</strong>.',
+            position: 'bottom'
+        }
     ]);
 
     driver.start();
