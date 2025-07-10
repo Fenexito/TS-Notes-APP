@@ -23,14 +23,6 @@ document.addEventListener('DOMContentLoaded', function () {
             closeBtnText: 'Cerrar',           // Texto para el botón 'Cerrar'
             doneBtnText: 'Finalizar',         // Texto para el botón de último paso
             onHighlightStarted: (element) => {
-                // Colapsa todas las secciones antes de resaltar una nueva
-                document.querySelectorAll('.form-section.collapsed').forEach(section => {
-                    // No queremos afectar la sección que está a punto de ser mostrada
-                    if (!element.parentElement.contains(section) && !section.contains(element.parentElement)) {
-                       // No es necesario hacer nada aquí si el manejo de colapso es correcto
-                    }
-                });
-
                 // Si el elemento está dentro de una sección colapsada, la expande
                 const section = element.closest('.form-section.collapsed');
                 if (section) {
@@ -72,11 +64,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     description: 'Ingresa los datos básicos de la cuenta del cliente. Los campos requeridos tienen un borde rojo hasta que se completan.',
                     position: 'bottom'
                 },
-                onNext: () => {
-                     // Asegurarse de que la sección esté expandida para el siguiente paso
-                    document.querySelector('#seccion1').classList.remove('collapsed');
-                    driver.moveNext();
-                }
             },
             {
                 element: '#seccion1 .section-content',
@@ -93,9 +80,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     description: 'Esta es la sección principal donde documentarás el problema del cliente y los pasos que realizaste.',
                     position: 'bottom'
                 },
-                 onNext: () => {
-                    document.querySelector('#seccion2').classList.remove('collapsed');
-                    driver.moveNext();
+            },
+             {
+                element: '#seccion2 .section-content',
+                popover: {
+                    title: 'Llenado de Información',
+                    description: 'Selecciona el estado de la cuenta, el servicio, el flujo de trabajo y describe el problema del cliente aquí.',
+                    position: 'top'
                 }
             },
             {
@@ -105,10 +96,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     description: 'Aquí puedes documentar los detalles de AWA, pruebas de velocidad y el uso de TVS.',
                     position: 'top'
                 },
-                 onNext: () => {
-                    document.querySelector('#seccion3').classList.remove('collapsed');
-                    driver.moveNext();
-                }
             },
             {
                 element: '#seccion4 .section-title',
@@ -117,10 +104,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     description: 'Finalmente, documenta la resolución de la llamada, si se agendó un técnico, se creó un ticket, etc.',
                     position: 'top'
                 },
-                 onNext: () => {
-                    document.querySelector('#seccion4').classList.remove('collapsed');
-                    driver.moveNext();
-                }
             },
             {
                 element: '#btnChecklistMenu',
