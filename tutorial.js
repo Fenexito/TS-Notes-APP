@@ -2,6 +2,7 @@
 (function() {
     // Se define el objeto driver en un alcance más amplio para que sea accesible por todas las funciones del tour.
     let driver;
+    let initialDriverOpacity; // Variable para guardar la opacidad original
 
     /**
      * Revisa si el tutorial ya fue completado. Si no, lo inicia.
@@ -31,6 +32,9 @@
             doneBtnText: 'Finalizar',
             // No se define 'closeBtnText' para ocultar el botón de cerrar
         });
+        
+        // Guarda la opacidad inicial para poder restaurarla después.
+        initialDriverOpacity = driver.options.opacity;
 
         // Inicia el tour con el primer paso
         runStep1_WelcomeModal();
@@ -48,6 +52,10 @@
         // El script del tour ahora controla la visibilidad del modal para nuevos usuarios.
         welcomeModal.style.display = 'flex';
 
+        // FIX: Se deshabilita temporalmente la opacidad del overlay de Driver.js
+        // para que no entre en conflicto con el overlay del modal de bienvenida.
+        driver.options.opacity = 0;
+
         // Resalta el modal de bienvenida
         driver.highlight({
             element: '#welcomeModalOverlay .modal-content',
@@ -57,13 +65,6 @@
                 position: 'top-center', // Posición actualizada para mejor visibilidad
             }
         });
-
-        // FIX: Se hace transparente el overlay de Driver.js para este paso específico
-        // para que no oculte el overlay oscuro del modal de bienvenida.
-        const driverOverlay = document.querySelector('.driver-overlay');
-        if (driverOverlay) {
-            driverOverlay.style.background = 'transparent';
-        }
 
         // Función para pasar al siguiente paso
         const moveToNextStep = () => {
@@ -96,11 +97,8 @@
      * PASO 2: Introducción al formulario principal, con todas las secciones colapsadas.
      */
     function runStep2_FormIntro() {
-        // FIX: Restaura el overlay oscuro por defecto para el resto del tour.
-        const driverOverlay = document.querySelector('.driver-overlay');
-        if (driverOverlay) {
-            driverOverlay.style.background = ''; // Revierte al estilo por defecto de la librería
-        }
+        // FIX: Se restaura la opacidad original del overlay para el resto del tour.
+        driver.options.opacity = initialDriverOpacity;
 
         // Colapsa todas las secciones del formulario
         document.querySelectorAll('.form-section').forEach(section => {
