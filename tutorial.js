@@ -1,4 +1,7 @@
-// 1. INICIALIZACIÓN DEL TOUR
+// Espera a que todo el contenido de la página se cargue antes de configurar el tour
+document.addEventListener('DOMContentLoaded', function () {
+
+  // 1. INICIALIZACIÓN DEL TOUR
   // Aquí se configura el comportamiento general del tour
   const tour = new Shepherd.Tour({
     useModalOverlay: true, // Esto oscurece el fondo
@@ -149,5 +152,4 @@
   // Puedes comentarla y llamar a tour.start() desde un botón si lo prefieres.
   tour.start();
 
-  });
-}
+});
