@@ -31,8 +31,9 @@
                     closeBtnText: 'Cerrar',
                     doneBtnText: 'Finalizar',
                     onHighlightStarted: (element) => {
+                        // CORRECCIÓN: Se accede al nodo del DOM a través de 'element.node'
                         // Antes de resaltar un elemento, comprueba si está dentro de una sección colapsada y la expande.
-                        const section = element.closest('.form-section.collapsed');
+                        const section = element.node.closest('.form-section.collapsed');
                         if (section) {
                             section.classList.remove('collapsed');
                         }
