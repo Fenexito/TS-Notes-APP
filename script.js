@@ -2764,6 +2764,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 unhighlightAllNotes();
                 _lastNoteIdBeforeModalTransition = null;
                 currentViewedNoteId = null;
+              iniciarTourHistory(); // <--- AÑADE ESTA LÍNEA
             });
         }
 
@@ -2783,6 +2784,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btnChecklistMenu.addEventListener('click', () => {
                 if(checklistSidebar) checklistSidebar.classList.add('open');
                 if(checklistSidebarOverlay) checklistSidebarOverlay.style.display = 'block';
+              iniciarTourChecklist(); // <--- AÑADE ESTA LÍNEA
             });
         }
         if (closeChecklistBtn) closeChecklistBtn.addEventListener('click', closeChecklistSidebar);
@@ -3101,6 +3103,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     _lastNoteIdBeforeModalTransition = null;
                 }
+                iniciarTourNoteModal();
             });
         }
 
@@ -3439,6 +3442,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 closeModal(true);
                 separateNoteModalOverlay.style.display = 'flex';
+              iniciarTourSeparateModal(); // <--- AÑADE ESTA LÍNEA
             });
         }
 
