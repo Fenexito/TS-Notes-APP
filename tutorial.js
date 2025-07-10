@@ -149,4 +149,5 @@
   // Puedes comentarla y llamar a tour.start() desde un botón si lo prefieres.
   tour.start();
 
-});
+  });
+}
