@@ -4,20 +4,17 @@
     let driver;
 
     /**
-     * Esta función inicializa la configuración del tour.
-     * Espera a que se cargue todo el contenido de la página.
+     * Revisa si el tutorial ya fue completado. Si no, lo inicia.
+     * Esta es la nueva función de entrada del script.
      */
-    function initializeTour() {
-        const startTourBtn = document.getElementById('btnTour');
-        if (!startTourBtn) {
-            console.error("tutorial.js: No se pudo encontrar el botón para iniciar el tour con id 'btnTour'.");
+    function checkAndStartTutorial() {
+        // Si la bandera 'tutorialCompleted' existe en localStorage, no se hace nada.
+        if (localStorage.getItem('tutorialCompleted') === 'true') {
+            console.log("El tutorial ya ha sido completado. No se mostrará de nuevo.");
             return;
         }
-
-        // Se asegura de eliminar cualquier listener previo para evitar duplicados.
-        startTourBtn.removeEventListener('click', startApplicationTour);
-        // Agrega el evento 'click' al botón para iniciar el tour.
-        startTourBtn.addEventListener('click', startApplicationTour);
+        // Si no, se inicia el tour.
+        startApplicationTour();
     }
 
     /**
@@ -32,6 +29,7 @@
             padding: 10,
             allowClose: false, // El usuario no puede cerrar el tour haciendo clic fuera
             doneBtnText: 'Finalizar',
+            // No se define 'closeBtnText' para ocultar el botón de cerrar
         });
 
         // Inicia el tour con el primer paso
@@ -47,7 +45,7 @@
         const nameInput = document.getElementById('welcomeAgentNameInput');
         const startBtn = document.getElementById('startTakingNotesBtn');
 
-        // Nos aseguramos de que el modal esté visible para el tour
+        // El script del tour ahora controla la visibilidad del modal para nuevos usuarios.
         welcomeModal.style.display = 'flex';
 
         // Resalta el modal de bienvenida
@@ -56,7 +54,7 @@
             popover: {
                 title: '¡Bienvenido!',
                 description: 'Por favor, ingresa tu nombre de agente en el campo de texto y presiona "START" o la tecla "Enter" para comenzar.',
-                position: 'left-center',
+                position: 'top-center', // Posición actualizada para mejor visibilidad
             }
         });
 
@@ -66,7 +64,7 @@
             nameInput.removeEventListener('keydown', onEnter);
             startBtn.removeEventListener('click', moveToNextStep);
             
-            // Oculta el modal de bienvenida
+            // Oculta el modal de bienvenida para continuar con la app
             welcomeModal.style.display = 'none';
             driver.clearHighlight(); // Limpia el resaltado actual
             
@@ -76,7 +74,7 @@
 
         // Listener para la tecla Enter
         const onEnter = (e) => {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && nameInput.value.trim() !== '') {
                 e.preventDefault();
                 moveToNextStep();
             }
@@ -182,7 +180,7 @@
     }
 
     /**
-     * PASO 6: Explica la Sección 4 y finaliza esta parte interactiva.
+     * PASO 6: Explica la Sección 4 y finaliza el tutorial.
      */
     function runStep6_Section4() {
          driver.highlight({
@@ -194,15 +192,17 @@
             }
         });
 
-        // Aquí podrías continuar con más pasos lineales o finalizar el tour.
-        // Por ahora, lo finalizaremos.
+        // Marca el tutorial como completado en localStorage
+        localStorage.setItem('tutorialCompleted', 'true');
+        console.log("Tutorial completado y guardado en localStorage.");
+
+        // Muestra el último paso por 4 segundos y luego finaliza el tour.
         setTimeout(() => {
             driver.reset(); // Finaliza y limpia el tour
-        }, 4000); // Muestra el último paso por 4 segundos
+        }, 4000); 
     }
 
-
     // Se utiliza el evento 'load' para asegurar que todos los recursos se hayan cargado.
-    window.addEventListener('load', initializeTour);
+    window.addEventListener('load', checkAndStartTutorial);
 
 })();
