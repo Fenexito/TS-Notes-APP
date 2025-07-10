@@ -3,9 +3,8 @@
     // Se define el objeto driver en un alcance más amplio para que sea accesible por todas las funciones del tour.
     let driver;
     let header; // Variable para el contenedor del header
+    let parentOfHeader; // Variable para guardar el padre del header
     let welcomeModal; // Variable para el modal de bienvenida
-    let originalHeaderZIndex; // Variable para guardar el z-index original del header
-    let originalModalZIndex; // Variable para guardar el z-index original del modal
 
     /**
      * Revisa si el tutorial ya fue completado. Si no, lo inicia.
@@ -43,20 +42,16 @@
         const startBtn = document.getElementById('startTakingNotesBtn');
         header = document.querySelector('.sticky-header-container');
 
-        // FIX: Control explícito del Z-Index para ganar la "guerra de capas"
-        if (header) {
-            originalHeaderZIndex = header.style.zIndex;
-            header.style.zIndex = '1000'; // Asegura que el header esté detrás
-        }
-        if (welcomeModal) {
-            originalModalZIndex = welcomeModal.style.zIndex;
-            welcomeModal.style.zIndex = '99998'; // Pone el modal casi al frente de todo
+        // FIX DEFINITIVO: Se quita temporalmente el header del DOM para eliminar cualquier conflicto de z-index.
+        if (header && header.parentNode) {
+            parentOfHeader = header.parentNode;
+            parentOfHeader.removeChild(header);
         }
 
         // Muestra el modal
         welcomeModal.style.display = 'flex';
 
-        // Resalta el modal de bienvenida. Driver.js pondrá su popover en un z-index más alto (ej. 99999)
+        // Resalta el modal de bienvenida.
         driver.highlight({
             element: '#welcomeModalOverlay .modal-content',
             popover: {
@@ -92,12 +87,10 @@
      * PASO 2: Introducción al formulario principal.
      */
     function runStep2_FormIntro() {
-        // FIX: Restaura los z-index originales para que la app funcione normalmente
-        if (header) {
-            header.style.zIndex = originalHeaderZIndex;
-        }
-        if (welcomeModal) {
-            welcomeModal.style.zIndex = originalModalZIndex;
+        // FIX: Se restaura el header en su posición original.
+        if (header && parentOfHeader) {
+            // Lo inserta al principio de su contenedor padre original.
+            parentOfHeader.insertBefore(header, parentOfHeader.firstChild);
         }
 
         document.querySelectorAll('.form-section').forEach(section => {
