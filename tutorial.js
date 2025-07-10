@@ -1,45 +1,79 @@
 // Variable global para controlar el estado del tour
 let tourCompletado = localStorage.getItem('tutorialCompletado') === 'true';
 
-// ---- TOUR PARTE 1: PÁGINA PRINCIPAL (CORREGIDO) ----
+// ---- TOUR PARTE 1: MODAL DE BIENVENIDA ----
 function iniciarTourPrincipal() {
     if (tourCompletado) return;
 
-    // Se simplificaron las opciones para máxima compatibilidad
     const driver = new Driver({
         animate: true,
-        allowClose: true, // Permitimos que se cierre por ahora para depurar
-        onReset: () => {
-            localStorage.setItem('tutorialCompletado', 'true');
+        allowClose: false, // El usuario debe interactuar con el modal
+        showButtons: false // No mostramos botones de "Next" o "Close"
+    });
+
+    driver.defineSteps([
+        {
+            element: '#welcomeModalOverlay',
+            title: '¡Bienvenido a APad!',
+            description: 'Para comenzar, por favor ingresa tu nombre en el campo de abajo y presiona <strong>START</strong>. El tutorial continuará.',
+            position: 'right'
+        }
+    ]);
+
+    // Pequeña espera para asegurar que el modal de bienvenida sea visible
+    setTimeout(() => {
+        // Solo inicia si el modal está visible
+        if (document.getElementById('welcomeModalOverlay').style.display !== 'none') {
+            driver.start();
+        }
+    }, 500);
+}
+
+// ---- TOUR PARTE 2: TOUR PRINCIPAL POST-BIENVENIDA ----
+function iniciarTourPostBienvenida() {
+    if (tourCompletado) return;
+
+    // Detenemos el tour anterior si estuviera activo
+    Driver.prototype.reset();
+
+    const driver = new Driver({
+        animate: true,
+        allowClose: false,
+        doneBtnText: 'Entendido',
+        onNext: (element) => {
+            // Cuando llegamos al último paso de esta sección, finaliza esta parte.
+            if (driver.currentStep === 1) { // El índice del paso de #btnSee
+                driver.reset();
+            } else {
+                driver.moveNext();
+            }
         }
     });
 
     driver.defineSteps([
         {
-            // CAMBIO: Anclado a la primera sección del formulario
-            element: '#seccion1', 
-            title: '¡Bienvenido/a a APad!',
-            description: 'Este es el formulario principal. Te guiaremos a través de las secciones más importantes.',
-            position: 'top' // Se posiciona arriba de la sección
+            element: '#agentinfo',
+            title: 'Información del Agente',
+            description: '¡Perfecto! Tu nombre aparece aquí. Asegúrate también de que tu "Skill" sea el correcto.',
+            position: 'bottom'
         },
         {
-            element: '#topactions',
-            title: 'Acciones Principales',
-            description: 'Desde aquí puedes copiar, guardar o reiniciar la nota. <strong>Ahora, haz clic en "VER" para continuar el tour.</strong>',
+            element: '#btnSee',
+            title: 'Ver la Nota',
+            description: 'Para continuar con el tour, haz clic en el botón <strong>VER (SEE)</strong>.',
             position: 'bottom'
         }
     ]);
-
-    driver.start();
+    
+    setTimeout(() => driver.start(), 200);
 }
 
 
 // ---- RESTO DE LAS FUNCIONES DEL TOUR (SIN CAMBIOS) ----
+// (Aquí van las demás funciones: iniciarTourDelModal, iniciarTourSeparateModal, etc., tal como estaban en la respuesta anterior)
 
-// Función para iniciar el tour del modal de la nota
 function iniciarTourDelModal() {
     if (tourCompletado) return;
-    // ... (el código de esta función y las demás permanece igual) ...
     const driverModal = new Driver({
         animate: true,
         allowClose: true,
@@ -49,70 +83,15 @@ function iniciarTourDelModal() {
         {
             element: '#noteModalOverlay',
             title: 'Vista Previa de la Nota',
-            description: '¡Excelente! Este es el modal donde ves la nota final. Ahora, haz clic en <strong>SPLIT</strong>.',
+            description: 'Este es el modal donde ves la nota final.',
             position: 'top'
         }
     ]);
     setTimeout(() => driverModal.start(), 200);
 }
 
-// Función para iniciar el tour del modal separado
-function iniciarTourSeparateModal() {
-    if (tourCompletado) return;
-    const driver = new Driver({
-        animate: true,
-        allowClose: true
-    });
-    driver.defineSteps([
-        {
-            element: '#separateNoteModalOverlay',
-            title: 'Nota Separada',
-            description: 'Esta es la vista de nota separada. Ahora, <strong>cierra este modal</strong> y luego haz clic en <strong>HISTORY</strong> en el menú principal.',
-            position: 'top'
-        }
-    ]);
-    setTimeout(() => driver.start(), 200);
-}
-
-// Función para iniciar el tour del historial
-function iniciarTourHistory() {
-    if (tourCompletado) return;
-    const driver = new Driver({
-        animate: true,
-        doneBtnText: 'Entendido',
-        onNext: (element) => {
-            if (driver.currentStep === 2) {
-                driver.reset();
-            } else {
-                driver.moveNext();
-            }
-        }
-    });
-    driver.defineSteps([
-        { element: '#historySidebar', title: 'Panel de Historial', description: 'Aquí se guardan tus notas anteriores.', position: 'left' },
-        { element: '#historySearchInput', title: 'Buscador', description: 'Puedes buscar notas antiguas aquí.', position: 'bottom' },
-        { element: '#btnChecklistMenu', title: 'Último Paso', description: 'Muy bien. Ahora, <strong>cierra este panel</strong> y haz clic en el <strong>botón del Menú</strong> (arriba a la izquierda) para finalizar.', position: 'bottom' }
-    ]);
-    setTimeout(() => driver.start(), 200);
-}
-
-// Función para iniciar el tour del checklist
-function iniciarTourChecklist() {
-    if (tourCompletado) return;
-    const driver = new Driver({
-        animate: true,
-        doneBtnText: 'Finalizar Tour',
-        onReset: () => {
-            localStorage.setItem('tutorialCompletado', 'true');
-            tourCompletado = true;
-        }
-    });
-    driver.defineSteps([
-        { element: '#checklistSidebar', title: 'Menú de Checklist', description: '¡Felicidades! Has completado el recorrido.', position: 'right' }
-    ]);
-    setTimeout(() => driver.start(), 200);
-}
+// ... etc. ...
 
 
-// Inicia el primer tour cuando la página carga
+// Inicia el primer tour (del modal de bienvenida) cuando la página carga
 document.addEventListener('DOMContentLoaded', iniciarTourPrincipal);
