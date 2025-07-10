@@ -1,9 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
   
   // 1. CONFIGURACIÓN DEL DRIVER (TUTORIAL)
-  const driver = window.driver.js.driver;
 
-  const driverObj = driver({
+  const driverObj = driver.driver({
     showProgress: true, // Muestra el progreso (ej. "Paso 2 de 16")
     animate: true,      // Anima el resaltado
     allowClose: true,   // Permite cerrar el tour haciendo clic en el fondo
