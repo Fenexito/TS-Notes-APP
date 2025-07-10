@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>APad - NoteApp</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css"/>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/driver.js/0.9.8/driver.min.css" />
+    <link rel="stylesheet" href="/style.css">
    
     <!-- Web Application Manifest -->
     <link rel="manifest" href="/manifest.json">
@@ -790,118 +790,8 @@
     </footer>
 
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
-
-    <script>
-      // INICIO DEL CÓDIGO DE DRIVER.JS (VERSIÓN COMPATIBLE 0.9.8)
-      !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):e.Driver=t()}(this,function(){"use strict";function e(e){return(e=e||window.event).preventDefault&&e.preventDefault(),e.returnValue=!1}function t(e){if(e)return e.split("-")[0]}function n(e){if(e)return e.split("-")[1]}function o(e,t){return getComputedStyle(e,null).getPropertyValue(t)}function i(e){return e.getBoundingClientRect()}function r(e,t){var n=t.getBoundingClientRect(),o=n.top,r=n.left,s=n.width,l=n.height,a=e.getBoundingClientRect();return o>=a.top&&r>=a.left&&o+l<=a.bottom&&r+s<=a.right}function s(e){if(!e||!e.tagName)return null;var t=e.tagName.toLowerCase();return"input"!==t&&"textarea"!==t&&"select"!==t&&"button"!==t?null:e}function l(e){if(!e||!e.tagName)return!1;var t=e.tagName.toLowerCase();return"input"===t||"textarea"===t||"select"===t||"button"===t}function a(e,t){e.className=e.className.replace(new RegExp("(^|\\b)"+t.split(" ").join("|")+"(\\b|$)","gi")," ")}function c(e,t){var n=e.className.split(" ");return n.indexOf(t)<0&&(n.push(t),e.className=n.join(" ")),e}function d(t){var n=t||window;return n.requestAnimationFrame||n.webkitRequestAnimationFrame||n.mozRequestAnimationFrame||n.msRequestAnimationFrame||n.oRequestAnimationFrame||function(e){n.setTimeout(e,1e3/60)}}function u(e){var t=document.body,n=document.documentElement;return Math.max(t.scrollHeight,t.offsetHeight,n.clientHeight,n.scrollHeight,n.offsetHeight)-e}function p(e){return e.body.scrollTop||e.documentElement.scrollTop}function g(e,t,n,o){var i=arguments.length>4&&void 0!==arguments[4]?arguments[4]:null,r=p(document),s=r+e,l=n-t,a=performance.now();!function c(){var p=performance.now()-a,g=l/300*p,h=s+g;p>=300||h>=n?o(n):h<=r?o(r):(window.scrollTo(0,h),i&&i(h,n),d()(c))}(),e.preventDefault()}function h(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}var m,f,v=function(){function e(t,n){for(var o=0;o<n.length;o++){var i=n[o];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(t,i.key,i)}}return function(t,n,o){return n&&e(t.prototype,n),o&&e(t,o),t}}(),b="driver-stage-no-animation",y="driver-stage-animating",w="driver-popover-position-bottom",C="driver-popover-position-top",S="driver-popover-position-left",E="driver-popover-position-right",k="driver-popover-no-animation",L="driver-popover-animating",_="driver-active",A="driver-stage-highlighted",O="driver-stage-background",N="driver-popover",T="driver-popover-tip",D="driver-popover-title",P="driver-popover-description",M="driver-popover-footer",R="driver-popover-close-btn",x="driver-popover-next-btn",j="driver-popover-prev-btn",I="driver-next-btn-text",q="driver-prev-btn-text",H="driver-close-btn-text",B=10,F=function(){function s(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{};h(this,s),this.options=Object.assign({},{animate:!0,opacity:.75,padding:B,allowClose:!0,doneBtnText:"Done",closeBtnText:"Close",stageBackground:"#ffffff",nextBtnText:"Next &rarr;",prevBtnText:"&larr; Previous",showButtons:!0,keyboardControl:!0,overlayClickNext:!1,onHighlightStarted:function(){},onHighlighted:function(){},onDeselectionStarted:function(){},onDeselected:function(){},onReset:function(){},onNext:function(){},onPrevious:function(){}},e),this.document=document,this.body=this.document.body,this.window=window,this.isActivated=!1,this.steps=e.steps||[],this.currentStep=0,this.currentMove=null,this.onResize=this.onResize.bind(this),this.onKeyUp=this.onKeyUp.bind(this),this.onMouseUp=this.onMouseUp.bind(this)}return v(s,[{key:"onResize",value:function(){this.isActivated&&this.refresh()}},{key:"onKeyUp",value:function(t){if(this.isActivated&&this.options.keyboardControl){if(27===t.keyCode)return this.reset();if(39===t.keyCode)return this.moveNext();if(38===t.keyCode)return this.movePrevious()}}},{key:"onMouseUp",value:function(t){if(this.isActivated){var n=s.driverClicked(t.target);n||this.reset(),n&&!this.isSameNode(n)&&this.options.overlayClickNext&&this.moveNext()}}},{key:"isSameNode",value:function(e){return this.currentMove&&this.currentMove.node===e}},{key:"moveNext",value:function(){var e=this.steps[this.currentStep+1];e?this.highlight(++this.currentStep):this.reset()}},{key:"movePrevious",value:function(){var e=this.steps[this.currentStep-1];e?this.highlight(--this.currentStep):this.reset()}},{key:"hasNextStep",value:function(){return!!this.steps[this.currentStep+1]}},{key:"hasPreviousStep",value:function(){return!!this.steps[this.currentStep-1]}},{key:"reset",value:function(t){var n=this;if(this.isActivated){var o=this.currentMove||{};o.node&&(this.options.onDeselectionStarted(o.node),o.node.style.position="",o.node.style.background="",o.node.style.zIndex=""),this.stage&&this.body.removeChild(this.stage),this.popover&&this.body.removeChild(this.popover),this.isActivated=!1,this.currentMove=null,this.window.removeEventListener("resize",this.onResize,!1),this.window.removeEventListener("keyup",this.onKeyUp,!1),this.window.removeEventListener("mouseup",this.onMouseUp,!1),this.document.body.removeEventListener("keydown",e,!0),this.document.body.removeEventListener("mousewheel",e,!0),this.options.onDeselected(o.node),t||this.options.onReset(o.node),a(this.body,_)}var i=this.steps.indexOf(o);setTimeout(function(){n.currentStep=0,n.popover=null},300)}},{key:"highlight",value:function(e){var t=this,n="number"==typeof e?this.steps[e]:e;this.currentStep=this.steps.indexOf(n);var o=this.currentMove?this.currentMove:n;n.node&&(this.options.onHighlightStarted(n.node),this.options.animate?this.showOverlay(n,o):this.showOverlay(n,n)),setTimeout(function(){t.showPopover(n,o)},400)}},{key:"getCalculatedPosition",value:function(e){var s={top:e.top,left:e.left,right:e.right,bottom:e.bottom};return{canBeCentered:s.left>0&&s.right>0&&s.top>0&&s.bottom>0,isTop:s.top>s.bottom,isBottom:s.bottom>s.top,isLeft:s.left>s.right,isRight:s.right>s.left,isVerticallySmaller:s.top<20||s.bottom<20,isHorizontallySmaller:s.left<20||s.right<20,raw:s,top:s.top,bottom:this.window.innerHeight-s.bottom,left:s.left,right:this.window.innerWidth-s.right}}},{key:"showOverlay",value:function(e,s){var l=this;this.stage||(this.stage=this.createStage());var a=this.getStagePosition(e.node),u=this.getStagePosition(s.node),h={x:a.x-u.x,y:a.y-u.y},m={width:u.width+"px",height:u.height+"px",top:u.top+"px",left:u.left+"px",transform:"translate("+h.x+"px, "+h.y+"px)"};this.options.animate?this.stage.style.cssText="width: "+m.width+"; height: "+m.height+"; top: "+m.top+"; left: "+m.left+";\n        transform: "+m.transform+";":c(this.stage,b),setTimeout(function(){var t={width:a.width+"px",height:a.height+"px",top:a.top+"px",left:a.left+"px",transform:"translate(0, 0)"};c(l.stage,y),l.stage.style.cssText="width: "+t.width+"; height: "+t.height+"; top: "+t.top+"; left: "+t.left+";\n        transform: "+t.transform+";"},10),this.currentMove=e}},{key:"createStage",value:function(){var e=this.document.createElement("div");return e.setAttribute("id",O),e.style.opacity="0",c(e,"driver-stage-background"),this.body.appendChild(e),e}},{key:"getStagePosition",value:function(e){var t=i(e),s=t.top,n=t.right,l=t.bottom,a=t.left,c=o(e,"position");"fixed"===c&&(s=e.offsetTop,n=e.offsetLeft+e.offsetWidth,l=e.offsetTop+e.offsetHeight,a=e.offsetLeft);var d={height:Math.max(t.height,e.offsetHeight),width:Math.max(t.width,e.offsetWidth)};return{top:s-this.options.padding,left:a-this.options.padding,right:a+d.width+this.options.padding,bottom:s+d.height+this.options.padding,width:d.width+2*this.options.padding,height:d.height+2*this.options.padding}}},{key:"showPopover",value:function(e,s){var l=this;this.popover&&this.body.removeChild(this.popover);var d=this.document.createElement("div");d.setAttribute("id",N),c(d,k);var u=this.document.createElement("div");u.setAttribute("id",T);var p=this.document.createElement("div");p.innerText=e.title,p.setAttribute("id",D);var g=this.document.createElement("div");g.innerHTML=e.description,g.setAttribute("id",P);var h=this.getPopoverFooter();d.appendChild(u),e.title&&d.appendChild(p),e.description&&d.appendChild(g),this.options.showButtons&&d.appendChild(h),this.body.appendChild(d),e.popover&&(e.popover.className&&(d.className+=" "+e.popover.className),e.popover.style&&(d.style.cssText+=e.popover.style));var m=this.getCalculatedPosition(i(this.stage)),f=this.getPopoverPosition(e,m);d.style.cssText="display: block; top: "+f.top+"px; left: "+f.left+"px; ",setTimeout(function(){c(d,L),l.options.onHighlighted(e.node)},400),this.popover=d}},{key:"getPopoverPosition",value:function(s,l){var a=this.popover.offsetHeight,c=this.popover.offsetWidth,d=s.position||this.calculateBestPosition(l),u=i(this.stage),p=u.top,g=u.left,h=u.width,m=u.height,f=this.window.innerHeight,v=this.window.innerWidth,b={};switch(d){case"top":b={top:p-a-B,left:g+h/2-c/2};break;case"bottom":b={top:p+m+B,left:g+h/2-c/2};break;case"left":b={top:p+m/2-a/2,left:g-c-B};break;case"right":b={top:p+m/2-a/2,left:g+h+B}}var y=i(this.popover),D=y.top,P=y.left;if(P<0)b.left=B;else{var M=P+c;M>v&&(b.left=v-c-B)}return D<0?b.top=B:D+a>f&&(b.top=f-a-B),this.popoverTipPosition=d,this.popover.className=N+" driver-popover-position-"+d,b}},{key:"getPopoverFooter",value:function(){var e=this.document.createElement("div");e.setAttribute("id",M);var t=this.document.createElement("a");t.href="javascript:void(0);",t.innerText=this.options.closeBtnText,c(t,R),c(t,H);var n=this.document.createElement("span"),o=this.document.createElement("a");this.options.doneBtnText&&(o.innerText=this.options.doneBtnText),o.href="javascript:void(0);",c(o,x),c(o,I);var i=this.document.createElement("a");return i.href="javascript:void(0);",i.innerText=this.options.prevBtnText,c(i,j),c(i,q),this.hasNextStep()?n.appendChild(i):o.innerText=this.options.doneBtnText||"Done",this.hasPreviousStep()&&n.appendChild(o),e.appendChild(t),e.appendChild(n),e}},{key:"calculateBestPosition",value:function(e){var o=t(this.currentMove.position),i=n(this.currentMove.position);if(o)return o;var r,s,l,a="top",c=e.top-this.popover.offsetHeight-B,d=e.bottom-this.popover.offsetHeight-B;return c>0&&d>0?(r="top",s=Math.min(c,d),l="bottom",Math.max(c,d)):c>0?a="top":d>0&&(a="bottom"),c=e.left-this.popover.offsetWidth-B,d=e.right-this.popover.offsetWidth-B,c>0&&d>0?(r=c>d?"right":"left",s=Math.min(c,d),l=c>d?"left":"right",Math.max(c,d)):c>0?a=Math.max(e.left,e.right)>e.left?"left":"top":d>0&&(a="right"),a}},{key:"start",value:function(e){this.reset(!0),this.isActivated=!0,c(this.body,_),this.document.body.addEventListener("keydown",e,!0),this.document.body.addEventListener("mousewheel",e,!0),this.window.addEventListener("resize",this.onResize,!1),this.window.addEventListener("keyup",this.onKeyUp,!1),this.window.addEventListener("mouseup",this.onMouseUp,!1),this.highlight(e||0)}},{key:"defineSteps",value:function(e){this.steps=e}}],[{key:"driverClicked",value:function(e){for(var t=["input","textarea","select","button","a"];e&&e.parentElement;){if(e.id===O)return e;if(e.id===N)return e;if(l(e))return e;if(-1!==t.indexOf(e.tagName.toLowerCase()))return e;e=e.parentElement}return null}}]),s}();return m=null,f={},function(e,t,n){t in f?Object.defineProperty(f,t,{value:n,enumerable:!0,configurable:!0,writable:!0}):f[t]=n,e.prototype[t]=function(){var e=this.options[t]||n;e.apply(this,arguments)}}(F,"onNext"),function(e,t,n){t in f?Object.defineProperty(f,t,{value:n,enumerable:!0,configurable:!0,writable:!0}):f[t]=n,e.prototype[t]=function(){var e=this.options[t]||n;e.apply(this,arguments)}}(F,"onPrevious"),F});
-
-      // INICIO DE TU CÓDIGO DEL TUTORIAL (adaptado para la versión 0.9.8)
-      if (!localStorage.getItem('tutorialDriverCompletado')) {
-        // 1. Crear una instancia de Driver
-        const driver = new Driver({
-          animate: true,
-          allowClose: true,
-          onReset: () => {
-            localStorage.setItem('tutorialDriverCompletado', 'true');
-          }
-        });
-
-        // 2. Definir los pasos para esta versión
-        driver.defineSteps([
-          {
-            // Para el primer paso, no se define 'element' para que aparezca centrado
-            title: '¡Bienvenido/a a tu Asistente de Notas!',
-            description: 'Este es un recorrido rápido por las funciones principales.'
-          },
-          {
-            element: '#agentinfo',
-            title: 'Información del Agente',
-            description: 'Asegúrate de que tu nombre y "Skill" estén correctos.',
-            position: 'bottom'
-          },
-          {
-            element: '#callNoteForm',
-            title: 'Formulario Principal',
-            description: 'Aquí documentarás toda la interacción.',
-            position: 'top'
-          },
-          {
-            element: '#seccion1',
-            title: 'Cuenta y Verificación',
-            description: 'Ingresa los detalles de la cuenta y los pasos de verificación.',
-            position: 'top'
-          },
-          {
-            element: '#seccion2',
-            title: 'Problema y Diagnóstico',
-            description: 'Describe el problema reportado y los pasos de diagnóstico.',
-            position: 'top'
-          },
-          {
-            element: '#seccion3',
-            title: 'AWA y TVS',
-            description: 'Documenta aquí la información relacionada con AWA y TVS.',
-            position: 'top'
-          },
-          {
-            element: '#seccion4',
-            title: 'Resolución',
-            description: 'Detalla la resolución del caso y los próximos pasos.',
-            position: 'top'
-          },
-          {
-            element: '#topactions',
-            title: 'Acciones Principales',
-            description: 'Desde aquí puedes copiar la nota, generarla o limpiarla.',
-            position: 'bottom'
-          },
-          {
-            element: '#noteModalOverlay',
-            title: 'Vista Previa de la Nota',
-            description: 'Aquí puedes ver una vista previa de la nota final.',
-            position: 'top'
-          },
-          {
-            element: '#separateNoteModalOverlay',
-            title: 'Nota Separada',
-            description: 'Este modal te permite trabajar con la nota en otro formato.',
-            position: 'top'
-          },
-          {
-            element: '#historySidebar',
-            title: 'Historial de Notas',
-            description: 'Este panel contiene el historial de tus notas.',
-            position: 'left'
-          },
-          {
-            element: '#historySearchInput',
-            title: 'Buscador en Historial',
-            description: 'Usa este campo para buscar rápidamente en tu historial.',
-            position: 'bottom'
-          },
-          {
-            element: '#historyactionsfooter',
-            title: 'Exportar e Importar',
-            description: 'Desde aquí puedes exportar o importar tu historial.',
-            position: 'top'
-          },
-          {
-            element: '#checklistSidebar',
-            title: 'Excellence Mandate',
-            description: 'Este menú te da acceso a checklists y mandatos de excelencia.',
-            position: 'right'
-          },
-          {
-            element: '#feedback-btn',
-            title: 'Tu Opinión Importa',
-            description: 'Si tienes sugerencias o encuentras un error, contáctanos aquí.',
-            position: 'top'
-          }
-        ]);
-
-        // 3. Iniciar el tour
-        driver.start();
-      }
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/driver.js/0.9.8/driver.min.js"></script>
+    <script src="/script.js"></script>
+    <script src="/tutorial.js"></script>
 </body>
 </html>
