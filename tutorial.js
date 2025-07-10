@@ -1,11 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
-
-  const driverObj = driver({
+  
+  // CONFIGURACIÓN DEL DRIVER (TUTORIAL)
+  const driverObj = driver.driver({
     showProgress: true,
     animate: true,
     allowClose: true,
     onDestroyStarted: () => {
-      // Si el tour se cierra o termina, lo marcamos como visto
       if (!driverObj.isLastStep() && driverObj.getActiveIndex() !== undefined) {
           localStorage.setItem('tutorialDriverCompletado', 'true');
           return;
