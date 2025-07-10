@@ -2,21 +2,18 @@
 (function() {
     // Se define el objeto driver en un alcance más amplio para que sea accesible por todas las funciones del tour.
     let driver;
-    let initialDriverOpacity; // Variable para guardar la opacidad original
     let header; // Variable para el contenedor del header
+    let welcomeModal; // Variable para el modal de bienvenida
     let originalHeaderZIndex; // Variable para guardar el z-index original del header
+    let originalModalZIndex; // Variable para guardar el z-index original del modal
 
     /**
      * Revisa si el tutorial ya fue completado. Si no, lo inicia.
-     * Esta es la nueva función de entrada del script.
      */
     function checkAndStartTutorial() {
-        // Si la bandera 'tutorialCompleted' existe en localStorage, no se hace nada.
         if (localStorage.getItem('tutorialCompleted') === 'true') {
-            console.log("El tutorial ya ha sido completado. No se mostrará de nuevo.");
             return;
         }
-        // Si no, se inicia el tour.
         startApplicationTour();
     }
 
@@ -24,21 +21,15 @@
      * Función principal que inicia y controla el flujo del tour.
      */
     function startApplicationTour() {
-        // Crea una nueva instancia de Driver
         driver = new Driver({
             className: 'custom-driver-theme',
             animate: true,
             opacity: 0.75,
             padding: 10,
-            allowClose: false, // El usuario no puede cerrar el tour haciendo clic fuera
+            allowClose: false,
             doneBtnText: 'Finalizar',
-            // No se define 'closeBtnText' para ocultar el botón de cerrar
         });
         
-        // Guarda la opacidad inicial para poder restaurarla después.
-        initialDriverOpacity = driver.options.opacity;
-
-        // Inicia el tour con el primer paso
         runStep1_WelcomeModal();
     }
 
@@ -46,52 +37,46 @@
      * PASO 1: Enfocado en el modal de bienvenida.
      */
     function runStep1_WelcomeModal() {
-        // Elementos del modal
-        const welcomeModal = document.getElementById('welcomeModalOverlay');
+        // Elementos de la UI
+        welcomeModal = document.getElementById('welcomeModalOverlay');
         const nameInput = document.getElementById('welcomeAgentNameInput');
         const startBtn = document.getElementById('startTakingNotesBtn');
-        
-        // Selecciona el header
         header = document.querySelector('.sticky-header-container');
+
+        // FIX: Control explícito del Z-Index para ganar la "guerra de capas"
         if (header) {
-            // Guarda el z-index original y lo baja temporalmente
             originalHeaderZIndex = header.style.zIndex;
-            header.style.zIndex = '1099'; // Un valor menor que el z-index del modal (1100)
+            header.style.zIndex = '1000'; // Asegura que el header esté detrás
+        }
+        if (welcomeModal) {
+            originalModalZIndex = welcomeModal.style.zIndex;
+            welcomeModal.style.zIndex = '99998'; // Pone el modal casi al frente de todo
         }
 
-
-        // El script del tour ahora controla la visibilidad del modal para nuevos usuarios.
+        // Muestra el modal
         welcomeModal.style.display = 'flex';
 
-        // FIX: Se deshabilita temporalmente la opacidad del overlay de Driver.js
-        // para que no entre en conflicto con el overlay del modal de bienvenida.
-        driver.options.opacity = 0;
-
-        // Resalta el modal de bienvenida
+        // Resalta el modal de bienvenida. Driver.js pondrá su popover en un z-index más alto (ej. 99999)
         driver.highlight({
             element: '#welcomeModalOverlay .modal-content',
             popover: {
                 title: '¡Bienvenido!',
                 description: 'Por favor, ingresa tu nombre de agente en el campo de texto y presiona "START" o la tecla "Enter" para comenzar.',
-                position: 'top-center', // Posición actualizada para mejor visibilidad
+                position: 'top-center',
             }
         });
 
-        // Función para pasar al siguiente paso
         const moveToNextStep = () => {
-            // Limpia los listeners para que no se ejecuten de nuevo
             nameInput.removeEventListener('keydown', onEnter);
             startBtn.removeEventListener('click', moveToNextStep);
             
-            // Oculta el modal de bienvenida para continuar con la app
+            // Oculta el modal de bienvenida
             welcomeModal.style.display = 'none';
-            driver.clearHighlight(); // Limpia el resaltado actual
+            driver.clearHighlight();
             
-            // Llama al siguiente paso del tour
             runStep2_FormIntro();
         };
 
-        // Listener para la tecla Enter
         const onEnter = (e) => {
             if (e.key === 'Enter' && nameInput.value.trim() !== '') {
                 e.preventDefault();
@@ -99,29 +84,26 @@
             }
         };
 
-        // Agrega los event listeners
         nameInput.addEventListener('keydown', onEnter);
         startBtn.addEventListener('click', moveToNextStep);
     }
 
     /**
-     * PASO 2: Introducción al formulario principal, con todas las secciones colapsadas.
+     * PASO 2: Introducción al formulario principal.
      */
     function runStep2_FormIntro() {
-        // FIX: Se restaura la opacidad original del overlay para el resto del tour.
-        driver.options.opacity = initialDriverOpacity;
-        
-        // Restaura el z-index original del header
+        // FIX: Restaura los z-index originales para que la app funcione normalmente
         if (header) {
             header.style.zIndex = originalHeaderZIndex;
         }
+        if (welcomeModal) {
+            welcomeModal.style.zIndex = originalModalZIndex;
+        }
 
-        // Colapsa todas las secciones del formulario
         document.querySelectorAll('.form-section').forEach(section => {
             section.classList.add('collapsed');
         });
 
-        // Resalta el formulario
         driver.highlight({
             element: '#callNoteForm',
             popover: {
@@ -133,10 +115,8 @@
 
         const seccion1Title = document.querySelector('#seccion1 .section-title');
         
-        // Listener para el clic en el título de la sección 1
         const onTitleClick = () => {
             seccion1Title.removeEventListener('click', onTitleClick);
-            // Pequeña espera para que la animación de despliegue termine
             setTimeout(runStep3_Section1, 350); 
         };
         
@@ -219,17 +199,13 @@
             }
         });
 
-        // Marca el tutorial como completado en localStorage
         localStorage.setItem('tutorialCompleted', 'true');
-        console.log("Tutorial completado y guardado en localStorage.");
 
-        // Muestra el último paso por 4 segundos y luego finaliza el tour.
         setTimeout(() => {
-            driver.reset(); // Finaliza y limpia el tour
+            driver.reset();
         }, 4000); 
     }
 
-    // Se utiliza el evento 'load' para asegurar que todos los recursos se hayan cargado.
     window.addEventListener('load', checkAndStartTutorial);
 
 })();
