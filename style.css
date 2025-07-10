@@ -1586,6 +1586,23 @@ textarea {
     .input-row.download-upload-row .input-group {
         flex-basis: calc(50% - 3px);
     }
+    .header-top-row {
+      flex-direction: row;          /* Fuerza a que los elementos (título y botones) estén en una fila */
+      flex-wrap: nowrap;            /* Evita que el bloque de botones baje a la siguiente línea */
+      justify-content: space-between; /* Pone el título a la izquierda y los botones a la derecha */
+      align-items: center;          /* Centra verticalmente ambos bloques */
+    }
+    .ts-notes-title {
+      margin-bottom: 0;
+    }
+    .top-actions {
+      width: auto;                           /* El contenedor se ajusta al tamaño de los botones */
+      display: grid;                         /* Usa CSS Grid para la cuadrícula */
+      grid-template-columns: repeat(2, 1fr); /* Crea 2 columnas de igual tamaño */
+      gap: 5px;                              /* Mantiene el espacio entre botones */
+      flex-shrink: 0;                        /* Evita que este bloque se encoja si el título es largo */
+    }
+  
 }
 
 @media (max-width: 400px) {
@@ -1603,17 +1620,20 @@ textarea {
         border-radius: 0;
     }
     .header-top-row {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row;          /* Fuerza a que los elementos (título y botones) estén en una fila */
+        flex-wrap: nowrap;            /* Evita que el bloque de botones baje a la siguiente línea */
+        justify-content: space-between; /* Pone el título a la izquierda y los botones a la derecha */
+        align-items: center;          /* Centra verticalmente ambos bloques */
     }
     .ts-notes-title {
-        margin-bottom: 10px;
+        margin-bottom: 0;
     }
     .top-actions {
-        width: 50%;                          
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 5px;
+        width: auto;                           /* El contenedor se ajusta al tamaño de los botones */
+        display: grid;                         /* Usa CSS Grid para la cuadrícula */
+        grid-template-columns: repeat(2, 1fr); /* Crea 2 columnas de igual tamaño */
+        gap: 5px;                              /* Mantiene el espacio entre botones */
+        flex-shrink: 0;                        /* Evita que este bloque se encoja si el título es largo */
     }
     .input-row {
         flex-direction: column;
