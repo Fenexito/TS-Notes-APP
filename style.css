@@ -28,7 +28,7 @@ body {
     box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
     width: 100%;
     max-width: 600px;
-    min-width: 320px;
+    min-width: 325px;
     margin: 15px auto;
 }
 
@@ -1588,7 +1588,7 @@ textarea {
     }
 }
 
-@media (max-width: 500px) {
+@media (max-width: 400px) {
     .input-row.radio-group-row .input-group {
         flex-basis: calc(50% - 3px);
     }
