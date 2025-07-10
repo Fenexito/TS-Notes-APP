@@ -21,10 +21,11 @@ function iniciarTourPrincipal() {
 
     driver.defineSteps([
         {
-            element: 'body', // <-- AÑADIDO: Asociamos el paso al cuerpo de la página
-            title: '¡Bienvenido/a!',
-            description: 'Te guiaremos a través de las funciones principales.',
-            position: 'top-center' // <-- AÑADICKDO: Para centrar el mensaje
+            // CAMBIO: Usamos el título como ancla para el primer paso.
+            element: '.ts-notes-title', 
+            title: '¡Bienvenido/a a APad!',
+            description: 'Te guiaremos a través de las funciones principales de la aplicación.',
+            position: 'bottom' // Posicionamos el popover debajo del título.
         },
         {
             element: '#agentinfo',
