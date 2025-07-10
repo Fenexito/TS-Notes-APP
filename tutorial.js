@@ -58,6 +58,13 @@
             }
         });
 
+        // FIX: Se hace transparente el overlay de Driver.js para este paso específico
+        // para que no oculte el overlay oscuro del modal de bienvenida.
+        const driverOverlay = document.querySelector('.driver-overlay');
+        if (driverOverlay) {
+            driverOverlay.style.background = 'transparent';
+        }
+
         // Función para pasar al siguiente paso
         const moveToNextStep = () => {
             // Limpia los listeners para que no se ejecuten de nuevo
@@ -89,6 +96,12 @@
      * PASO 2: Introducción al formulario principal, con todas las secciones colapsadas.
      */
     function runStep2_FormIntro() {
+        // FIX: Restaura el overlay oscuro por defecto para el resto del tour.
+        const driverOverlay = document.querySelector('.driver-overlay');
+        if (driverOverlay) {
+            driverOverlay.style.background = ''; // Revierte al estilo por defecto de la librería
+        }
+
         // Colapsa todas las secciones del formulario
         document.querySelectorAll('.form-section').forEach(section => {
             section.classList.add('collapsed');
