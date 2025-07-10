@@ -3607,6 +3607,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             welcomeModalOverlay.style.display = 'none';
             document.removeEventListener('keydown', enterKeyHandler);
+            iniciarTourPostBienvenida();
         };
 
         enterKeyHandler = (event) => {
@@ -3632,7 +3633,7 @@ document.addEventListener('DOMContentLoaded', () => {
         welcomeModalOverlay.style.display = 'flex';
         document.addEventListener('keydown', enterKeyHandler);
         startTakingNotesBtn.addEventListener('click', closeWelcomeModal, { once: true });
-        iniciarTourPostBienvenida();
+    iniciarTourPostBienvenida();
     };
 
     const setChecklistValue = (radioName, value) => {
