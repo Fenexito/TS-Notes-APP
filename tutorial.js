@@ -2,9 +2,7 @@
 (function() {
     // Se define el objeto driver en un alcance más amplio para que sea accesible por todas las funciones del tour.
     let driver;
-    let header; // Variable para el contenedor del header
-    let parentOfHeader; // Variable para guardar el padre del header
-    let welcomeModal; // Variable para el modal de bienvenida
+    const TUTORIAL_STYLE_ID = 'driver-tutorial-fix'; // ID para nuestro estilo CSS temporal
 
     /**
      * Revisa si el tutorial ya fue completado. Si no, lo inicia.
@@ -37,16 +35,17 @@
      */
     function runStep1_WelcomeModal() {
         // Elementos de la UI
-        welcomeModal = document.getElementById('welcomeModalOverlay');
+        const welcomeModal = document.getElementById('welcomeModalOverlay');
         const nameInput = document.getElementById('welcomeAgentNameInput');
         const startBtn = document.getElementById('startTakingNotesBtn');
-        header = document.querySelector('.sticky-header-container');
 
-        // FIX DEFINITIVO: Se quita temporalmente el header del DOM para eliminar cualquier conflicto de z-index.
-        if (header && header.parentNode) {
-            parentOfHeader = header.parentNode;
-            parentOfHeader.removeChild(header);
-        }
+        // FIX: Inyecta un estilo CSS para hacer el overlay de Driver.js transparente
+        // solo durante este paso, para evitar que cubra el modal.
+        const css = `.driver-overlay { background: transparent !important; }`;
+        const style = document.createElement('style');
+        style.id = TUTORIAL_STYLE_ID;
+        style.appendChild(document.createTextNode(css));
+        document.head.appendChild(style);
 
         // Muestra el modal
         welcomeModal.style.display = 'flex';
@@ -87,10 +86,10 @@
      * PASO 2: Introducción al formulario principal.
      */
     function runStep2_FormIntro() {
-        // FIX: Se restaura el header en su posición original.
-        if (header && parentOfHeader) {
-            // Lo inserta al principio de su contenedor padre original.
-            parentOfHeader.insertBefore(header, parentOfHeader.firstChild);
+        // FIX: Elimina el estilo CSS inyectado para restaurar el comportamiento normal del overlay.
+        const styleElement = document.getElementById(TUTORIAL_STYLE_ID);
+        if (styleElement) {
+            styleElement.remove();
         }
 
         document.querySelectorAll('.form-section').forEach(section => {
