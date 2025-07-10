@@ -3,6 +3,8 @@
     // Se define el objeto driver en un alcance más amplio para que sea accesible por todas las funciones del tour.
     let driver;
     let initialDriverOpacity; // Variable para guardar la opacidad original
+    let header; // Variable para el contenedor del header
+    let originalHeaderZIndex; // Variable para guardar el z-index original del header
 
     /**
      * Revisa si el tutorial ya fue completado. Si no, lo inicia.
@@ -48,6 +50,15 @@
         const welcomeModal = document.getElementById('welcomeModalOverlay');
         const nameInput = document.getElementById('welcomeAgentNameInput');
         const startBtn = document.getElementById('startTakingNotesBtn');
+        
+        // Selecciona el header
+        header = document.querySelector('.sticky-header-container');
+        if (header) {
+            // Guarda el z-index original y lo baja temporalmente
+            originalHeaderZIndex = header.style.zIndex;
+            header.style.zIndex = '1099'; // Un valor menor que el z-index del modal (1100)
+        }
+
 
         // El script del tour ahora controla la visibilidad del modal para nuevos usuarios.
         welcomeModal.style.display = 'flex';
@@ -99,6 +110,11 @@
     function runStep2_FormIntro() {
         // FIX: Se restaura la opacidad original del overlay para el resto del tour.
         driver.options.opacity = initialDriverOpacity;
+        
+        // Restaura el z-index original del header
+        if (header) {
+            header.style.zIndex = originalHeaderZIndex;
+        }
 
         // Colapsa todas las secciones del formulario
         document.querySelectorAll('.form-section').forEach(section => {
