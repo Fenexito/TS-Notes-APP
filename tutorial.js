@@ -23,21 +23,21 @@ function startApplicationTour() {
         defaultStepOptions: {
             cancelIcon: { enabled: true },
             classes: 'custom-shepherd-theme',
-            buttons: defaultButtons
+            buttons: defaultButtons.buttons
         }
     });
 
     // --- PASO 1: MODAL DE BIENVENIDA ---
-    // (Sin cambios)
     tour.addStep({
         id: 'step1-welcome',
+        /* ... tu configuración no cambia ... */
         title: '¡Bienvenido!',
         text: 'Por favor, ingresa tu nombre de agente...',
         attachTo: { element: '#welcomeModalOverlay .modal-content', on: 'top' },
         canClickTarget: true,
         buttons: [],
-        beforeShowPromise: function() { /* ... */ },
-        when: { 'before-hide': () => { /* ... */ } }
+        beforeShowPromise: function() { return new Promise(function(resolve) { document.getElementById('welcomeModalOverlay').style.display = 'flex'; resolve(); }); },
+        when: { 'before-hide': () => { const nameInput = document.getElementById('welcomeAgentNameInput'); if (!nameInput || nameInput.value.trim() === '') return false; document.getElementById('welcomeModalOverlay').style.display = 'none'; }}
     });
     const startBtn = document.getElementById('startTakingNotesBtn'), nameInput = document.getElementById('welcomeAgentNameInput');
     const advanceFromModal = () => { if (nameInput.value.trim() !== '') tour.next(); };
@@ -50,13 +50,14 @@ function startApplicationTour() {
         title: 'Tu Espacio de Trabajo',
         text: 'Este es el formulario principal. Para continuar, haz clic en "Account Info & Verification".',
         attachTo: { element: '#callNoteForm', on: 'top' },
-        buttons: defaultButtons.buttons,
         when: {
             show: () => {
-                // Cuando se muestre este paso, escucha un clic en el siguiente disparador
                 document.querySelector('#seccion1 .section-title').addEventListener('click', () => {
-                    setTimeout(() => tour.next(), 400);
-                }, { once: true }); // { once: true } asegura que el listener se dispare solo una vez
+                    tour.currentStep.hide(); // 1. Oculta el popover actual
+                    setTimeout(() => {
+                        tour.show('step3-section1'); // 3. Muestra el siguiente paso por ID
+                    }, 450); // 2. Espera la animación
+                }, { once: true });
             }
         }
     });
@@ -66,12 +67,14 @@ function startApplicationTour() {
         id: 'step3-section1',
         title: 'Información de la Cuenta',
         text: '¡Excelente! Ahora, haz clic en "Status, Issue and Troubleshoot Steps".',
-        attachTo: { element: '#seccion1', on: 'bottom' }, // Resalta la sección completa
-        buttons: defaultButtons.buttons,
+        attachTo: { element: '#seccion1', on: 'bottom' },
         when: {
             show: () => {
                 document.querySelector('#seccion2 .section-title').addEventListener('click', () => {
-                    setTimeout(() => tour.next(), 400);
+                    tour.currentStep.hide();
+                    setTimeout(() => {
+                        tour.show('step4-section2');
+                    }, 450);
                 }, { once: true });
             }
         }
@@ -82,12 +85,14 @@ function startApplicationTour() {
         id: 'step4-section2',
         title: 'Detalles del Problema',
         text: 'Perfecto. Ahora haz clic en "Advanced Wifi Analytics & TVS".',
-        attachTo: { element: '#seccion2', on: 'bottom' }, // Resalta la sección completa
-        buttons: defaultButtons.buttons,
+        attachTo: { element: '#seccion2', on: 'bottom' },
         when: {
             show: () => {
                 document.querySelector('#seccion3 .section-title').addEventListener('click', () => {
-                    setTimeout(() => tour.next(), 400);
+                    tour.currentStep.hide();
+                    setTimeout(() => {
+                        tour.show('step5-section3');
+                    }, 450);
                 }, { once: true });
             }
         }
@@ -98,12 +103,14 @@ function startApplicationTour() {
         id: 'step5-section3',
         title: 'Análisis WiFi y TVS',
         text: 'Ya casi terminamos. Haz clic en la última sección: "Resolution".',
-        attachTo: { element: '#seccion3', on: 'bottom' }, // Resalta la sección completa
-        buttons: defaultButtons.buttons,
+        attachTo: { element: '#seccion3', on: 'bottom' },
         when: {
             show: () => {
                 document.querySelector('#seccion4 .section-title').addEventListener('click', () => {
-                    setTimeout(() => tour.next(), 400);
+                    tour.currentStep.hide();
+                    setTimeout(() => {
+                        tour.show('step6-section4');
+                    }, 450);
                 }, { once: true });
             }
         }
@@ -114,7 +121,7 @@ function startApplicationTour() {
         id: 'step6-section4',
         title: 'Resolución de la Llamada',
         text: '¡Has completado el tour!',
-        attachTo: { element: '#seccion4', on: 'top' }, // Resalta la sección completa
+        attachTo: { element: '#seccion4', on: 'top' },
         buttons: [{ text: 'Finalizar', action: tour.complete }]
     });
     
