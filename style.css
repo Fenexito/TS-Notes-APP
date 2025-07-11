@@ -1714,6 +1714,12 @@ textarea {
 }
 /* FIN: Estilos para Importar/Exportar */
 
+.driver-highlighted-element-stage {
+  background: transparent !important;
+  pointer-events: none !important;
+}
+
+/* 2. Asegura que las instrucciones (popover) estén por encima de todo. */
 .driver-popover {
-  z-index: 10001 !important;
+  z-index: 99999 !important;
 }
