@@ -62,12 +62,13 @@ function startApplicationTour() {
         }
     });
 
-    // --- PASO 3: SECCIÓN 1 ---
+    // En el Paso 3 del tour
     tour.addStep({
         id: 'step3-section1',
         title: 'Información de la Cuenta',
-        text: '¡Excelente! Ahora, haz clic en "Status, Issue and Troubleshoot Steps".',
-        attachTo: { element: '#seccion1', on: 'bottom' },
+        text: '¡Excelente! Aquí ingresas los datos del cliente...',
+        // 👇 CAMBIO CLAVE: Apunta al contenedor estático
+        attachTo: { element: '#seccion1-wrapper', on: 'bottom' },
         when: {
             show: () => {
                 document.querySelector('#seccion2 .section-title').addEventListener('click', () => {
