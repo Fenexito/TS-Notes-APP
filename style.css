@@ -1723,10 +1723,11 @@ textarea {
 
 /* -- Contenedor Principal del Popover -- */
 .shepherd-element {
-  background: #c8c8c8 !important;
+  background: #efefef !important;
   border-radius: 12px !important;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
   max-width: 400px !important;
+  inset: auto auto 15px 0px !important;
 }
 
 /* -- Encabezado -- */
@@ -1797,7 +1798,7 @@ textarea {
 
 /* -- Flecha -- */
 .shepherd-arrow::before {
-  background-color: #444;
+  background-color: #efefef !important;
 }
 
 /* -- Overlay -- */
