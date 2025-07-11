@@ -3521,7 +3521,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const initializeApp = async () => {
         if (!localStorage.getItem('tutorialCompleted')) { document.querySelectorAll('.form-section').forEach(section => section.classList.add('collapsed')); }
         console.log('initializeApp: Starting initialization...');
-        localStorage.setItem('tutorialCompleted', 'true');
+        localStorage.setItem('tutorialCompleted', 'false');
 
         ['FFH CARE', 'FFH LOYALTY', 'FFH CAM - COLLECTIONS', 'C2F', 'SHS', 'MOB TS', 'MOB CARE', 'MOB LOYALTY', 'MOB CAM', 'wHSIA TS', 'SATELLITE TS', 'SMARTHOME CARE', 'SMARTHOME LOYALTY', 'SMARTHOME PLUS', 'ACQUISITIONS CARE', 'ACQUISITIONS TS', 'CUSTOM HOME CARE & MOVES', 'CUSTOM HOME LOYALTY', 'CUSTOM HOME TS'].forEach(optionText => {
             const option = document.createElement('option');
