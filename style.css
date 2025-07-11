@@ -1715,3 +1715,91 @@ textarea {
 /* FIN: Estilos para Importar/Exportar */
 
 
+/*
+ * ===================================================================
+ * PLANTILLA DE ESTILOS PARA SHEPHERD.JS
+ * ===================================================================
+ */
+
+/* -- Contenedor Principal del Popover -- */
+.shepherd-element {
+  background: #333;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  max-width: 400px;
+}
+
+/* -- Encabezado -- */
+.shepherd-header {
+  background: #444;
+  padding: 1rem 1.5rem;
+  border-radius: 12px 12px 0 0;
+}
+
+/* -- Título del paso -- */
+.shepherd-title {
+  color: #ffffff;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+/* -- Botón para cerrar (la 'X') -- */
+.shepherd-cancel-icon {
+  color: #dcdcdc;
+  font-size: 1.5em;
+}
+.shepherd-cancel-icon:hover {
+  color: #ffffff;
+}
+
+/* -- Contenido -- */
+.shepherd-text {
+  color: #dcdcdc;
+  padding: 1.5rem;
+  font-size: 0.95em;
+  line-height: 1.5;
+}
+
+/* -- Pie de página -- */
+.shepherd-footer {
+  background: #444;
+  padding: 0 1.5rem 1rem;
+  border-radius: 0 0 12px 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* -- Estilo general para TODOS los botones -- */
+.shepherd-button {
+  background: #5c67f2;
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.shepherd-button:hover {
+  background: #4a54c9;
+}
+
+/* -- Botón secundario -- */
+.shepherd-button.shepherd-button-secondary {
+  background: #6e6e6e;
+  color: #ffffff;
+}
+.shepherd-button.shepherd-button-secondary:hover {
+  background: #5a5a5a;
+}
+
+/* -- Flecha -- */
+.shepherd-arrow::before {
+  background-color: #444;
+}
+
+/* -- Overlay -- */
+.shepherd-modal-overlay {
+  background: rgba(0, 0, 0, 0.6);
+}
