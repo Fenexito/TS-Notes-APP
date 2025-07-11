@@ -1,8 +1,5 @@
-// Se utiliza una IIFE (Immediately Invoked Function Expression) para evitar conflictos con otras variables globales.
+// Se utiliza una IIFE (Immediately Invoked Function Expression) para evitar conflictos.
 (function() {
-    // Se define el objeto driver en un alcance más amplio para que sea accesible por todas las funciones del tour.
-    let driver;
-
     /**
      * Revisa si el tutorial ya fue completado. Si no, lo inicia.
      */
@@ -14,192 +11,156 @@
     }
 
     /**
-     * Función principal que inicia y controla el flujo del tour.
+     * Función principal que inicia y controla el flujo del tour con Shepherd.js.
      */
     function startApplicationTour() {
-        driver = new Driver({
-            className: 'custom-driver-theme',
-            animate: true,
-            opacity: 0.75,
-            padding: 10,
-            allowClose: false,
-            doneBtnText: 'Finalizar',
-        });
-        
-        runStep1_WelcomeModal();
-    }
-
-     /**
-     * PASO 1: Enfocado en el modal de bienvenida.
-     */
-    function runStep1_WelcomeModal() {
-        const welcomeModal = document.getElementById('welcomeModalOverlay');
-        const nameInput = document.getElementById('welcomeAgentNameInput');
-        const startBtn = document.getElementById('startTakingNotesBtn');
-    
-        // Muestra el modal de bienvenida de la aplicación
-        welcomeModal.style.display = 'flex';
-    
-        // Resalta el modal de bienvenida usando Driver.js
-        driver.highlight({
-            // 👇 ESTE ES EL CAMBIO CLAVE 👇
-            // Resaltamos todo el contenedor del modal para hacerlo interactivo.
-            element: '#welcomeModalOverlay',
-            popover: {
-                title: '¡Bienvenido!',
-                description: 'Por favor, ingresa tu nombre de agente en el campo de texto y presiona "START" o la tecla "Enter" para comenzar.',
-                position: 'top-center',
-                onHighlighted: () => {
-                    // Tu solución para hacer el fondo transparente sigue siendo necesaria
-                    // para evitar un efecto visual de "doble overlay".
-                    const stage = document.querySelector('.driver-stage-background');
-                    if (stage) {
-                        stage.style.background = 'transparent';
-                    }
-                },
-                onDeselected: () => {
-                    // Restauramos el fondo para el resto del tour.
-                    const stage = document.querySelector('.driver-stage-background');
-                    if (stage) {
-                        stage.style.background = '';
-                    }
+        // Configuración por defecto para todos los botones del tour
+        const defaultButtons = {
+            secondary: {
+                text: 'Salir',
+                action: function() {
+                    // Al salir, marcamos el tutorial como completado para no volver a mostrarlo.
+                    localStorage.setItem('tutorialCompleted', 'true');
+                    this.cancel();
                 }
             }
-        });
-    
-        const moveToNextStep = () => {
-            nameInput.removeEventListener('keydown', onEnter);
-            startBtn.removeEventListener('click', moveToNextStep);
-            
-            // Oculta el modal de bienvenida
-            welcomeModal.style.display = 'none';
-            // Limpiar el resaltado activará el hook `onDeselected` automáticamente.
-            driver.clearHighlight();
-            
-            runStep2_FormIntro();
         };
-    
-        const onEnter = (e) => {
-            if (e.key === 'Enter' && nameInput.value.trim() !== '') {
+
+        const tour = new Shepherd.Tour({
+            useModalOverlay: true, // Esto crea el fondo oscuro y resalta el elemento
+            defaultStepOptions: {
+                cancelIcon: {
+                    enabled: true
+                },
+                classes: 'custom-shepherd-theme', // Puedes usar esto para estilizar con CSS
+                buttons: defaultButtons
+            }
+        });
+
+        // --- PASO 1: MODAL DE BIENVENIDA ---
+        tour.addStep({
+            id: 'step1-welcome',
+            title: '¡Bienvenido!',
+            text: 'Por favor, ingresa tu nombre de agente en el campo de texto y presiona "START" o la tecla "Enter" para comenzar.',
+            attachTo: {
+                element: '#welcomeModalOverlay .modal-content',
+                on: 'top'
+            },
+            canClickTarget: true, // Permite interactuar con el elemento resaltado
+            beforeShowPromise: function() {
+                // Muestra el modal justo antes de que el paso del tour aparezca
+                return new Promise(function(resolve) {
+                    document.getElementById('welcomeModalOverlay').style.display = 'flex';
+                    resolve();
+                });
+            },
+            when: {
+                // El tour no avanzará hasta que este evento ocurra
+                'before-hide': () => {
+                    const nameInput = document.getElementById('welcomeAgentNameInput');
+                    if (!nameInput || nameInput.value.trim() === '') {
+                        // Evita que el tour continúe si no se ha ingresado un nombre
+                        return false; 
+                    }
+                     document.getElementById('welcomeModalOverlay').style.display = 'none';
+                }
+            },
+            buttons: [] // Sin botones, el avance es manual
+        });
+        
+        // Listener para avanzar desde el modal
+        const startBtn = document.getElementById('startTakingNotesBtn');
+        const nameInput = document.getElementById('welcomeAgentNameInput');
+        
+        const advanceFromModal = () => {
+            if (nameInput.value.trim() !== '') {
+                tour.next();
+            }
+        };
+
+        startBtn.addEventListener('click', advanceFromModal);
+        nameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
                 e.preventDefault();
-                moveToNextStep();
-            }
-        };
-    
-        nameInput.addEventListener('keydown', onEnter);
-        startBtn.addEventListener('click', moveToNextStep);
-    }
-
-    /**
-     * PASO 2: Introducción al formulario principal.
-     */
-    function runStep2_FormIntro() {
-        // La limpieza se hizo en el `onDeselected` del paso anterior.
-        // Ahora el tour continúa con su apariencia normal.
-        document.querySelectorAll('.form-section').forEach(section => {
-            section.classList.add('collapsed');
-        });
-
-        driver.highlight({
-            element: '#callNoteForm',
-            popover: {
-                title: 'Tu Espacio de Trabajo',
-                description: 'Este es el formulario principal. Para continuar, haz clic en el título "Account Info & Verification" para expandir la primera sección.',
-                position: 'top-center'
+                advanceFromModal();
             }
         });
 
-        const seccion1Title = document.querySelector('#seccion1 .section-title');
+        // --- PASO 2: INTRODUCCIÓN AL FORMULARIO ---
+        tour.addStep({
+            id: 'step2-form-intro',
+            title: 'Tu Espacio de Trabajo',
+            text: 'Este es el formulario principal. Para continuar, haz clic en el título "Account Info & Verification" para expandir la primera sección.',
+            attachTo: {
+                element: '#callNoteForm',
+                on: 'top'
+            },
+            advanceOn: { selector: '#seccion1 .section-title', event: 'click' },
+            buttons: defaultButtons
+        });
         
-        const onTitleClick = () => {
-            seccion1Title.removeEventListener('click', onTitleClick);
-            setTimeout(runStep3_Section1, 350); 
-        };
+        // --- PASO 3: SECCIÓN 1 ---
+        tour.addStep({
+            id: 'step3-section1',
+            title: 'Información de la Cuenta',
+            text: '¡Excelente! Aquí ingresas los datos del cliente. Ahora, haz clic en el título de la siguiente sección: "Status, Issue and Troubleshoot Steps".',
+            attachTo: {
+                element: '#seccion1',
+                on: 'bottom'
+            },
+            advanceOn: { selector: '#seccion2 .section-title', event: 'click' },
+            buttons: defaultButtons
+        });
+
+        // --- PASO 4: SECCIÓN 2 ---
+        tour.addStep({
+            id: 'step4-section2',
+            title: 'Detalles del Problema',
+            text: 'Esta es la sección más importante. Documenta el problema y los pasos realizados. Para continuar, haz clic en "Advanced Wifi Analytics & TVS".',
+            attachTo: {
+                element: '#seccion2',
+                on: 'bottom'
+            },
+            advanceOn: { selector: '#seccion3 .section-title', event: 'click' },
+            buttons: defaultButtons
+        });
+
+        // --- PASO 5: SECCIÓN 3 ---
+        tour.addStep({
+            id: 'step5-section3',
+            title: 'Análisis WiFi y TVS',
+            text: 'Aquí registras datos de AWA y TVS. Ya casi terminamos. Haz clic en la última sección: "Resolution".',
+            attachTo: {
+                element: '#seccion3',
+                on: 'bottom'
+            },
+            advanceOn: { selector: '#seccion4 .section-title', event: 'click' },
+            buttons: defaultButtons
+        });
+
+        // --- PASO 6: SECCIÓN 4 Y FINAL ---
+        tour.addStep({
+            id: 'step6-section4',
+            title: 'Resolución de la Llamada',
+            text: 'Finalmente, documenta el resultado de la interacción. ¡Has completado el tour!',
+            attachTo: {
+                element: '#seccion4',
+                on: 'top'
+            },
+            buttons: [
+                {
+                    text: 'Finalizar',
+                    action: tour.complete
+                }
+            ]
+        });
         
-        seccion1Title.addEventListener('click', onTitleClick);
-    }
-
-    /**
-     * PASO 3: Explica la Sección 1 y espera clic en la Sección 2.
-     */
-    function runStep3_Section1() {
-        driver.highlight({
-            element: '#seccion1',
-            popover: {
-                title: 'Información de la Cuenta',
-                description: '¡Excelente! Aquí ingresas los datos del cliente. Ahora, haz clic en el título de la siguiente sección: "Status, Issue and Troubleshoot Steps".',
-                position: 'bottom'
-            }
+        // Cuando el tour se complete satisfactoriamente
+        tour.on('complete', () => {
+            localStorage.setItem('tutorialCompleted', 'true');
         });
 
-        const seccion2Title = document.querySelector('#seccion2 .section-title');
-        const onTitleClick = () => {
-            seccion2Title.removeEventListener('click', onTitleClick);
-            setTimeout(runStep4_Section2, 350);
-        };
-        seccion2Title.addEventListener('click', onTitleClick);
-    }
-    
-    /**
-     * PASO 4: Explica la Sección 2 y espera clic en la Sección 3.
-     */
-    function runStep4_Section2() {
-        driver.highlight({
-            element: '#seccion2',
-            popover: {
-                title: 'Detalles del Problema',
-                description: 'Esta es la sección más importante. Documenta el problema y los pasos realizados. Para continuar, haz clic en "Advanced Wifi Analytics & TVS".',
-                position: 'bottom'
-            }
-        });
-
-        const seccion3Title = document.querySelector('#seccion3 .section-title');
-        const onTitleClick = () => {
-            seccion3Title.removeEventListener('click', onTitleClick);
-            setTimeout(runStep5_Section3, 350);
-        };
-        seccion3Title.addEventListener('click', onTitleClick);
-    }
-
-    /**
-     * PASO 5: Explica la Sección 3 y espera clic en la Sección 4.
-     */
-    function runStep5_Section3() {
-        driver.highlight({
-            element: '#seccion3',
-            popover: {
-                title: 'Análisis WiFi y TVS',
-                description: 'Aquí registras datos de AWA y TVS. Ya casi terminamos. Haz clic en la última sección: "Resolution".',
-                position: 'bottom'
-            }
-        });
-
-        const seccion4Title = document.querySelector('#seccion4 .section-title');
-        const onTitleClick = () => {
-            seccion4Title.removeEventListener('click', onTitleClick);
-            setTimeout(runStep6_Section4, 350);
-        };
-        seccion4Title.addEventListener('click', onTitleClick);
-    }
-
-    /**
-     * PASO 6: Explica la Sección 4 y finaliza el tutorial.
-     */
-    function runStep6_Section4() {
-         driver.highlight({
-            element: '#seccion4',
-            popover: {
-                title: 'Resolución de la Llamada',
-                description: 'Finalmente, documenta el resultado de la interacción. ¡Has completado la parte interactiva del formulario!',
-                position: 'top'
-            }
-        });
-
-        localStorage.setItem('tutorialCompleted', 'true');
-
-        setTimeout(() => {
-            driver.reset();
-        }, 4000); 
+        tour.start();
     }
 
     window.addEventListener('load', checkAndStartTutorial);
