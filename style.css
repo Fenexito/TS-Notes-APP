@@ -1714,12 +1714,94 @@ textarea {
 }
 /* FIN: Estilos para Importar/Exportar */
 
-.driver-highlighted-element-stage {
-  background: transparent !important;
-  pointer-events: none !important;
+
+/*
+ * ===================================================================
+ * PLANTILLA DE ESTILOS PARA SHEPHERD.JS
+ * Copia y pega esto en tu archivo CSS y modifica los valores.
+ * ===================================================================
+ */
+
+/* -- Contenedor Principal del Popover (la ventana del paso) -- */
+.shepherd-element {
+  background: #333; /* Fondo de la ventana */
+  border-radius: 12px; /* Bordes redondeados */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); /* Sombra */
+  max-width: 400px; /* Ancho máximo */
 }
 
-/* 2. Asegura que las instrucciones (popover) estén por encima de todo. */
-.driver-popover {
-  z-index: 99999 !important;
+/* -- Encabezado (donde va el título y el botón de cerrar) -- */
+.shepherd-header {
+  background: #444; /* Fondo del encabezado */
+  padding: 1rem 1.5rem; /* Relleno (vertical, horizontal) */
+  border-radius: 12px 12px 0 0; /* Redondea solo las esquinas superiores */
 }
+
+/* -- Título del paso -- */
+.shepherd-title {
+  color: #ffffff; /* Color del texto del título */
+  font-size: 1.1em; /* Tamaño del texto */
+  font-weight: bold; /* Grosor del texto */
+}
+
+/* -- Botón para cerrar (la 'X') -- */
+.shepherd-cancel-icon {
+  color: #dcdcdc; /* Color del icono */
+  font-size: 1.5em; /* Tamaño del icono */
+}
+.shepherd-cancel-icon:hover {
+  color: #ffffff; /* Color al pasar el ratón */
+}
+
+/* -- Contenido (donde va la descripción del paso) -- */
+.shepherd-text {
+  color: #dcdcdc; /* Color del texto principal */
+  padding: 1.5rem; /* Relleno alrededor del texto */
+  font-size: 0.95em; /* Tamaño del texto */
+  line-height: 1.5; /* Altura de línea para mejor legibilidad */
+}
+
+/* -- Pie de página (donde van los botones) -- */
+.shepherd-footer {
+  background: #444; /* Fondo del pie de página */
+  padding: 0 1.5rem 1rem; /* Relleno */
+  border-radius: 0 0 12px 12px; /* Redondea solo las esquinas inferiores */
+  display: flex; /* Activa flexbox para alinear botones */
+  justify-content: flex-end; /* Alinea los botones a la derecha */
+  gap: 0.5rem; /* Espacio entre los botones */
+}
+
+/* -- Estilo general para TODOS los botones -- */
+.shepherd-button {
+  background: #5c67f2; /* Color de fondo */
+  color: #ffffff; /* Color del texto */
+  border: none; /* Sin borde */
+  padding: 0.75rem 1.5rem; /* Relleno */
+  border-radius: 8px; /* Bordes redondeados */
+  font-weight: bold; /* Grosor del texto */
+  cursor: pointer; /* Cursor de mano */
+  transition: background-color 0.2s ease; /* Transición suave */
+}
+.shepherd-button:hover {
+  background: #4a54c9; /* Color de fondo al pasar el ratón */
+}
+
+/* -- Botón secundario (como "Salir") -- */
+.shepherd-button.shepherd-button-secondary {
+  background: #6e6e6e; /* Color de fondo diferente */
+  color: #ffffff;
+}
+.shepherd-button.shepherd-button-secondary:hover {
+  background: #5a5a5a;
+}
+
+/* -- Flecha que apunta al elemento resaltado -- */
+.shepherd-arrow::before {
+  background-color: #444; /* Debe coincidir con el fondo del popover o su borde */
+}
+
+/* -- Overlay (la capa oscura que cubre la página) -- */
+.shepherd-modal-overlay {
+  background: rgba(0, 0, 0, 0.6); /* Color y opacidad del fondo */
+}
+
