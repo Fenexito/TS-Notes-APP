@@ -1717,15 +1717,18 @@ textarea {
 
 /*
  * ===================================================================
- * SOLUCIÓN DEFINITIVA PARA LA INTERACCIÓN DEL MODAL EN INTRO.JS
+ * SOLUCIÓN FINAL Y AGRESIVA PARA LA INTERACCIÓN DEL MODAL EN INTRO.JS
  * ===================================================================
  */
 
 /*
- * Cuando el tour está en el primer paso (el del modal),
- * le decimos a la capa que resalta el elemento que sea
- * completamente invisible a los clics del ratón.
+ * Cuando el tour está en el paso del modal (identificado por la clase
+ * en el body), le decimos a TODAS las capas de Intro.js (el overlay
+ * y el resaltado) que ignoren por completo los clics del ratón.
+ * Esto permite que los clics "atraviesen" las capas del tutorial
+ * y lleguen a tu modal.
 */
+body.intro-modal-step-active .introjs-overlay,
 body.intro-modal-step-active .introjs-helperLayer {
   pointer-events: none !important;
 }
