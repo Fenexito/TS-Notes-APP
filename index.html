@@ -7,10 +7,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shepherd.js@10.0.1/dist/css/shepherd.css"/>
     <link rel="stylesheet" href="/style.css">
    
-    <!-- Web Application Manifest -->
     <link rel="manifest" href="/manifest.json">
     
-    <!-- Meta tags for iOS/Safari -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="APad Notes">
@@ -90,401 +88,408 @@
             </div>
         </div>
         <form id="callNoteForm">
-            <section id="seccion1" class="form-section">
-                <h2 class="section-title">
-                    <span>Account Info & Verification</span>
-                    <button type="button" class="clean-section-btn" data-section-id="seccion1" title="Clear section">
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l3 0l0 18l12 0l0-18l3 0"></path><path d="M1 6l22 0"></path><path d="M8 6l0-3l8 0l0 3"></path></svg>
-                    </button>
-                </h2>
-                <div class="section-content">
-                    <div class="input-row four-columns">
-                        <div class="input-group">
-                            <label for="ban">BAN</label>
-                            <div class="input-with-copy-button">
-                                <input type="text" id="ban" name="ban" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
-                                <button type="button" class="copy-button" data-target="ban" title="Copy BAN">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v2"/></svg>
-                                </button>
+            <div id="seccion1-wrapper">
+                <section id="seccion1" class="form-section">
+                    <h2 class="section-title">
+                        <span>Account Info & Verification</span>
+                        <button type="button" class="clean-section-btn" data-section-id="seccion1" title="Clear section">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l3 0l0 18l12 0l0-18l3 0"></path><path d="M1 6l22 0"></path><path d="M8 6l0-3l8 0l0 3"></path></svg>
+                        </button>
+                    </h2>
+                    <div class="section-content">
+                        <div class="input-row four-columns">
+                            <div class="input-group">
+                                <label for="ban">BAN</label>
+                                <div class="input-with-copy-button">
+                                    <input type="text" id="ban" name="ban" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
+                                    <button type="button" class="copy-button" data-target="ban" title="Copy BAN">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v2"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="cid">CID</label>
+                                <div class="input-with-copy-button">
+                                    <input type="text" id="cid" name="cid" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
+                                    <button type="button" class="copy-button" data-target="cid" title="Copy CID">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v2"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="name">NAME</label>
+                                <input type="text" id="name" name="name" pattern="[A-Za-z\s]*" required autocomplete="name-off">
+                            </div>
+                            <div class="input-group">
+                                <label for="cbr">CBR</label>
+                                <div class="input-with-copy-button">
+                                    <input type="text" id="cbr" name="cbr" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
+                                    <button type="button" class="copy-button" data-target="cbr" title="Copy CBR">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v2"/></svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        <div class="input-group">
-                            <label for="cid">CID</label>
-                            <div class="input-with-copy-button">
-                                <input type="text" id="cid" name="cid" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
-                                <button type="button" class="copy-button" data-target="cid" title="Copy CID">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v2"/></svg>
-                                </button>
+                        <div class="input-row account-info-row">
+                            <div class="input-group">
+                                <label for="caller">CALLER</label>
+                                <select id="caller" name="caller" required>
+                                    <option value="">Select an option</option>
+                                    <option value="Owner">Owner</option>
+                                    <option value="Auth User">Auth User</option>
+                                    <option value="Consultation">Consultation</option>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
-                        </div>
-                        <div class="input-group">
-                            <label for="name">NAME</label>
-                            <input type="text" id="name" name="name" pattern="[A-Za-z\s]*" required autocomplete="name-off">
-                        </div>
-                        <div class="input-group">
-                            <label for="cbr">CBR</label>
-                            <div class="input-with-copy-button">
-                                <input type="text" id="cbr" name="cbr" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
-                                <button type="button" class="copy-button" data-target="cbr" title="Copy CBR">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v2"/></svg>
-                                </button>
+                            <div class="input-group">
+                                <label for="verifiedBy">VERIFIED BY</label>
+                                <select id="verifiedBy" name="verifiedBy" required>
+                                    <option value="">Select an option</option>
+                                    <option value="PIN">PIN</option>
+                                    <option value="IVR">IVR</option>
+                                    <option value="Security Questions">Security Questions</option>
+                                    <option value="Manual Auth">Manual Auth</option>
+                                    <option value="By Previous Agent">By Previous Agent</option>
+                                    <option value="N/Refuses to Verify">N/Refuses to Verify</option>
+                                    <option value="N/Missing Info">N/Missing Info</option>
+                                    <option value="N/Not Owner or Auth User">N/Not Owner or Auth User</option>
+                                    <option value="Not Required">Not Required</option>
+                                </select>
                             </div>
-                        </div>
-                    </div>
-                    <div class="input-row account-info-row">
-                        <div class="input-group">
-                            <label for="caller">CALLER</label>
-                            <select id="caller" name="caller" required>
-                                <option value="">Select an option</option>
-                                <option value="Owner">Owner</option>
-                                <option value="Auth User">Auth User</option>
-                                <option value="Consultation">Consultation</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label for="verifiedBy">VERIFIED BY</label>
-                            <select id="verifiedBy" name="verifiedBy" required>
-                                <option value="">Select an option</option>
-                                <option value="PIN">PIN</option>
-                                <option value="IVR">IVR</option>
-                                <option value="Security Questions">Security Questions</option>
-                                <option value="Manual Auth">Manual Auth</option>
-                                <option value="By Previous Agent">By Previous Agent</option>
-                                <option value="N/Refuses to Verify">N/Refuses to Verify</option>
-                                <option value="N/Missing Info">N/Missing Info</option>
-                                <option value="N/Not Owner or Auth User">N/Not Owner or Auth User</option>
-                                <option value="Not Required">Not Required</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label for="address">ADDRESS</label>
-                            <input type="text" id="address" name="address" autocomplete="address-off">
-                        </div>
-                        <div id="xidFieldContainer" class="input-group hidden-field">
-                            <label for="xid">XID</label>
-                            <input type="text" id="xid" name="xid" required autocomplete="off">
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <section id="seccion2" class="form-section">
-                <h2 class="section-title">
-                    <span>Status, Issue and Troubleshoot Steps</span>
-                    <button type="button" class="clean-section-btn" data-section-id="seccion2" title="Clear section">
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l3 0l0 18l12 0l0-18l3 0"></path><path d="M1 6l22 0"></path><path d="M8 6l0-3l8 0l0 3"></path></svg>
-                    </button>
-                </h2>
-                <div class="section-content section2-grid-layout">
-                    <div class="input-row radio-group-row">
-                        <div class="input-group radio-group" id="outageRadioGroup">
-                            <label>Outage</label>
-                            <div class="radio-options">
-                                <input type="radio" id="outageYes" name="outage" value="yes">
-                                <label for="outageYes">Yes</label>
-                                <input type="radio" id="outageNo" name="outage" value="no">
-                                <label for="outageNo">No</label>
+                            <div class="input-group">
+                                <label for="address">ADDRESS</label>
+                                <input type="text" id="address" name="address" autocomplete="address-off">
                             </div>
-                        </div>
-                        <div class="input-group radio-group" id="errorsInNCRadioGroup">
-                            <label>NetCracker</label>
-                            <div class="radio-options">
-                                <input type="radio" id="errorsInNCYes" name="errorsInNC" value="yes">
-                                <label for="errorsInNCYes">Yes</label>
-                                <input type="radio" id="errorsInNCNo" name="errorsInNC" value="no">
-                                <label for="errorsInNCNo">No</label>
-                            </div>
-                        </div>
-                        <div class="input-group radio-group" id="accountSuspendedRadioGroup">
-                            <label>Suspended</label>
-                            <div class="radio-options">
-                                <input type="radio" id="accountSuspendedYes" name="accountSuspended" value="yes">
-                                <label for="accountSuspendedYes">Yes</label>
-                                <input type="radio" id="accountSuspendedNo" name="accountSuspended" value="no">
-                                <label for="accountSuspendedNo">No</label>
+                            <div id="xidFieldContainer" class="input-group hidden-field">
+                                <label for="xid">XID</label>
+                                <input type="text" id="xid" name="xid" required autocomplete="off">
                             </div>
                         </div>
                     </div>
-                    <div class="input-row three-columns-layout">
-                        <div class="input-group" id="serviceOnCsrGroup">
-                            <label for="serviceOnCsr">SERVICE ON CSR</label>
-                            <select id="serviceOnCsr" name="serviceOnCsr" required>
-                                <option value="">Select Status</option>
-                                <option value="Active">Active</option>
-                                <option value="Pending">Pending</option>
-                                <option value="Activating">Activating</option>
-                                <option value="Suspended">Suspended</option>
-                                <option value="Cancelled">Cancelled</option>
-                            </select>
+                </section>
+            </div>
+            <div id="seccion2-wrapper">
+                <section id="seccion2" class="form-section">
+                    <h2 class="section-title">
+                        <span>Status, Issue and Troubleshoot Steps</span>
+                        <button type="button" class="clean-section-btn" data-section-id="seccion2" title="Clear section">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l3 0l0 18l12 0l0-18l3 0"></path><path d="M1 6l22 0"></path><path d="M8 6l0-3l8 0l0 3"></path></svg>
+                        </button>
+                    </h2>
+                    <div class="section-content section2-grid-layout">
+                        <div class="input-row radio-group-row">
+                            <div class="input-group radio-group" id="outageRadioGroup">
+                                <label>Outage</label>
+                                <div class="radio-options">
+                                    <input type="radio" id="outageYes" name="outage" value="yes">
+                                    <label for="outageYes">Yes</label>
+                                    <input type="radio" id="outageNo" name="outage" value="no">
+                                    <label for="outageNo">No</label>
+                                </div>
+                            </div>
+                            <div class="input-group radio-group" id="errorsInNCRadioGroup">
+                                <label>NetCracker</label>
+                                <div class="radio-options">
+                                    <input type="radio" id="errorsInNCYes" name="errorsInNC" value="yes">
+                                    <label for="errorsInNCYes">Yes</label>
+                                    <input type="radio" id="errorsInNCNo" name="errorsInNC" value="no">
+                                    <label for="errorsInNCNo">No</label>
+                                </div>
+                            </div>
+                            <div class="input-group radio-group" id="accountSuspendedRadioGroup">
+                                <label>Suspended</label>
+                                <div class="radio-options">
+                                    <input type="radio" id="accountSuspendedYes" name="accountSuspended" value="yes">
+                                    <label for="accountSuspendedYes">Yes</label>
+                                    <input type="radio" id="accountSuspendedNo" name="accountSuspended" value="no">
+                                    <label for="accountSuspendedNo">No</label>
+                                </div>
+                            </div>
                         </div>
-                        <div class="input-group">
-                            <label for="serviceSelect">SERVICE</label>
-                            <select id="serviceSelect" name="serviceSelect" required>
-                                <option value="">Select a service</option>
-                                <option value="HighSpeed / Fiber">HighSpeed / Fiber</option>
-                                <option value="HighSpeed / Copper">HighSpeed / Copper</option>
-                                <option value="Optik TV (Legacy)">Optik TV (Legacy)</option>
-                                <option value="Optik TV (Evo)">Optik TV (Evo)</option>
-                                <option value="Pik TV">Pik TV</option>
-                                <option value="HomePhone / Fiber">HomePhone / Fiber</option>
-                                <option value="HomePhone / Copper">HomePhone / Copper</option>
-                                <option value="Telus Email">Telus Email</option>
-                                <option value="MyTelus">MyTelus</option>
-                                <option value="TOS">TOS</option>
-                                <option value="Telus Connect App">Telus Connect App</option>
-                                <option value="SHS Legacy">SHS Legacy</option>
-                                <option value="SHS ADT / Acquisition / Custom Home">SHS ADT / Acquisition / Custom Home</option>
-                                <option value="Living Well Companion">Living Well Companion</option>
-                                <option value="Other">Other</option>
-                            </select>
+                        <div class="input-row three-columns-layout">
+                            <div class="input-group" id="serviceOnCsrGroup">
+                                <label for="serviceOnCsr">SERVICE ON CSR</label>
+                                <select id="serviceOnCsr" name="serviceOnCsr" required>
+                                    <option value="">Select Status</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Activating">Activating</option>
+                                    <option value="Suspended">Suspended</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="serviceSelect">SERVICE</label>
+                                <select id="serviceSelect" name="serviceSelect" required>
+                                    <option value="">Select a service</option>
+                                    <option value="HighSpeed / Fiber">HighSpeed / Fiber</option>
+                                    <option value="HighSpeed / Copper">HighSpeed / Copper</option>
+                                    <option value="Optik TV (Legacy)">Optik TV (Legacy)</option>
+                                    <option value="Optik TV (Evo)">Optik TV (Evo)</option>
+                                    <option value="Pik TV">Pik TV</option>
+                                    <option value="HomePhone / Fiber">HomePhone / Fiber</option>
+                                    <option value="HomePhone / Copper">HomePhone / Copper</option>
+                                    <option value="Telus Email">Telus Email</option>
+                                    <option value="MyTelus">MyTelus</option>
+                                    <option value="TOS">TOS</option>
+                                    <option value="Telus Connect App">Telus Connect App</option>
+                                    <option value="SHS Legacy">SHS Legacy</option>
+                                    <option value="SHS ADT / Acquisition / Custom Home">SHS ADT / Acquisition / Custom Home</option>
+                                    <option value="Living Well Companion">Living Well Companion</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="issueSelect">WORKFLOW</label>
+                                <select id="issueSelect" name="issueSelect" required disabled>
+                                    <option value="">Select an issue</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="input-group">
-                            <label for="issueSelect">WORKFLOW</label>
-                            <select id="issueSelect" name="issueSelect" required disabled>
-                                <option value="">Select an issue</option>
-                            </select>
+                        <div class="input-row three-columns-layout">
+                            <div class="input-group wide-column">
+                                <label for="cxIssueText">CX ISSUE</label>
+                                <textarea id="cxIssueText" name="cxIssueText" rows="4" required autocomplete="off"></textarea>
+                            </div>
+                            <div class="input-group narrow-column">
+                                <label for="additionalinfoText">ADDITIONAL INFO</label>
+                                <textarea id="additionalinfoText" name="additionalinfoText" rows="4" autocomplete="off"></textarea>
+                            </div>
+                        </div>
+                        <div class="input-row" id="affectedTextRow" style="display: none;">
+                            <div class="input-group full-width">
+                                <label for="affectedText" id="affectedLabel">AFFECTED</label>
+                                <textarea id="affectedText" name="affectedText" autocomplete="off"></textarea>
+                            </div>
+                        </div>
+                        <div class="input-row four-columns-layout" id="physicalCheckListsContainer">
+                            <div class="input-group physical-check-item-with-label-above">
+                                <label for="physicalCheckList1Select" id="physicalCheckList1Label">ONT/GATEWAY</label>
+                                <select id="physicalCheckList1Select" name="physicalCheckList1" required>
+                                    <option value="">Select an option</option>
+                                </select>
+                            </div>
+                            <div class="input-group physical-check-item">
+                                <label for="physicalCheckList2Select" id="physicalCheckList2Label">MODEM/GATEWAY</label>
+                                <div class="checkbox-and-select-wrapper">
+                                    <input type="checkbox" id="enablePhysicalCheck2" class="physical-check-toggle">
+                                    <select id="physicalCheckList2Select" name="physicalCheckList2" disabled>
+                                        <option value="">Select an option</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="input-group physical-check-item">
+                                <label for="physicalCheckList3Select" id="physicalCheckList3Label">BOOSTER/EXTENDER</label>
+                                <div class="checkbox-and-select-wrapper">
+                                    <input type="checkbox" id="enablePhysicalCheck3" class="physical-check-toggle">
+                                    <select id="physicalCheckList3Select" name="physicalCheckList3" disabled>
+                                        <option value="">Select an option</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="input-group physical-check-item">
+                                <label for="physicalCheckList4Select" id="physicalCheckList4Label">EXTRA BOOSTER</label>
+                                <div class="checkbox-and-select-wrapper">
+                                    <input type="checkbox" id="enablePhysicalCheck4" class="physical-check-toggle">
+                                    <select id="physicalCheckList4Select" name="physicalCheckList4" disabled>
+                                        <option value="">Select an option</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="input-row three-columns-layout" id="optikTvLegacySpecificFields" style="display: none;">
+                            <div class="input-group">
+                                <label for="xVuStatusSelect" id="xVuStatusLabel">xVu STATUS</label>
+                                <select id="xVuStatusSelect" name="xVuStatus" disabled></select>
+                            </div>
+                            <div class="input-group">
+                                <label for="packetLossSelect" id="packetLossLabel">PACKET LOSS</label>
+                                <select id="packetLossSelect" name="packetLoss" disabled></select>
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group full-width">
+                                <label for="troubleshootingProcessText" class="label-with-right-aligned-counter">
+                                    <span>TROUBLESHOOTING PROCESS</span>
+                                    <span id="troubleshootingCharCount" class="char-counter">0</span>
+                                </label>
+                                <textarea id="troubleshootingProcessText" name="troubleshootingProcessText" rows="6" required autocomplete="off"></textarea>
+                            </div>
+                        </div>
+                        <div class="input-row links-row">
+                            <div class="input-group go-link-group">
+                                <p>Always use <a href="http://go/checkphysical" target="_blank" id="goCheckPhysicalLink" rel="noopener noreferrer"><strong>GO/CHECKPHYSICAL</strong></a></p>
+                            </div>
+                            <div class="input-group go-link-group">
+                                <p>Always use <a href="http://go/tscopilot" target="_blank" id="goTsCopilotLink" rel="noopener noreferrer"><strong>GO/TSCOPILOT</strong></a></p>
+                            </div>
                         </div>
                     </div>
-                    <div class="input-row three-columns-layout">
-                        <div class="input-group wide-column">
-                            <label for="cxIssueText">CX ISSUE</label>
-                            <textarea id="cxIssueText" name="cxIssueText" rows="4" required autocomplete="off"></textarea>
-                        </div>
-                        <div class="input-group narrow-column">
-                            <label for="additionalinfoText">ADDITIONAL INFO</label>
-                            <textarea id="additionalinfoText" name="additionalinfoText" rows="4" autocomplete="off"></textarea>
-                        </div>
-                    </div>
-                    <div class="input-row" id="affectedTextRow" style="display: none;">
-                        <div class="input-group full-width">
-                            <label for="affectedText" id="affectedLabel">AFFECTED</label>
-                            <textarea id="affectedText" name="affectedText" autocomplete="off"></textarea>
-                        </div>
-                    </div>
-                    <div class="input-row four-columns-layout" id="physicalCheckListsContainer">
-                        <div class="input-group physical-check-item-with-label-above">
-                            <label for="physicalCheckList1Select" id="physicalCheckList1Label">ONT/GATEWAY</label>
-                            <select id="physicalCheckList1Select" name="physicalCheckList1" required>
-                                <option value="">Select an option</option>
-                            </select>
-                        </div>
-                        <div class="input-group physical-check-item">
-                            <label for="physicalCheckList2Select" id="physicalCheckList2Label">MODEM/GATEWAY</label>
-                            <div class="checkbox-and-select-wrapper">
-                                <input type="checkbox" id="enablePhysicalCheck2" class="physical-check-toggle">
-                                <select id="physicalCheckList2Select" name="physicalCheckList2" disabled>
+                </section>
+            </div>
+            <div id="seccion3-wrapper">
+                <section id="seccion3" class="form-section">
+                    <h2 class="section-title">
+                        <span>Advanced Wifi Analytics & TVS</span>
+                        <button type="button" class="clean-section-btn" data-section-id="seccion3" title="Clear section">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l3 0l0 18l12 0l0-18l3 0"></path><path d="M1 6l22 0"></path><path d="M8 6l0-3l8 0l0 3"></path></svg>
+                        </button>
+                    </h2>
+                    <div class="section-content">
+                        <div class="input-row three-columns-layout">
+                            <div class="input-group">
+                                <label for="awaAlertsSelect">AWA ALERTS</label>
+                                <select id="awaAlertsSelect" name="awaAlerts" required>
+                                    <option value="">Select an option</option>
+                                </select>
+                            </div>
+                            <div class="input-group physical-check-item">
+                                <label for="awaAlerts2Select">AWA ALERTS 2</label>
+                                <div class="checkbox-and-select-wrapper">
+                                    <input type="checkbox" id="enableAwaAlerts2" class="physical-check-toggle">
+                                    <select id="awaAlerts2Select" name="awaAlerts2" disabled>
+                                        <option value="">Select an option</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="awaStepsSelect">AWA STEPS</label>
+                                <select id="awaStepsSelect" name="awaSteps" disabled>
                                     <option value="">Select an option</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="input-group physical-check-item">
-                            <label for="physicalCheckList3Select" id="physicalCheckList3Label">BOOSTER/EXTENDER</label>
-                            <div class="checkbox-and-select-wrapper">
-                                <input type="checkbox" id="enablePhysicalCheck3" class="physical-check-toggle">
-                                <select id="physicalCheckList3Select" name="physicalCheckList3" disabled>
+                        <div class="input-row download-upload-row four-columns-layout">
+                            <div class="input-group">
+                                <label for="downloadBeforeInput">DL BEFORE</label>
+                                <input type="text" id="downloadBeforeInput" name="downloadBefore" autocomplete="off">
+                            </div>
+                            <div class="input-group">
+                                <label for="uploadBeforeInput">UP BEFORE</label>
+                                <input type="text" id="uploadBeforeInput" name="uploadBefore" autocomplete="off">
+                            </div>
+                            <div class="input-group">
+                                <label for="downloadAfterInput">DL AFTER</label>
+                                <input type="text" id="downloadAfterInput" name="downloadAfter" autocomplete="off">
+                            </div>
+                            <div class="input-group">
+                                <label for="uploadAfterInput">UP AFTER</label>
+                                <input type="text" id="uploadAfterInput" name="uploadAfter" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="input-row three-columns-layout">
+                            <div class="input-group awa-devices-group">
+                                <label>ACTIVE/TOTAL DEVICES</label>
+                                <div class="active-total-inputs">
+                                    <input type="text" id="activeDevicesInput" name="activeDevices" placeholder="Active" autocomplete="off">
+                                    <span class="separator">/</span>
+                                    <input type="text" id="totalDevicesInput" name="totalDevices" placeholder="Total" autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="tvsSelect">TVS</label>
+                                <select id="tvsSelect" name="tvsSelect" required>
+                                    <option value="">Select an option</option>
+                                    <option value="YES">YES</option>
+                                    <option value="NO / Offered but Cx refuses">NO / Offered but Cx refuses</option>
+                                    <option value="NO / Offered but Cx don't have internet">NO / Offered but Cx don't have internet</option>
+                                    <option value="NO / Offered but Cx don't have smartphone">NO / Offered but Cx don't have smartphone</option>
+                                    <option value="NO / Offered but Cx can't open SMS / Link">NO / Offered but Cx can't open SMS / Link</option>
+                                    <option value="NO / Cx not at home">NO / Cx not at home</option>
+                                    <option value="Not needed for this interaction">Not needed for this interaction</option>
+                                </select>
+                            </div>
+                            <div class="input-group" id="tvsKeyFieldContainer" style="display: none;">
+                                <label for="tvsKeyInput">TVS KEY</label>
+                                <input type="text" id="tvsKeyInput" name="tvsKeyInput" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group full-width">
+                                <label for="extraStepsSelect">EXTRA STEPS</label>
+                                <select id="extraStepsSelect" name="extraStepsSelect">
                                     <option value="">Select an option</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="input-group physical-check-item">
-                            <label for="physicalCheckList4Select" id="physicalCheckList4Label">EXTRA BOOSTER</label>
-                            <div class="checkbox-and-select-wrapper">
-                                <input type="checkbox" id="enablePhysicalCheck4" class="physical-check-toggle">
-                                <select id="physicalCheckList4Select" name="physicalCheckList4" disabled>
+                    </div>
+                </section>
+            </div>
+            <div id="seccion4-wrapper">
+                <section id="seccion4" class="form-section">
+                    <h2 class="section-title">
+                        <span>Resolution</span>
+                        <button type="button" class="clean-section-btn" data-section-id="seccion4" title="Clear section">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l3 0l0 18l12 0l0-18l3 0"></path><path d="M1 6l22 0"></path><path d="M8 6l0-3l8 0l0 3"></path></svg>
+                        </button>
+                    </h2>
+                    <div class="section-content">
+                        <div class="input-row three-columns-layout">
+                            <div class="input-group">
+                                <label for="resolvedSelect">RESOLVED</label>
+                                <select id="resolvedSelect" name="resolvedSelect" required>
+                                    <option value="">Select an option</option>
+                                    <option value="Yes | EOC">Yes | EOC</option>
+                                    <option value="No | Tech Booked">No | Tech Booked</option>
+                                    <option value="No | Follow Up Required">No | Follow Up Required</option>
+                                    <option value="No | Follow Up Required | Set SCB with FVA">No | Follow Up Required | Set SCB with FVA</option>
+                                    <option value="No | BOSR Created">No | BOSR Created</option>
+                                    <option value="No | NC Ticket Created">No | NC Ticket Created</option>
+                                    <option value="Cx ask for a Manager | Unable to de escalate. Manager still needed | Escalate to EMT">Cx ask for a Manager | Unable to de escalate. Manager still needed | Escalate to EMT</option>
+                                    <option value="Cx need to be transfered">Cx need to be transfered</option>
+                                </select>
+                            </div>
+                            <div class="input-group physical-check-item">
+                                <label for="transferSelect">TRANSFER</label>
+                                <div class="checkbox-and-select-wrapper">
+                                    <input type="checkbox" id="transferCheckbox" class="physical-check-toggle">
+                                    <select id="transferSelect" name="transferSelect" disabled>
+                                        <option value="">Select an option</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="csrOrderInput">CSR ORDER</label>
+                                <input type="text" id="csrOrderInput" name="csrOrderInput" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="input-row three-columns-layout">
+                            <div class="input-group" id="aocFieldContainer" style="display: none;">
+                                <label for="aocInput">AOC</label>
+                                <input type="text" id="aocInput" name="aocInput" readonly autocomplete="off">
+                            </div>
+                            <div class="input-group" id="dispatchDateInputContainer" style="display: none;">
+                                <label for="dispatchDateInput" id="dispatchDateLabel">DISPATCH DATE</label>
+                                <input type="date" id="dispatchDateInput" name="dispatchDateInput" autocomplete="off">
+                            </div>
+                            <div class="input-group" id="dispatchTimeSlotSelectContainer" style="display: none;">
+                                <label for="dispatchTimeSlotSelect" id="dispatchTimeLabel">DISPATCH TIME</label>
+                                <select id="dispatchTimeSlotSelect" name="dispatchTimeSlotSelect">
                                     <option value="">Select an option</option>
                                 </select>
                             </div>
                         </div>
-                    </div>
-                    <div class="input-row three-columns-layout" id="optikTvLegacySpecificFields" style="display: none;">
-                        <div class="input-group">
-                            <label for="xVuStatusSelect" id="xVuStatusLabel">xVu STATUS</label>
-                            <select id="xVuStatusSelect" name="xVuStatus" disabled></select>
-                        </div>
-                        <div class="input-group">
-                            <label for="packetLossSelect" id="packetLossLabel">PACKET LOSS</label>
-                            <select id="packetLossSelect" name="packetLoss" disabled></select>
-                        </div>
-                    </div>
-                    <div class="input-row">
-                        <div class="input-group full-width">
-                            <label for="troubleshootingProcessText" class="label-with-right-aligned-counter">
-                                <span>TROUBLESHOOTING PROCESS</span>
-                                <span id="troubleshootingCharCount" class="char-counter">0</span>
-                            </label>
-                            <textarea id="troubleshootingProcessText" name="troubleshootingProcessText" rows="6" required autocomplete="off"></textarea>
-                        </div>
-                    </div>
-                    <div class="input-row links-row">
-                        <div class="input-group go-link-group">
-                            <p>Always use <a href="http://go/checkphysical" target="_blank" id="goCheckPhysicalLink" rel="noopener noreferrer"><strong>GO/CHECKPHYSICAL</strong></a></p>
-                        </div>
-                        <div class="input-group go-link-group">
-                            <p>Always use <a href="http://go/tscopilot" target="_blank" id="goTsCopilotLink" rel="noopener noreferrer"><strong>GO/TSCOPILOT</strong></a></p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <section id="seccion3" class="form-section">
-                <h2 class="section-title">
-                    <span>Advanced Wifi Analytics & TVS</span>
-                    <button type="button" class="clean-section-btn" data-section-id="seccion3" title="Clear section">
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l3 0l0 18l12 0l0-18l3 0"></path><path d="M1 6l22 0"></path><path d="M8 6l0-3l8 0l0 3"></path></svg>
-                    </button>
-                </h2>
-                <div class="section-content">
-                    <div class="input-row three-columns-layout">
-                        <div class="input-group">
-                            <label for="awaAlertsSelect">AWA ALERTS</label>
-                            <select id="awaAlertsSelect" name="awaAlerts" required>
-                                <option value="">Select an option</option>
-                            </select>
-                        </div>
-                        <div class="input-group physical-check-item">
-                            <label for="awaAlerts2Select">AWA ALERTS 2</label>
-                            <div class="checkbox-and-select-wrapper">
-                                <input type="checkbox" id="enableAwaAlerts2" class="physical-check-toggle">
-                                <select id="awaAlerts2Select" name="awaAlerts2" disabled>
-                                    <option value="">Select an option</option>
-                                </select>
+                        <div class="input-row two-columns-dynamic-cbr2-ticket">
+                            <div class="input-group" id="cbr2FieldContainer" style="display: none;">
+                                <label for="cbr2Input" id="cbr2Label">CBR2</label>
+                                <input type="text" id="cbr2Input" name="cbr2Input" autocomplete="off">
                             </div>
-                        </div>
-                        <div class="input-group">
-                            <label for="awaStepsSelect">AWA STEPS</label>
-                            <select id="awaStepsSelect" name="awaSteps" disabled>
-                                <option value="">Select an option</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="input-row download-upload-row four-columns-layout">
-                        <div class="input-group">
-                            <label for="downloadBeforeInput">DL BEFORE</label>
-                            <input type="text" id="downloadBeforeInput" name="downloadBefore" autocomplete="off">
-                        </div>
-                        <div class="input-group">
-                            <label for="uploadBeforeInput">UP BEFORE</label>
-                            <input type="text" id="uploadBeforeInput" name="uploadBefore" autocomplete="off">
-                        </div>
-                        <div class="input-group">
-                            <label for="downloadAfterInput">DL AFTER</label>
-                            <input type="text" id="downloadAfterInput" name="downloadAfter" autocomplete="off">
-                        </div>
-                        <div class="input-group">
-                            <label for="uploadAfterInput">UP AFTER</label>
-                            <input type="text" id="uploadAfterInput" name="uploadAfter" autocomplete="off">
-                        </div>
-                    </div>
-                    <div class="input-row three-columns-layout">
-                        <div class="input-group awa-devices-group">
-                            <label>ACTIVE/TOTAL DEVICES</label>
-                            <div class="active-total-inputs">
-                                <input type="text" id="activeDevicesInput" name="activeDevices" placeholder="Active" autocomplete="off">
-                                <span class="separator">/</span>
-                                <input type="text" id="totalDevicesInput" name="totalDevices" placeholder="Total" autocomplete="off">
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label for="tvsSelect">TVS</label>
-                            <select id="tvsSelect" name="tvsSelect" required>
-                                <option value="">Select an option</option>
-                                <option value="YES">YES</option>
-                                <option value="NO / Offered but Cx refuses">NO / Offered but Cx refuses</option>
-                                <option value="NO / Offered but Cx don't have internet">NO / Offered but Cx don't have internet</option>
-                                <option value="NO / Offered but Cx don't have smartphone">NO / Offered but Cx don't have smartphone</option>
-                                <option value="NO / Offered but Cx can't open SMS / Link">NO / Offered but Cx can't open SMS / Link</option>
-                                <option value="NO / Cx not at home">NO / Cx not at home</option>
-                                <option value="Not needed for this interaction">Not needed for this interaction</option>
-                            </select>
-                        </div>
-                        <div class="input-group" id="tvsKeyFieldContainer" style="display: none;">
-                            <label for="tvsKeyInput">TVS KEY</label>
-                            <input type="text" id="tvsKeyInput" name="tvsKeyInput" autocomplete="off">
-                        </div>
-                    </div>
-                    <div class="input-row">
-                        <div class="input-group full-width">
-                            <label for="extraStepsSelect">EXTRA STEPS</label>
-                            <select id="extraStepsSelect" name="extraStepsSelect">
-                                <option value="">Select an option</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <section id="seccion4" class="form-section">
-                <h2 class="section-title">
-                    <span>Resolution</span>
-                    <button type="button" class="clean-section-btn" data-section-id="seccion4" title="Clear section">
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l3 0l0 18l12 0l0-18l3 0"></path><path d="M1 6l22 0"></path><path d="M8 6l0-3l8 0l0 3"></path></svg>
-                    </button>
-                </h2>
-                <div class="section-content">
-                    <div class="input-row three-columns-layout">
-                        <div class="input-group">
-                            <label for="resolvedSelect">RESOLVED</label>
-                            <select id="resolvedSelect" name="resolvedSelect" required>
-                                <option value="">Select an option</option>
-                                <option value="Yes | EOC">Yes | EOC</option>
-                                <option value="No | Tech Booked">No | Tech Booked</option>
-                                <option value="No | Follow Up Required">No | Follow Up Required</option>
-                                <option value="No | Follow Up Required | Set SCB with FVA">No | Follow Up Required | Set SCB with FVA</option>
-                                <option value="No | BOSR Created">No | BOSR Created</option>
-                                <option value="No | NC Ticket Created">No | NC Ticket Created</option>
-                                <option value="Cx ask for a Manager | Unable to de escalate. Manager still needed | Escalate to EMT">Cx ask for a Manager | Unable to de escalate. Manager still needed | Escalate to EMT</option>
-                                <option value="Cx need to be transfered">Cx need to be transfered</option>
-                            </select>
-                        </div>
-                        <div class="input-group physical-check-item">
-                            <label for="transferSelect">TRANSFER</label>
-                            <div class="checkbox-and-select-wrapper">
-                                <input type="checkbox" id="transferCheckbox" class="physical-check-toggle">
-                                <select id="transferSelect" name="transferSelect" disabled>
-                                    <option value="">Select an option</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label for="csrOrderInput">CSR ORDER</label>
-                            <input type="text" id="csrOrderInput" name="csrOrderInput" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
-                        </div>
-                    </div>
-                    <div class="input-row three-columns-layout">
-                        <div class="input-group" id="aocFieldContainer" style="display: none;">
-                            <label for="aocInput">AOC</label>
-                            <input type="text" id="aocInput" name="aocInput" readonly autocomplete="off">
-                        </div>
-                        <div class="input-group" id="dispatchDateInputContainer" style="display: none;">
-                            <label for="dispatchDateInput" id="dispatchDateLabel">DISPATCH DATE</label>
-                            <input type="date" id="dispatchDateInput" name="dispatchDateInput" autocomplete="off">
-                        </div>
-                        <div class="input-group" id="dispatchTimeSlotSelectContainer" style="display: none;">
-                            <label for="dispatchTimeSlotSelect" id="dispatchTimeLabel">DISPATCH TIME</label>
-                            <select id="dispatchTimeSlotSelect" name="dispatchTimeSlotSelect">
-                                <option value="">Select an option</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="input-row two-columns-dynamic-cbr2-ticket">
-                        <div class="input-group" id="cbr2FieldContainer" style="display: none;">
-                            <label for="cbr2Input" id="cbr2Label">CBR2</label>
-                            <input type="text" id="cbr2Input" name="cbr2Input" autocomplete="off">
-                        </div>
-                        <div class="input-group flex-grow-ticket">
-                            <label for="ticketInput">TICKET</label>
-                            <div class="input-with-copy-button">
-                                <input type="text" id="ticketInput" name="ticketInput" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
-                                <button type="button" class="copy-button" data-target="ticketInput" title="Copy Ticket">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v2"/></svg>
-                                </button>
+                            <div class="input-group flex-grow-ticket">
+                                <label for="ticketInput">TICKET</label>
+                                <div class="input-with-copy-button">
+                                    <input type="text" id="ticketInput" name="ticketInput" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
+                                    <button type="button" class="copy-button" data-target="ticketInput" title="Copy Ticket">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v2"/></svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
-            </form>
+                </section>
+            </div>
+        </form>
     </div>
 
-    <!-- Welcome Modal -->
     <div id="welcomeModalOverlay" class="modal-overlay" style="display:none;">
         <div class="modal-content small-modal">
             <div class="modal-header">
@@ -762,7 +767,6 @@
         <div class="note-history-list" id="noteHistoryList">
             <p class="no-notes-message" id="noNotesMessage">No saved notes yet.</p>
         </div>
-        <!-- INICIO: Contenido Añadido para Importar/Exportar -->
         <div id="historyactionsfooter" class="history-actions-footer">
             <button type="button" id="exportBtn" class="history-footer-btn export-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -774,8 +778,7 @@
             </button>
             <input type="file" id="importFile" class="hidden-file-input" accept="application/json">
         </div>
-        <!-- FIN: Contenido Añadido para Importar/Exportar -->
-    </div>
+        </div>
     <div class="sidebar-overlay" id="history-sidebar-overlay"></div>
 
     <div id="feedback-widget">
