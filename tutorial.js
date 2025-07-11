@@ -42,7 +42,7 @@
 
         // Resalta el modal de bienvenida usando Driver.js
         driver.highlight({
-            element: '#welcomeModalOverlay .modal-content',
+            element: '#welcomeModalOverlay',
             popover: {
                 title: '¡Bienvenido!',
                 description: 'Por favor, ingresa tu nombre de agente en el campo de texto y presiona "START" o la tecla "Enter" para comenzar.',
