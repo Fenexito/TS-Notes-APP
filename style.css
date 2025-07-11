@@ -1714,3 +1714,18 @@ textarea {
 }
 /* FIN: Estilos para Importar/Exportar */
 
+
+/*
+ * ===================================================================
+ * SOLUCIÓN DEFINITIVA PARA LA INTERACCIÓN DEL MODAL EN INTRO.JS
+ * ===================================================================
+ */
+
+/*
+ * Cuando el tour está en el primer paso (el del modal),
+ * le decimos a la capa que resalta el elemento que sea
+ * completamente invisible a los clics del ratón.
+*/
+body.intro-modal-step-active .introjs-helperLayer {
+  pointer-events: none !important;
+}
