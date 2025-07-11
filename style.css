@@ -1805,3 +1805,27 @@ textarea {
 .shepherd-modal-overlay {
   background: rgba(0, 0, 0, 0.6);
 }
+
+/*
+ * ===================================================================
+ * CSS DE RESCATE PARA EL POPOVER DE SHEPHERD
+ * ===================================================================
+ */
+
+.shepherd-popover {
+  /* 1. Asegura que esté por encima de TODO, incluido el overlay oscuro */
+  z-index: 99999 !important;
+
+  /* 2. Anula cualquier estilo que lo pueda estar ocultando */
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+
+  /* 3. Diagnóstico de Posición: Lo fuerza a aparecer en el centro de la pantalla.
+     Esto ignorará la flecha y el anclaje al elemento, pero nos permitirá VERLO. */
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+}
