@@ -39,9 +39,9 @@
         const nameInput = document.getElementById('welcomeAgentNameInput');
         const startBtn = document.getElementById('startTakingNotesBtn');
 
-        // FIX: Inyecta un estilo CSS para hacer el overlay de Driver.js transparente
-        // solo durante este paso, para evitar que cubra el modal.
-        const css = `.driver-overlay { background: transparent !important; }`;
+        // FIX: Inyecta un estilo CSS para hacer el *escenario* de Driver.js transparente,
+        // que es la capa blanca que está cubriendo el modal.
+        const css = `.driver-stage-background { background: transparent !important; }`;
         const style = document.createElement('style');
         style.id = TUTORIAL_STYLE_ID;
         style.appendChild(document.createTextNode(css));
