@@ -1,136 +1,113 @@
-// Se utiliza una IIFE (Immediately Invoked Function Expression) para evitar conflictos.
+// Se utiliza una IIFE para evitar conflictos.
 (function() {
-    /**
-     * Revisa si el tutorial ya fue completado. Si no, lo inicia.
-     */
+
     function checkAndStartTutorial() {
-        if (localStorage.getItem('tutorialCompleted') === 'false') {
+        if (localStorage.getItem('tutorialCompleted') === 'true') {
             return;
         }
-        startApplicationTour();
+        // Esperamos un poco para asegurarnos de que toda la app esté lista
+        setTimeout(startApplicationTour, 500);
     }
 
-    /**
- * Función principal que inicia y controla el flujo del tour con Shepherd.js.
- */
-function startApplicationTour() {
-    const defaultButtons = {
-        secondary: { text: 'Salir', action: function() { localStorage.setItem('tutorialCompleted', 'true'); this.cancel(); } }
-    };
+    function startApplicationTour() {
+        const intro = introJs();
 
-    const tour = new Shepherd.Tour({
-        useModalOverlay: true,
-        defaultStepOptions: {
-            cancelIcon: { enabled: true },
-            classes: 'custom-shepherd-theme',
-            buttons: defaultButtons.buttons
-        }
-    });
+        intro.setOptions({
+            showProgress: true,
+            disableInteraction: true, // Bloquea la interacción excepto en el elemento resaltado
+            highlightClass: 'custom-intro-highlight', // Clase CSS personalizada si la necesitas
+            tooltipClass: 'custom-intro-tooltip', // Clase CSS personalizada
+            steps: [
+                {
+                    element: document.querySelector('#welcomeModalOverlay .modal-content'),
+                    title: '¡Bienvenido!',
+                    intro: 'Por favor, ingresa tu nombre de agente en el campo de texto y presiona "START" para comenzar.',
+                    position: 'top'
+                },
+                {
+                    element: document.querySelector('#callNoteForm'),
+                    title: 'Tu Espacio de Trabajo',
+                    intro: 'Este es el formulario principal. Para continuar, haz clic en "Account Info & Verification".'
+                },
+                {
+                    element: document.querySelector('#seccion1-wrapper'),
+                    title: 'Información de la Cuenta',
+                    intro: '¡Excelente! Aquí ingresas los datos del cliente. Ahora, haz clic en "Status, Issue and Troubleshoot Steps".'
+                },
+                {
+                    element: document.querySelector('#seccion2-wrapper'),
+                    title: 'Detalles del Problema',
+                    intro: 'Perfecto. Ahora haz clic en "Advanced Wifi Analytics & TVS".'
+                },
+                {
+                    element: document.querySelector('#seccion3-wrapper'),
+                    title: 'Análisis WiFi y TVS',
+                    intro: 'Ya casi terminamos. Haz clic en la última sección: "Resolution".'
+                },
+                {
+                    element: document.querySelector('#seccion4-wrapper'),
+                    title: 'Resolución de la Llamada',
+                    intro: '¡Has completado el tour!',
+                    position: 'top'
+                }
+            ]
+        });
 
-    // --- PASO 1: MODAL DE BIENVENIDA ---
-    tour.addStep({
-        id: 'step1-welcome',
-        /* ... tu configuración no cambia ... */
-        title: '¡Bienvenido!',
-        text: 'Por favor, ingresa tu nombre de agente...',
-        attachTo: { element: '#welcomeModalOverlay .modal-content', on: 'top' },
-        canClickTarget: true,
-        buttons: [],
-        beforeShowPromise: function() { return new Promise(function(resolve) { document.getElementById('welcomeModalOverlay').style.display = 'flex'; resolve(); }); },
-        when: { 'before-hide': () => { const nameInput = document.getElementById('welcomeAgentNameInput'); if (!nameInput || nameInput.value.trim() === '') return false; document.getElementById('welcomeModalOverlay').style.display = 'none'; }}
-    });
-    const startBtn = document.getElementById('startTakingNotesBtn'), nameInput = document.getElementById('welcomeAgentNameInput');
-    const advanceFromModal = () => { if (nameInput.value.trim() !== '') tour.next(); };
-    startBtn.addEventListener('click', advanceFromModal);
-    nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); advanceFromModal(); } });
+        // --- MANEJO DE LA INTERACCIÓN ---
 
-    // --- PASO 2: INTRODUCCIÓN AL FORMULARIO ---
-    tour.addStep({
-        id: 'step2-form-intro',
-        title: 'Tu Espacio de Trabajo',
-        text: 'Este es el formulario principal. Para continuar, haz clic en "Account Info & Verification".',
-        attachTo: { element: '#callNoteForm', on: 'top' },
-        when: {
-            show: () => {
-                document.querySelector('#seccion1 .section-title').addEventListener('click', () => {
-                    tour.currentStep.hide(); // 1. Oculta el popover actual
+        // Función para avanzar cuando se hace clic en un título de sección
+        const setupManualAdvance = (triggerSelector, nextStepIndex) => {
+            const trigger = document.querySelector(triggerSelector);
+            if (trigger) {
+                // Habilitamos la interacción solo con este botón
+                trigger.classList.add('introjs-showElement');
+                trigger.addEventListener('click', () => {
+                    // Esperamos que la animación termine antes de ir al siguiente paso
                     setTimeout(() => {
-                        tour.show('step3-section1'); // 3. Muestra el siguiente paso por ID
-                    }, 450); // 2. Espera la animación
-                }, { once: true });
-            }
-        }
-    });
-
-    // --- PASO 3: SECCIÓN 1 ---
-    tour.addStep({
-        id: 'step3-section1',
-        title: 'Información de la Cuenta',
-        text: '¡Excelente! Ahora, haz clic en "Status, Issue and Troubleshoot Steps".',
-        
-        // 👇 CAMBIO IMPORTANTE: Apunta al nuevo contenedor estático
-        attachTo: { element: '#seccion1-wrapper', on: 'bottom' },
-    
-        when: {
-            show: () => {
-                document.querySelector('#seccion2 .section-title').addEventListener('click', () => {
-                    tour.currentStep.hide();
-                    setTimeout(() => {
-                        tour.show('step4-section2'); // Apunta al ID del siguiente paso
+                        intro.goToStep(nextStepIndex);
                     }, 450);
                 }, { once: true });
             }
-        }
-    });
+        };
 
-    // --- PASO 4: SECCIÓN 2 ---
-    tour.addStep({
-        id: 'step4-section2',
-        title: 'Detalles del Problema',
-        text: 'Perfecto. Ahora haz clic en "Advanced Wifi Analytics & TVS".',
-        attachTo: { element: '#seccion2', on: 'bottom' },
-        when: {
-            show: () => {
-                document.querySelector('#seccion3 .section-title').addEventListener('click', () => {
-                    tour.currentStep.hide();
-                    setTimeout(() => {
-                        tour.show('step5-section3');
-                    }, 450);
-                }, { once: true });
+        // Escuchamos los cambios de paso para configurar el siguiente clic
+        intro.onbeforechange(function(targetElement) {
+            const currentStep = this._currentStep;
+
+            switch (currentStep) {
+                case 0: // Antes de mostrar el paso del modal de bienvenida
+                    document.getElementById('welcomeModalOverlay').style.display = 'flex';
+                    const startBtn = document.getElementById('startTakingNotesBtn');
+                    startBtn.addEventListener('click', () => {
+                        if (document.getElementById('welcomeAgentNameInput').value.trim() !== '') {
+                            document.getElementById('welcomeModalOverlay').style.display = 'none';
+                            intro.nextStep();
+                        }
+                    }, { once: true });
+                    break;
+                case 1: // En el paso 2 (formulario principal)
+                    setupManualAdvance('#seccion1 .section-title', 3); // Ve al paso 3 (índice 2)
+                    break;
+                case 2: // En el paso 3 (sección 1)
+                    setupManualAdvance('#seccion2 .section-title', 4); // Ve al paso 4 (índice 3)
+                    break;
+                case 3: // En el paso 4 (sección 2)
+                    setupManualAdvance('#seccion3 .section-title', 5); // Ve al paso 5 (índice 4)
+                    break;
+                case 4: // En el paso 5 (sección 3)
+                    setupManualAdvance('#seccion4 .section-title', 6); // Ve al paso 6 (índice 5)
+                    break;
             }
-        }
-    });
+        });
 
-    // --- PASO 5: SECCIÓN 3 ---
-    tour.addStep({
-        id: 'step5-section3',
-        title: 'Análisis WiFi y TVS',
-        text: 'Ya casi terminamos. Haz clic en la última sección: "Resolution".',
-        attachTo: { element: '#seccion3', on: 'bottom' },
-        when: {
-            show: () => {
-                document.querySelector('#seccion4 .section-title').addEventListener('click', () => {
-                    tour.currentStep.hide();
-                    setTimeout(() => {
-                        tour.show('step6-section4');
-                    }, 450);
-                }, { once: true });
-            }
-        }
-    });
+        // Al finalizar o salir del tour
+        intro.onexit(function() {
+            localStorage.setItem('tutorialCompleted', 'true');
+        });
 
-    // --- PASO 6: SECCIÓN 4 Y FINAL ---
-    tour.addStep({
-        id: 'step6-section4',
-        title: 'Resolución de la Llamada',
-        text: '¡Has completado el tour!',
-        attachTo: { element: '#seccion4', on: 'top' },
-        buttons: [{ text: 'Finalizar', action: tour.complete }]
-    });
-    
-    tour.on('complete', () => localStorage.setItem('tutorialCompleted', 'true'));
-    tour.start();
-}
+        intro.start();
+    }
+
     window.addEventListener('load', checkAndStartTutorial);
 
 })();
