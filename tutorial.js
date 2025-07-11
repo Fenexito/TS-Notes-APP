@@ -15,13 +15,7 @@
  */
 function startApplicationTour() {
     const defaultButtons = {
-        secondary: {
-            text: 'Salir',
-            action: function() {
-                localStorage.setItem('tutorialCompleted', 'true');
-                this.cancel();
-            }
-        }
+        secondary: { text: 'Salir', action: function() { localStorage.setItem('tutorialCompleted', 'true'); this.cancel(); } }
     };
 
     const tour = new Shepherd.Tour({
@@ -29,30 +23,23 @@ function startApplicationTour() {
         defaultStepOptions: {
             cancelIcon: { enabled: true },
             classes: 'custom-shepherd-theme',
-            buttons: defaultButtons,
-            // Agregamos un pequeño retraso antes de mostrar cada paso
-            // para dar tiempo a las animaciones de la UI.
-            showOn: function() {
-                return new Promise(resolve => setTimeout(resolve, 50));
-            }
+            buttons: defaultButtons
         }
     });
 
     // --- PASO 1: MODAL DE BIENVENIDA ---
+    // (Sin cambios)
     tour.addStep({
         id: 'step1-welcome',
         title: '¡Bienvenido!',
         text: 'Por favor, ingresa tu nombre de agente...',
         attachTo: { element: '#welcomeModalOverlay .modal-content', on: 'top' },
         canClickTarget: true,
-        beforeShowPromise: function() { /* ... tu código de modal ... */ },
-        when: { /* ... tu código de modal ... */ },
-        buttons: []
+        buttons: [],
+        beforeShowPromise: function() { /* ... */ },
+        when: { 'before-hide': () => { /* ... */ } }
     });
-
-    // Listeners para el modal
-    const startBtn = document.getElementById('startTakingNotesBtn');
-    const nameInput = document.getElementById('welcomeAgentNameInput');
+    const startBtn = document.getElementById('startTakingNotesBtn'), nameInput = document.getElementById('welcomeAgentNameInput');
     const advanceFromModal = () => { if (nameInput.value.trim() !== '') tour.next(); };
     startBtn.addEventListener('click', advanceFromModal);
     nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); advanceFromModal(); } });
@@ -63,17 +50,31 @@ function startApplicationTour() {
         title: 'Tu Espacio de Trabajo',
         text: 'Este es el formulario principal. Para continuar, haz clic en "Account Info & Verification".',
         attachTo: { element: '#callNoteForm', on: 'top' },
-        advanceOn: { selector: '#seccion1 .section-title', event: 'click' }
+        buttons: defaultButtons.buttons,
+        when: {
+            show: () => {
+                // Cuando se muestre este paso, escucha un clic en el siguiente disparador
+                document.querySelector('#seccion1 .section-title').addEventListener('click', () => {
+                    setTimeout(() => tour.next(), 400);
+                }, { once: true }); // { once: true } asegura que el listener se dispare solo una vez
+            }
+        }
     });
-    
+
     // --- PASO 3: SECCIÓN 1 ---
     tour.addStep({
         id: 'step3-section1',
         title: 'Información de la Cuenta',
         text: '¡Excelente! Ahora, haz clic en "Status, Issue and Troubleshoot Steps".',
-        // 👇 CAMBIO CLAVE: Anclado al título, no a la sección entera
-        attachTo: { element: '#seccion1 .section-title', on: 'bottom' },
-        advanceOn: { selector: '#seccion2 .section-title', event: 'click' }
+        attachTo: { element: '#seccion1', on: 'bottom' }, // Resalta la sección completa
+        buttons: defaultButtons.buttons,
+        when: {
+            show: () => {
+                document.querySelector('#seccion2 .section-title').addEventListener('click', () => {
+                    setTimeout(() => tour.next(), 400);
+                }, { once: true });
+            }
+        }
     });
 
     // --- PASO 4: SECCIÓN 2 ---
@@ -81,9 +82,15 @@ function startApplicationTour() {
         id: 'step4-section2',
         title: 'Detalles del Problema',
         text: 'Perfecto. Ahora haz clic en "Advanced Wifi Analytics & TVS".',
-        // 👇 CAMBIO CLAVE: Anclado al título
-        attachTo: { element: '#seccion2 .section-title', on: 'bottom' },
-        advanceOn: { selector: '#seccion3 .section-title', event: 'click' }
+        attachTo: { element: '#seccion2', on: 'bottom' }, // Resalta la sección completa
+        buttons: defaultButtons.buttons,
+        when: {
+            show: () => {
+                document.querySelector('#seccion3 .section-title').addEventListener('click', () => {
+                    setTimeout(() => tour.next(), 400);
+                }, { once: true });
+            }
+        }
     });
 
     // --- PASO 5: SECCIÓN 3 ---
@@ -91,9 +98,15 @@ function startApplicationTour() {
         id: 'step5-section3',
         title: 'Análisis WiFi y TVS',
         text: 'Ya casi terminamos. Haz clic en la última sección: "Resolution".',
-        // 👇 CAMBIO CLAVE: Anclado al título
-        attachTo: { element: '#seccion3 .section-title', on: 'bottom' },
-        advanceOn: { selector: '#seccion4 .section-title', event: 'click' }
+        attachTo: { element: '#seccion3', on: 'bottom' }, // Resalta la sección completa
+        buttons: defaultButtons.buttons,
+        when: {
+            show: () => {
+                document.querySelector('#seccion4 .section-title').addEventListener('click', () => {
+                    setTimeout(() => tour.next(), 400);
+                }, { once: true });
+            }
+        }
     });
 
     // --- PASO 6: SECCIÓN 4 Y FINAL ---
@@ -101,15 +114,13 @@ function startApplicationTour() {
         id: 'step6-section4',
         title: 'Resolución de la Llamada',
         text: '¡Has completado el tour!',
-        // 👇 CAMBIO CLAVE: Anclado al título
-        attachTo: { element: '#seccion4 .section-title', on: 'top' },
+        attachTo: { element: '#seccion4', on: 'top' }, // Resalta la sección completa
         buttons: [{ text: 'Finalizar', action: tour.complete }]
     });
     
     tour.on('complete', () => localStorage.setItem('tutorialCompleted', 'true'));
     tour.start();
 }
-
     window.addEventListener('load', checkAndStartTutorial);
 
 })();
