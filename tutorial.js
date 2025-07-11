@@ -29,45 +29,44 @@
         runStep1_WelcomeModal();
     }
 
-    /**
+     /**
      * PASO 1: Enfocado en el modal de bienvenida.
      */
     function runStep1_WelcomeModal() {
         const welcomeModal = document.getElementById('welcomeModalOverlay');
         const nameInput = document.getElementById('welcomeAgentNameInput');
         const startBtn = document.getElementById('startTakingNotesBtn');
-
+    
         // Muestra el modal de bienvenida de la aplicación
         welcomeModal.style.display = 'flex';
-
+    
         // Resalta el modal de bienvenida usando Driver.js
         driver.highlight({
+            // 👇 ESTE ES EL CAMBIO CLAVE 👇
+            // Resaltamos todo el contenedor del modal para hacerlo interactivo.
             element: '#welcomeModalOverlay',
             popover: {
                 title: '¡Bienvenido!',
                 description: 'Por favor, ingresa tu nombre de agente en el campo de texto y presiona "START" o la tecla "Enter" para comenzar.',
                 position: 'top-center',
-                // --- LA SOLUCIÓN DEFINITIVA ---
                 onHighlighted: () => {
-                    // Este código se ejecuta DESPUÉS de que Driver.js dibuja el resaltado.
-                    // Encontramos la capa blanca del escenario y la hacemos transparente.
+                    // Tu solución para hacer el fondo transparente sigue siendo necesaria
+                    // para evitar un efecto visual de "doble overlay".
                     const stage = document.querySelector('.driver-stage-background');
                     if (stage) {
                         stage.style.background = 'transparent';
                     }
                 },
                 onDeselected: () => {
-                    // Este código se ejecuta cuando pasamos al siguiente paso.
-                    // Restauramos el fondo del escenario para el resto del tour.
+                    // Restauramos el fondo para el resto del tour.
                     const stage = document.querySelector('.driver-stage-background');
                     if (stage) {
-                        // Quitar el estilo en línea lo revierte a su valor por defecto.
                         stage.style.background = '';
                     }
                 }
             }
         });
-
+    
         const moveToNextStep = () => {
             nameInput.removeEventListener('keydown', onEnter);
             startBtn.removeEventListener('click', moveToNextStep);
@@ -79,14 +78,14 @@
             
             runStep2_FormIntro();
         };
-
+    
         const onEnter = (e) => {
             if (e.key === 'Enter' && nameInput.value.trim() !== '') {
                 e.preventDefault();
                 moveToNextStep();
             }
         };
-
+    
         nameInput.addEventListener('keydown', onEnter);
         startBtn.addEventListener('click', moveToNextStep);
     }
