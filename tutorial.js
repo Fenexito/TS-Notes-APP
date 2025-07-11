@@ -2,7 +2,7 @@
 (function() {
     // Se define el objeto driver en un alcance más amplio para que sea accesible por todas las funciones del tour.
     let driver;
-    const TUTORIAL_STYLE_ID = 'driver-tutorial-fix'; // ID para nuestro estilo CSS temporal
+    const FAKE_POPOVER_ID = 'tutorial-fake-popover';
 
     /**
      * Revisa si el tutorial ya fue completado. Si no, lo inicia.
@@ -11,64 +11,42 @@
         if (localStorage.getItem('tutorialCompleted') === 'true') {
             return;
         }
-        startApplicationTour();
+        // Inicia directamente con el paso 1 manual, sin activar Driver.js aún.
+        runStep1_ManualWelcome();
     }
 
     /**
-     * Función principal que inicia y controla el flujo del tour.
+     * PASO 1 (MANUAL): Muestra el modal de bienvenida y un popover falso sin usar Driver.js.
      */
-    function startApplicationTour() {
-        driver = new Driver({
-            className: 'custom-driver-theme',
-            animate: true,
-            opacity: 0.75,
-            padding: 10,
-            allowClose: false,
-            doneBtnText: 'Finalizar',
-        });
-        
-        runStep1_WelcomeModal();
-    }
-
-    /**
-     * PASO 1: Enfocado en el modal de bienvenida.
-     */
-    function runStep1_WelcomeModal() {
-        // Elementos de la UI
+    function runStep1_ManualWelcome() {
         const welcomeModal = document.getElementById('welcomeModalOverlay');
         const nameInput = document.getElementById('welcomeAgentNameInput');
         const startBtn = document.getElementById('startTakingNotesBtn');
 
-        // FIX: Inyecta un estilo CSS para hacer el *escenario* de Driver.js transparente,
-        // que es la capa blanca que está cubriendo el modal.
-        const css = `.driver-stage-background { background: transparent !important; }`;
-        const style = document.createElement('style');
-        style.id = TUTORIAL_STYLE_ID;
-        style.appendChild(document.createTextNode(css));
-        document.head.appendChild(style);
-
-        // Muestra el modal
+        // Muestra el modal de bienvenida de la aplicación
         welcomeModal.style.display = 'flex';
 
-        // Resalta el modal de bienvenida.
-        driver.highlight({
-            element: '#welcomeModalOverlay .modal-content',
-            popover: {
-                title: '¡Bienvenido!',
-                description: 'Por favor, ingresa tu nombre de agente en el campo de texto y presiona "START" o la tecla "Enter" para comenzar.',
-                position: 'top-center',
-            }
-        });
+        // Crea y muestra un popover falso sobre el modal
+        const fakePopover = document.createElement('div');
+        fakePopover.id = FAKE_POPOVER_ID;
+        fakePopover.innerHTML = `
+            <div class="driver-popover-title">¡Bienvenido!</div>
+            <div class="driver-popover-description">Por favor, ingresa tu nombre de agente en el campo de texto y presiona "START" o la tecla "Enter" para comenzar.</div>
+        `;
+        document.body.appendChild(fakePopover);
 
         const moveToNextStep = () => {
             nameInput.removeEventListener('keydown', onEnter);
             startBtn.removeEventListener('click', moveToNextStep);
             
+            // Elimina el popover falso
+            document.getElementById(FAKE_POPOVER_ID)?.remove();
+            
             // Oculta el modal de bienvenida
             welcomeModal.style.display = 'none';
-            driver.clearHighlight();
             
-            runStep2_FormIntro();
+            // AHORA SÍ, inicia el verdadero tour de Driver.js
+            startRealDriverTour();
         };
 
         const onEnter = (e) => {
@@ -83,15 +61,26 @@
     }
 
     /**
+     * Inicializa Driver.js y comienza el tour desde el paso 2.
+     */
+    function startRealDriverTour() {
+        driver = new Driver({
+            className: 'custom-driver-theme',
+            animate: true,
+            opacity: 0.75,
+            padding: 10,
+            allowClose: false,
+            doneBtnText: 'Finalizar',
+        });
+        
+        // Comienza el tour desde la introducción al formulario.
+        runStep2_FormIntro();
+    }
+
+    /**
      * PASO 2: Introducción al formulario principal.
      */
     function runStep2_FormIntro() {
-        // FIX: Elimina el estilo CSS inyectado para restaurar el comportamiento normal del overlay.
-        const styleElement = document.getElementById(TUTORIAL_STYLE_ID);
-        if (styleElement) {
-            styleElement.remove();
-        }
-
         document.querySelectorAll('.form-section').forEach(section => {
             section.classList.add('collapsed');
         });
@@ -197,6 +186,26 @@
             driver.reset();
         }, 4000); 
     }
+
+    // Añade los estilos para el popover falso al final del CSS
+    const style = document.createElement('style');
+    style.innerHTML = `
+        #${FAKE_POPOVER_ID} {
+            position: fixed;
+            top: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: #f0f0f0;
+            border: 1px solid #007bff;
+            border-radius: 8px;
+            padding: 15px 20px;
+            z-index: 100000; /* Un z-index muy alto para estar por encima de todo */
+            max-width: 350px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+    `;
+    document.head.appendChild(style);
 
     window.addEventListener('load', checkAndStartTutorial);
 
