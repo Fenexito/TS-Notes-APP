@@ -62,19 +62,21 @@ function startApplicationTour() {
         }
     });
 
-    // En el Paso 3 del tour
+    // --- PASO 3: SECCIÓN 1 ---
     tour.addStep({
         id: 'step3-section1',
         title: 'Información de la Cuenta',
-        text: '¡Excelente! Aquí ingresas los datos del cliente...',
-        // 👇 CAMBIO CLAVE: Apunta al contenedor estático
+        text: '¡Excelente! Ahora, haz clic en "Status, Issue and Troubleshoot Steps".',
+        
+        // 👇 CAMBIO IMPORTANTE: Apunta al nuevo contenedor estático
         attachTo: { element: '#seccion1-wrapper', on: 'bottom' },
+    
         when: {
             show: () => {
                 document.querySelector('#seccion2 .section-title').addEventListener('click', () => {
                     tour.currentStep.hide();
                     setTimeout(() => {
-                        tour.show('step4-section2');
+                        tour.show('step4-section2'); // Apunta al ID del siguiente paso
                     }, 450);
                 }, { once: true });
             }
