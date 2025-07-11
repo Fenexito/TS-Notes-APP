@@ -51,10 +51,10 @@ function startApplicationTour() {
                 // --- FIN DE DIAGNÓSTICO ---
 
                 if (tour.isActive() && tour.currentStep.id === currentStepId) {
-                    console.log('✅ Condición cumplida. Avanzando en 700ms...');
+                    console.log('✅ Condición cumplida. Avanzando en 400ms...');
                     setTimeout(() => {
                         tour.next();
-                    }, 700);
+                    }, 400);
                 } else {
                     console.error('❌ Condición NO cumplida. El tour no avanzará.');
                 }
