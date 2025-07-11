@@ -1723,7 +1723,7 @@ textarea {
 
 /* -- Contenedor Principal del Popover -- */
 .shepherd-element {
-  background: #333;
+  background: #c8c8c8;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
   max-width: 400px;
@@ -1731,9 +1731,10 @@ textarea {
 
 /* -- Encabezado -- */
 .shepherd-header {
-  background: #444;
-  padding: 1rem 1.5rem;
-  border-radius: 12px 12px 0 0;
+  background: #9C35E2;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  border-radius: 10px 10px 0 0;
 }
 
 /* -- Título del paso -- */
@@ -1745,7 +1746,7 @@ textarea {
 
 /* -- Botón para cerrar (la 'X') -- */
 .shepherd-cancel-icon {
-  color: #dcdcdc;
+  color: #hsl(0deg 0% 100% / 100%);
   font-size: 1.5em;
 }
 .shepherd-cancel-icon:hover {
@@ -1754,8 +1755,11 @@ textarea {
 
 /* -- Contenido -- */
 .shepherd-text {
-  color: #dcdcdc;
-  padding: 1.5rem;
+  color: #2a2a2a;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  padding-right: 15px;
+  padding-left: 15px;
   font-size: 0.95em;
   line-height: 1.5;
 }
