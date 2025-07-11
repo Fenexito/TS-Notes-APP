@@ -4,7 +4,7 @@
      * Revisa si el tutorial ya fue completado. Si no, lo inicia.
      */
     function checkAndStartTutorial() {
-        if (localStorage.getItem('tutorialCompleted') === 'true') {
+        if (localStorage.getItem('tutorialCompleted') === 'false') {
             return;
         }
         startApplicationTour();
@@ -20,7 +20,7 @@
                 text: 'Salir',
                 action: function() {
                     // Al salir, marcamos el tutorial como completado para no volver a mostrarlo.
-                    localStorage.setItem('tutorialCompleted', 'true');
+                    localStorage.setItem('tutorialCompleted', 'false');
                     this.cancel();
                 }
             }
@@ -157,7 +157,7 @@
         
         // Cuando el tour se complete satisfactoriamente
         tour.on('complete', () => {
-            localStorage.setItem('tutorialCompleted', 'true');
+            localStorage.setItem('tutorialCompleted', 'false');
         });
 
         tour.start();
