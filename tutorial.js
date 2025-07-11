@@ -41,14 +41,14 @@
         highlightClass: 'custom-intro-highlight',
         tooltipClass: 'custom-intro-tooltip',
         steps: [
-            // 👇 PASO 1 (NUEVO): Resalta el encabezado principal.
+            // --- PASO 1 (MODIFICADO): Solo informativo ---
             {
                 element: document.querySelector('.sticky-header-container'),
                 title: 'Encabezado Principal',
-                intro: 'Esta es la barra de acciones principal. Aquí encuentras los botones para ver, guardar y reiniciar tu nota. Para continuar, haz clic en el botón "SEE".',
+                intro: 'Esta es la barra de acciones principal. Aquí encuentras los botones para ver, guardar y reiniciar tu nota.',
                 position: 'bottom'
             },
-            // Los pasos anteriores ahora se recorren una posición.
+            // --- PASOS 2 a 5: Secciones del formulario (sin cambios en su definición) ---
             {
                 element: document.querySelector('#callNoteForm'),
                 title: 'Tu Espacio de Trabajo',
@@ -69,11 +69,19 @@
                 title: 'Análisis WiFi y TVS',
                 intro: 'Ya casi terminamos. Haz clic en la última sección: "Resolution".'
             },
+            // --- PASO 6 (MODIFICADO): Ahora lleva al botón SEE ---
             {
                 element: document.querySelector('#seccion4-wrapper'),
                 title: 'Resolución de la Llamada',
-                intro: '¡Has completado el tour!',
+                intro: 'Finalmente, documenta aquí el resultado de la llamada. Presiona "Siguiente" para continuar.',
                 position: 'top'
+            },
+            // --- PASO 7 (NUEVO): Pide hacer clic en el botón SEE ---
+            {
+                element: document.querySelector('#btnSee'),
+                title: 'Ver Nota Final',
+                intro: 'Ahora, haz clic en el botón "SEE" para generar la nota completa con toda la información que has ingresado. Esto finalizará el tour.',
+                position: 'bottom'
             }
         ]
     });
@@ -92,18 +100,10 @@
     };
 
     intro.onbeforechange(function(targetElement) {
-        // Los índices de los pasos ahora reflejan la nueva lista
         const currentStepIndex = this._currentStep;
 
         switch (currentStepIndex) {
-            case 0: // Cuando se muestra el nuevo Paso 1 (encabezado)
-                const seeBtn = document.querySelector('#btnSee');
-                seeBtn.classList.add('introjs-showElement'); // Hace el botón "SEE" interactivo
-                seeBtn.addEventListener('click', () => {
-                    // No necesita retraso porque no hay animación
-                    intro.nextStep();
-                }, { once: true });
-                break;
+            // El caso 0 (header) ya no necesita lógica aquí, usará el botón "Siguiente" por defecto.
             case 1: // En el paso del formulario principal
                 setupManualAdvance('#seccion1 .section-title', 3); // Ve al paso con índice 2
                 break;
@@ -115,6 +115,15 @@
                 break;
             case 4: // En el paso de la sección 3
                 setupManualAdvance('#seccion4 .section-title', 6); // Ve al paso con índice 5
+                break;
+            // El caso 5 (sección 4) usará el botón "Siguiente" por defecto.
+            case 6: // En el nuevo paso 7 (botón SEE)
+                const seeBtn = document.querySelector('#btnSee');
+                seeBtn.classList.add('introjs-showElement'); // Hace el botón "SEE" interactivo
+                seeBtn.addEventListener('click', () => {
+                    // Al hacer clic, se finaliza el tour.
+                    intro.exit();
+                }, { once: true });
                 break;
         }
     });
