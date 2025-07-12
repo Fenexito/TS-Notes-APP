@@ -50,22 +50,22 @@
             text: 'Finalmente, documenta aquí el resultado de la llamada. Presiona "Siguiente" para continuar.',
             action: () => collapseAllSections()
         },
-        { // 6
+        { // 6: CAMBIADO - Ahora tiene un botón "Siguiente"
             element: '#btnSee',
             title: 'Ver Nota Final',
-            text: 'Ahora, haz clic en el botón "SEE" para generar la nota completa. Esto abrirá un nuevo modal y continuará el tutorial.',
-            isManualAction: true
+            text: 'Al presionar "Siguiente", se generará la nota completa y se mostrará en un nuevo modal.',
+            action: () => document.querySelector('#btnSee').click()
         },
         { // 7
             element: '#noteModalOverlay .modal-content',
             title: 'Nota Final Generada',
             text: 'Esta es la nota completa. Al presionar "Siguiente", te pediremos que dividas la nota.'
         },
-        { // 8
+        { // 8: CAMBIADO - Ahora tiene un botón "Siguiente"
             element: '#modalSeparateBtn',
             title: 'Dividir Nota',
-            text: 'Ahora, haz clic en el botón "SPLIT" para ver la nota dividida en secciones.',
-            isManualAction: true
+            text: 'Al presionar "Siguiente", se dividirá la nota y se mostrará en un nuevo modal.',
+            action: () => document.querySelector('#modalSeparateBtn').click()
         },
         { // 9
             element: '#separateNoteModalOverlay .modal-content',
