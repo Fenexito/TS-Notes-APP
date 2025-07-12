@@ -8,7 +8,7 @@
     const popoverText = document.getElementById('tutorial-popover-text');
     const prevBtn = document.getElementById('tutorial-prev-btn');
     const nextBtn = document.getElementById('tutorial-next-btn');
-    const doneBtn = document.getElementById('tutorial-done-btn'); // Botón añadido
+    const doneBtn = document.getElementById('tutorial-done-btn');
     
     let currentStep = 0;
     let highlightedElement = null;
@@ -84,28 +84,29 @@
             highlightedElement.classList.remove('tutorial-highlight');
         }
 
+        // Lógica de visibilidad corregida:
+        // 1. Hacemos el popover medible pero invisible.
+        popover.style.visibility = 'hidden';
+        popover.classList.remove('active');
+
+        // 2. Actualizamos el contenido
         popoverTitle.textContent = step.title;
         popoverText.textContent = step.text;
         
-        // Lógica de visibilidad corregida:
-        // 1. Hacemos el popover medible pero transparente.
-        popover.style.visibility = 'visible';
-        popover.style.opacity = '0';
-        
-        // 2. Ahora que es medible, lo posicionamos correctamente.
-        positionPopover(targetElement);
-
-        // 3. Finalmente, lo hacemos visible con una transición.
-        popover.classList.add('active');
-
+        // 3. Forzamos al navegador a calcular el layout antes de posicionar
+        requestAnimationFrame(() => {
+            positionPopover(targetElement);
+            // 4. Finalmente, lo hacemos visible con una transición.
+            popover.style.visibility = 'visible';
+            popover.classList.add('active');
+        });
 
         targetElement.classList.add('tutorial-highlight');
         highlightedElement = targetElement;
         
-        // Lógica de botones corregida
         prevBtn.classList.toggle('hidden', stepIndex === 0);
         nextBtn.classList.toggle('hidden', step.isManualAction || stepIndex === steps.length - 1);
-        doneBtn.classList.toggle('hidden', stepIndex !== steps.length - 1); // Muestra el botón 'Done' solo en el último paso
+        doneBtn.classList.toggle('hidden', stepIndex !== steps.length - 1);
 
         if (step.isManualAction) {
             prepareManualAction(targetElement);
@@ -115,12 +116,11 @@
     function endTour() {
         overlay.classList.add('hidden');
         popover.classList.remove('active');
-        // Ocultamos el popover después de la transición
         setTimeout(() => {
             if (!popover.classList.contains('active')) {
                  popover.style.visibility = 'hidden';
             }
-        }, 300); // Debe coincidir con la duración de la transición en el CSS
+        }, 300);
 
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
@@ -132,7 +132,8 @@
 
     function positionPopover(targetElement) {
         const targetRect = targetElement.getBoundingClientRect();
-        const popoverRect = popover.getBoundingClientRect(); // Ahora esto funciona porque el popover es medible
+        // El popover ya es medible gracias a la lógica en showStep
+        const popoverRect = popover.getBoundingClientRect();
         let top = targetRect.bottom + 15;
         let left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2);
         if (left < 10) left = 10;
@@ -195,7 +196,6 @@
         showStep(currentStep);
     });
     
-    // El botón 'Done' ahora solo finaliza el tour.
     doneBtn.addEventListener('click', endTour);
 
     // --- Lógica de Inicio ---
