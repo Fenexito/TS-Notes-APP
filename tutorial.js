@@ -17,6 +17,7 @@
             element: '#seccion1-wrapper',
             title: 'Información de la Cuenta',
             text: '¡Excelente! La primera sección se ha expandido. Al presionar "Siguiente", continuaremos con la próxima.',
+            action: () => colapseSection('#seccion1 .section-title', '#seccion1')
             action: () => expandSection('#seccion2 .section-title', '#seccion2')
         },
         {
