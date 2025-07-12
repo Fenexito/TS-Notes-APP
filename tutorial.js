@@ -13,49 +13,44 @@
     let highlightedElement = null;
 
     // --- Definición de los Pasos del Tutorial ---
+    // NOTA: El paso del modal ya no está aquí. El tour empieza en el encabezado.
     const steps = [
-        { // 0: Modal de Bienvenida
-            element: '#welcomeModalOverlay .modal-content',
-            title: '¡Bienvenido a APad!',
-            text: 'Para comenzar, por favor ingresa tu nombre de agente en el campo de texto y presiona "START".',
-            isManualAction: true
-        },
-        { // 1: Encabezado
+        { // 0: Encabezado
             element: '.sticky-header-container',
             title: 'Encabezado Principal',
             text: 'Esta es la barra de acciones principal. Aquí encuentras los botones para ver, guardar y reiniciar tu nota.'
         },
-        { // 2: Formulario
+        { // 1: Formulario
             element: '#callNoteForm',
             title: 'Formulario de Notas',
             text: 'Este es el formulario principal. Al presionar "Siguiente", la primera sección se expandirá automáticamente.',
             onNext: () => expandSection('#seccion1')
         },
-        { // 3: Sección 1
+        { // 2: Sección 1
             element: '#seccion1-wrapper',
             title: 'Información de la Cuenta',
             text: '¡Excelente! Al presionar "Siguiente", esta sección se colapsará y continuaremos con la próxima.',
             onNext: () => switchSection('#seccion1', '#seccion2')
         },
-        { // 4: Sección 2
+        { // 3: Sección 2
             element: '#seccion2-wrapper',
             title: 'Detalles del Problema',
             text: 'Ahora se ha expandido la sección de "Detalles del Problema".',
             onNext: () => switchSection('#seccion2', '#seccion3')
         },
-        { // 5: Sección 3
+        { // 4: Sección 3
             element: '#seccion3-wrapper',
             title: 'Análisis WiFi y TVS',
             text: 'Esta es la sección de "Análisis WiFi y TVS".',
             onNext: () => switchSection('#seccion3', '#seccion4')
         },
-        { // 6: Sección 4
+        { // 5: Sección 4
             element: '#seccion4-wrapper',
             title: 'Resolución de la Llamada',
             text: 'Finalmente, documenta aquí el resultado de la llamada. Presiona "Siguiente" para continuar.',
             onNext: () => collapseAllSections()
         },
-        { // 7: Botón SEE
+        { // 6: Botón SEE
             element: '#btnSee',
             title: 'Ver Nota Final',
             text: 'Ahora, haz clic en el botón "SEE" para generar la nota completa. Esto abrirá un nuevo modal y finalizará el tour.',
@@ -66,7 +61,6 @@
     // --- Funciones Principales del Tour ---
 
     function startTour() {
-        document.getElementById('welcomeModalOverlay').style.display = 'flex';
         currentStep = 0;
         showStep(currentStep);
     }
@@ -103,7 +97,7 @@
         doneBtn.classList.toggle('hidden', true);
 
         if (step.isManualAction) {
-            prepareManualAction(targetElement, stepIndex);
+            prepareManualAction(targetElement);
         }
     }
 
@@ -162,24 +156,8 @@
         document.querySelectorAll('.form-section').forEach(sec => sec.classList.add('collapsed'));
     }
 
-    function prepareManualAction(targetElement, stepIndex) {
-        if (stepIndex === 0) { // Lógica para el modal de bienvenida
-            const startBtn = document.getElementById('startTakingNotesBtn');
-            const nameInput = document.getElementById('welcomeAgentNameInput');
-            const startHandler = () => {
-                if (nameInput.value.trim() !== '') {
-                    document.getElementById('welcomeModalOverlay').style.display = 'none';
-                    currentStep++;
-                    showStep(currentStep);
-                }
-            };
-            startBtn.addEventListener('click', startHandler, { once: true });
-            nameInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') { e.preventDefault(); startBtn.click(); }
-            }, { once: true });
-        } else if (stepIndex === 7) { // Lógica para el botón SEE
-            targetElement.addEventListener('click', endTour, { once: true });
-        }
+    function prepareManualAction(targetElement) {
+        targetElement.addEventListener('click', endTour, { once: true });
     }
 
     // --- Event Listeners ---
@@ -195,19 +173,38 @@
     });
 
     prevBtn.addEventListener('click', () => {
-        // Aquí se podría añadir lógica para revertir las acciones si es necesario
         currentStep--;
         showStep(currentStep);
     });
 
     // --- Lógica de Inicio ---
-    function checkAndStartTutorial() {
+    function checkAndShowWelcomeModal() {
         if (localStorage.getItem('tutorialCompleted') === 'true') {
             return;
         }
-        startTour();
+        const welcomeModal = document.getElementById('welcomeModalOverlay');
+        const startBtn = document.getElementById('startTakingNotesBtn');
+        const nameInput = document.getElementById('welcomeAgentNameInput');
+        
+        // Muestra el modal de bienvenida SIN el tour activo
+        welcomeModal.style.display = 'flex';
+        
+        const startHandler = () => {
+            if (nameInput.value.trim() !== '') {
+                welcomeModal.style.display = 'none';
+                // El tour comienza DESPUÉS de interactuar con el modal
+                startTour(); 
+            }
+        };
+        startBtn.addEventListener('click', startHandler);
+        nameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && nameInput.value.trim() !== '') {
+                e.preventDefault();
+                startHandler();
+            }
+        });
     }
 
-    window.addEventListener('load', checkAndStartTutorial);
+    window.addEventListener('load', checkAndShowWelcomeModal);
 
 })();
