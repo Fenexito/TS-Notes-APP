@@ -53,13 +53,81 @@
         { // PASO 7
             element: '#callNoteForm',
             title: 'Vista Expandida',
-            text: 'Todas las secciones están ahora visibles. Presiona "Siguiente" para continuar y generar la nota final.'
+            text: 'Todas las secciones están ahora visibles. Presiona "Siguiente" para continuar y generar la nota final.',
+            position: 'left-center' // Posición especial
         },
         { // PASO 8
             element: '#btnSee',
             title: 'Ver Nota Final',
-            text: 'Ahora, haz clic en el botón "SEE" para generar la nota completa. Esto abrirá un nuevo modal y finalizará el tour.',
+            text: 'Ahora, haz clic en el botón "SEE" para generar la nota completa. Esto abrirá un nuevo modal.',
             isManualAction: true
+        },
+        { // PASO 9
+            element: '#noteModalOverlay .modal-content',
+            title: 'Nota Final Generada',
+            text: 'Esta es la nota completa. Presiona "Siguiente" para continuar.'
+        },
+        { // PASO 10
+            element: '#modalSeparateBtn',
+            title: 'Dividir Nota',
+            text: 'Ahora, haz clic en el botón "SPLIT" para ver la nota dividida en secciones.',
+            isManualAction: true
+        },
+        { // PASO 11
+            element: '#separateNoteModalOverlay .modal-content',
+            title: 'Nota Dividida',
+            text: 'Perfecto. Ahora haz clic en el botón "COPY AND SAVE" para simular que guardas la nota y ver el historial.',
+            isManualAction: true
+        },
+        { // PASO 12
+            element: '#historySidebar',
+            title: 'Panel de Historial',
+            text: '¡Bien! La nota se "guardó" y el panel de historial se abrió. Aquí puedes ver todas tus notas anteriores.'
+        },
+        { // PASO 13
+            element: '#historySearchInput',
+            title: 'Barra de Búsqueda',
+            text: 'Puedes usar esta barra para buscar rápidamente entre tus notas guardadas.'
+        },
+        { // PASO 14
+            element: '.note-history-list .note-item:first-child',
+            title: 'Nota Guardada',
+            text: 'Así se ve una nota en el historial. Cada nota guardada aparecerá aquí.'
+        },
+        { // PASO 15
+            element: '#historyactionsfooter',
+            title: 'Importar y Exportar',
+            text: 'Desde aquí puedes exportar todas tus notas a un archivo o importar notas desde otro dispositivo.'
+        },
+        { // PASO 16
+            element: '#closeHistoryBtn',
+            title: 'Cerrar Historial',
+            text: 'Haz clic en el botón de cerrar para continuar.',
+            isManualAction: true
+        },
+        { // PASO 17
+            element: '#btnChecklistMenu',
+            title: 'Menú de Checklist',
+            text: 'Este botón abre un menú con checklists útiles para tus llamadas. Haz clic en él para abrirlo.',
+            isManualAction: true
+        },
+        { // PASO 18
+            element: '#checklistSidebar',
+            title: 'Checklist',
+            text: 'Este es el menú de checklist. Haz clic en el botón de cerrar para continuar.',
+            isManualAction: true,
+            manualActionTarget: '#closeChecklistBtn'
+        },
+        { // PASO 19
+            element: '#feedback-btn',
+            title: 'Enviar Comentarios',
+            text: 'Si tienes alguna idea o encuentras un problema, puedes enviarnos tus comentarios desde aquí.'
+        },
+        { // PASO 20
+            element: 'body',
+            title: '¡Todo Listo!',
+            text: 'Has completado el tour y estás listo para empezar a tomar notas. ¡Éxito!',
+            position: 'center'
         }
     ];
 
@@ -80,8 +148,12 @@
         const targetElement = document.querySelector(step.element);
 
         if (!targetElement) {
-            console.error(`Elemento del tutorial no encontrado: ${step.element}`);
-            return endTour();
+            setTimeout(() => {
+                const elementAfterWait = document.querySelector(step.element);
+                if (elementAfterWait) showStep(stepIndex);
+                else { console.error(`Elemento no encontrado: ${step.element}`); endTour(); }
+            }, 300);
+            return;
         }
         
         if (highlightedElement) {
@@ -90,14 +162,13 @@
         
         popoverTitle.textContent = step.title;
         popoverText.textContent = step.text;
-
         overlay.classList.remove('hidden');
-        popover.classList.remove('hidden');
-
+        
         targetElement.classList.add('tutorial-highlight');
         highlightedElement = targetElement;
         
-        positionPopover(targetElement);
+        positionPopover(targetElement, step.position);
+        popover.classList.add('active');
 
         const isLastStep = stepIndex === steps.length - 1;
         prevBtn.classList.toggle('hidden', stepIndex === 0);
@@ -105,13 +176,13 @@
         doneBtn.classList.toggle('hidden', !isLastStep);
 
         if (step.isManualAction) {
-            prepareManualAction(targetElement);
+            prepareManualAction(targetElement, step.manualActionTarget);
         }
     }
 
     function endTour() {
         overlay.classList.add('hidden');
-        popover.classList.add('hidden');
+        popover.classList.remove('active');
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
         }
@@ -120,17 +191,30 @@
 
     // --- Funciones de Ayuda ---
 
-    function positionPopover(targetElement) {
+    function positionPopover(targetElement, position = 'bottom-center') {
         const targetRect = targetElement.getBoundingClientRect();
         const popoverRect = popover.getBoundingClientRect();
-        let top = targetRect.bottom + 10;
-        let left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2);
+        let top, left;
+
+        switch (position) {
+            case 'left-center':
+                top = targetRect.top + (targetRect.height / 2) - (popoverRect.height / 2);
+                left = targetRect.left - popoverRect.width - 15;
+                break;
+            case 'center':
+                top = window.innerHeight / 2 - popoverRect.height / 2;
+                left = window.innerWidth / 2 - popoverRect.width / 2;
+                break;
+            default: // bottom-center
+                top = targetRect.bottom + 15;
+                left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2);
+                break;
+        }
 
         if (left < 10) left = 10;
-        if ((left + popoverRect.width) > window.innerWidth) left = window.innerWidth - popoverRect.width - 20;
-        if (top + popoverRect.height > window.innerHeight) {
-            top = targetRect.top - popoverRect.height - 10;
-        }
+        if ((left + popoverRect.width) > window.innerWidth) left = window.innerWidth - popoverRect.width - 10;
+        if (top < 10) top = 10;
+        if ((top + popoverRect.height) > window.innerHeight) top = window.innerHeight - popoverRect.height - 10;
         
         popover.style.top = `${top}px`;
         popover.style.left = `${left}px`;
@@ -138,11 +222,7 @@
     
     function waitForTransition(element, timeout = 500) {
         return new Promise(resolve => {
-            const onEnd = () => {
-                element.removeEventListener('transitionend', onEnd);
-                clearTimeout(timer);
-                resolve();
-            };
+            const onEnd = () => { element.removeEventListener('transitionend', onEnd); clearTimeout(timer); resolve(); };
             const timer = setTimeout(onEnd, timeout);
             element.addEventListener('transitionend', onEnd, { once: true });
         });
@@ -159,7 +239,6 @@
     async function switchSection(sectionToCollapseSelector, sectionToExpandSelector) {
         const collapseSection = document.querySelector(sectionToCollapseSelector);
         const expandSection = document.querySelector(sectionToExpandSelector);
-        
         if (collapseSection && !collapseSection.classList.contains('collapsed')) {
             collapseSection.querySelector('.section-title')?.click();
             await waitForTransition(collapseSection);
@@ -172,20 +251,31 @@
 
     async function expandAllSections() {
         const sections = document.querySelectorAll('.form-section.collapsed');
-        for (const section of sections) {
-            section.querySelector('.section-title')?.click();
-        }
-        if (sections.length > 0) {
-            // Esperamos solo la última animación para ser eficientes
-            await waitForTransition(sections[sections.length - 1]);
-        }
+        for (const section of sections) { section.querySelector('.section-title')?.click(); }
+        if (sections.length > 0) await waitForTransition(sections[sections.length - 1]);
+    }
+    
+    async function collapseAllSections() {
+        const sections = document.querySelectorAll('.form-section:not(.collapsed)');
+        for (const section of sections) { section.querySelector('.section-title')?.click(); }
+        if (sections.length > 0) await waitForTransition(sections[sections.length - 1]);
     }
 
-    function prepareManualAction(targetElement) {
-        targetElement.addEventListener('click', () => {
-            // La lógica de la app se encarga de abrir el modal.
-            // El tour simplemente termina.
-            endTour();
+    function prepareManualAction(targetElement, manualActionTargetSelector) {
+        const actionElement = manualActionTargetSelector ? document.querySelector(manualActionTargetSelector) : targetElement;
+        
+        actionElement.addEventListener('click', async () => {
+            // Lógica especial para el botón "COPY AND SAVE"
+            if (targetElement.id === 'separateModalCopySaveBtn') {
+                document.getElementById('separateNoteModalOverlay').style.display = 'none';
+                document.getElementById('noteModalOverlay').style.display = 'none';
+                document.getElementById('btnHistory').click();
+            }
+            
+            setTimeout(() => {
+                currentStep++;
+                showStep(currentStep);
+            }, 300);
         }, { once: true });
     }
 
@@ -201,21 +291,46 @@
         showStep(currentStep);
     });
 
-    prevBtn.addEventListener('click', () => {
-        currentStep--;
-        showStep(currentStep);
-    });
-
-    doneBtn.addEventListener('click', () => {
-        // El botón Done ahora simplemente finaliza el tour.
-        endTour();
-    });
+    prevBtn.addEventListener('click', () => { currentStep--; showStep(currentStep); });
+    doneBtn.addEventListener('click', endTour);
 
     // --- Lógica de Inicio (Estable y Correcta) ---
+    function createSampleNoteIfNeeded() {
+        // Esta función asume que tu app ya maneja la creación de la DB.
+        // Solo intenta leer para ver si está vacía.
+        try {
+            const dbName = 'noteAppDB';
+            const request = indexedDB.open(dbName);
+            request.onsuccess = function(event) {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains('notes')) {
+                    db.close(); return;
+                }
+                const transaction = db.transaction(['notes'], 'readonly');
+                const objectStore = transaction.objectStore('notes');
+                const countRequest = objectStore.count();
+                countRequest.onsuccess = function() {
+                    if (countRequest.result === 0) {
+                        const addTransaction = db.transaction(['notes'], 'readwrite');
+                        const addObjectStore = addTransaction.objectStore('notes');
+                        const sampleNote = {
+                            id: `sample-${Date.now()}`,
+                            ban: '123456789', cid: '987654321', name: 'John Doe (Sample)', cbr: '1122334455',
+                            timestamp: new Date().toISOString(),
+                            note: 'Esta es una nota de ejemplo para el tutorial.', formData: {}
+                        };
+                        addObjectStore.add(sampleNote);
+                    }
+                };
+                db.close();
+            };
+        } catch (e) { console.error("No se pudo verificar/crear la nota de ejemplo:", e); }
+    }
+
     function checkAndShowWelcomeModal() {
-        if (localStorage.getItem('tutorialCompleted') === 'true') {
-            return;
-        }
+        if (localStorage.getItem('tutorialCompleted') === 'true') return;
+        
+        createSampleNoteIfNeeded();
         const welcomeModal = document.getElementById('welcomeModalOverlay');
         const startBtn = document.getElementById('startTakingNotesBtn');
         const nameInput = document.getElementById('welcomeAgentNameInput');
