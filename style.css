@@ -1730,7 +1730,7 @@ textarea {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgb(255 255 255 / 5%);
     z-index: 10000;
 }
 
@@ -1745,8 +1745,8 @@ textarea {
 /* El popover o cuadro de diálogo del tutorial */
 #custom-tutorial-popover {
     position: absolute; /* Se posicionará con JavaScript */
-    background: #333;
-    color: white;
+    background: #ffffff;
+    color: #000000;
     padding: 15px;
     border-radius: 8px;
     z-index: 10002;
@@ -1774,7 +1774,7 @@ textarea {
 }
 
 .tutorial-popover-actions button {
-    background: #5c67f2;
+    background: #6b2ee1;
     color: white;
     border: none;
     padding: 8px 15px;
@@ -1783,5 +1783,5 @@ textarea {
 }
 
 .tutorial-popover-actions button:hover {
-    background: #4a54c9;
+    background: #30007a;
 }
