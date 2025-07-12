@@ -55,6 +55,8 @@
     // --- Funciones Principales del Tour ---
 
     function startTour() {
+        // Asegurarse de que todas las secciones estén colapsadas al inicio del tour
+        document.querySelectorAll('.form-section').forEach(sec => sec.classList.add('collapsed'));
         currentStep = 0;
         showStep(currentStep);
     }
@@ -72,40 +74,35 @@
             return endTour();
         }
         
-        // Preparar el popover (oculto)
-        popover.classList.remove('active');
-        overlay.classList.remove('hidden');
-
         // Limpiar resaltado anterior
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
         }
-
-        // Actualizar contenido
+        
+        // Actualizar contenido del popover
         popoverTitle.textContent = step.title;
         popoverText.textContent = step.text;
+
+        // Mostrar overlay y popover - LÓGICA CLAVE RESTAURADA
+        overlay.classList.remove('hidden');
+        popover.classList.remove('hidden'); // <-- ESTO EVITA QUE EL POPOVER SEA INVISIBLE
 
         // Resaltar el nuevo elemento
         targetElement.classList.add('tutorial-highlight');
         highlightedElement = targetElement;
         
-        // Posicionar y luego mostrar (LÓGICA CORREGIDA Y ROBUSTA)
-        // Usamos un pequeño timeout para asegurar que el navegador haya renderizado el contenido
-        // antes de que intentemos medir y posicionar el popover.
-        setTimeout(() => {
-            positionPopover(targetElement);
-            popover.classList.add('active');
-        }, 50); // 50ms es suficiente para que el navegador se ponga al día.
+        // Posicionar el popover
+        positionPopover(targetElement);
 
         // Configurar botones
         prevBtn.classList.toggle('hidden', stepIndex === 0);
-        nextBtn.classList.toggle('hidden', step.isLastStep || stepIndex === steps.length - 1);
+        nextBtn.classList.toggle('hidden', step.isLastStep);
         doneBtn.classList.toggle('hidden', !step.isLastStep);
     }
 
     function endTour() {
         overlay.classList.add('hidden');
-        popover.classList.remove('active');
+        popover.classList.add('hidden');
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
         }
@@ -117,12 +114,14 @@
     function positionPopover(targetElement) {
         const targetRect = targetElement.getBoundingClientRect();
         const popoverRect = popover.getBoundingClientRect();
-        let top = targetRect.bottom + 15;
+        let top = targetRect.bottom + 10;
         let left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2);
 
         if (left < 10) left = 10;
-        if ((left + popoverRect.width) > window.innerWidth) left = window.innerWidth - popoverRect.width - 10;
-        if ((top + popoverRect.height) > window.innerHeight) top = targetRect.top - popoverRect.height - 15;
+        if ((left + popoverRect.width) > window.innerWidth) left = window.innerWidth - popoverRect.width - 20;
+        if (top + popoverRect.height > window.innerHeight) {
+            top = targetRect.top - popoverRect.height - 10;
+        }
         
         popover.style.top = `${top}px`;
         popover.style.left = `${left}px`;
@@ -136,7 +135,7 @@
                 resolve();
             };
             const timer = setTimeout(onEnd, timeout);
-            element.addEventListener('transitionend', onEnd);
+            element.addEventListener('transitionend', onEnd, { once: true });
         });
     }
 
@@ -159,7 +158,6 @@
             sectionToExpand.classList.remove('collapsed');
         }
         
-        // Esperamos a que la animación de colapsar termine, que suele ser suficiente.
         if (sectionToCollapse) {
             await waitForTransition(sectionToCollapse);
         }
