@@ -24,37 +24,31 @@
             element: '#callNoteForm',
             title: 'Tu Espacio de Trabajo',
             text: 'Este es el formulario principal. Al presionar "Siguiente", la primera sección se expandirá automáticamente.',
-            onNext: () => expandSection('#seccion1')
+            action: () => expandSection('#seccion1')
         },
         { // 2: Sección 1
             element: '#seccion1-wrapper',
             title: 'Información de la Cuenta',
             text: '¡Excelente! Al presionar "Siguiente", esta sección se colapsará y continuaremos con la próxima.',
-            onNext: () => switchSection('#seccion1', '#seccion2')
+            action: () => switchSection('#seccion1', '#seccion2')
         },
         { // 3: Sección 2
             element: '#seccion2-wrapper',
             title: 'Detalles del Problema',
             text: 'Ahora se ha expandido la sección de "Detalles del Problema".',
-            onNext: () => switchSection('#seccion2', '#seccion3')
+            action: () => switchSection('#seccion2', '#seccion3')
         },
         { // 4: Sección 3
             element: '#seccion3-wrapper',
             title: 'Análisis WiFi y TVS',
             text: 'Esta es la sección de "Análisis WiFi y TVS".',
-            onNext: () => switchSection('#seccion3', '#seccion4')
+            action: () => switchSection('#seccion3', '#seccion4')
         },
         { // 5: Sección 4
             element: '#seccion4-wrapper',
             title: 'Resolución de la Llamada',
-            text: 'Finalmente, documenta aquí el resultado de la llamada. Presiona "Siguiente" para continuar.',
-            onNext: () => collapseAllSections()
-        },
-        { // 6: Botón SEE
-            element: '#btnSee',
-            title: 'Ver Nota Final',
-            text: 'Ahora, haz clic en el botón "SEE" para generar la nota completa. Esto abrirá un nuevo modal y finalizará el tour.',
-            isManualAction: true
+            text: '¡Has completado la parte interactiva! Haz clic en "Finalizar" para ver la nota completa y terminar el tour.',
+            isLastStep: true
         }
     ];
 
@@ -77,7 +71,7 @@
             console.error(`Elemento del tutorial no encontrado: ${step.element}`);
             return endTour();
         }
-
+        
         // Preparar el popover (oculto)
         popover.classList.remove('active');
         overlay.classList.remove('hidden');
@@ -105,12 +99,8 @@
 
         // Configurar botones
         prevBtn.classList.toggle('hidden', stepIndex === 0);
-        nextBtn.classList.toggle('hidden', step.isManualAction || stepIndex === steps.length - 1);
-        doneBtn.classList.toggle('hidden', true); // No usamos el botón "Done" en este flujo.
-
-        if (step.isManualAction) {
-            prepareManualAction(targetElement);
-        }
+        nextBtn.classList.toggle('hidden', step.isLastStep || stepIndex === steps.length - 1);
+        doneBtn.classList.toggle('hidden', !step.isLastStep);
     }
 
     function endTour() {
@@ -161,29 +151,26 @@
     async function switchSection(sectionToCollapseSelector, sectionToExpandSelector) {
         const sectionToCollapse = document.querySelector(sectionToCollapseSelector);
         const sectionToExpand = document.querySelector(sectionToExpandSelector);
-        if (sectionToCollapse) sectionToCollapse.classList.add('collapsed');
-        if (sectionToExpand) sectionToExpand.classList.remove('collapsed');
-        if (sectionToCollapse) await waitForTransition(sectionToCollapse);
-    }
-    
-    async function collapseAllSections() {
-        const sections = document.querySelectorAll('.form-section:not(.collapsed)');
-        if (sections.length > 0) {
-            sections.forEach(sec => sec.classList.add('collapsed'));
-            await waitForTransition(sections[sections.length - 1]);
+        
+        if (sectionToCollapse) {
+            sectionToCollapse.classList.add('collapsed');
         }
-    }
-
-    function prepareManualAction(targetElement) {
-        targetElement.addEventListener('click', endTour, { once: true });
+        if (sectionToExpand) {
+            sectionToExpand.classList.remove('collapsed');
+        }
+        
+        // Esperamos a que la animación de colapsar termine, que suele ser suficiente.
+        if (sectionToCollapse) {
+            await waitForTransition(sectionToCollapse);
+        }
     }
 
     // --- Event Listeners de los botones del tutorial ---
     nextBtn.addEventListener('click', async () => {
         const step = steps[currentStep];
-        if (step.onNext) {
+        if (step.action) {
             nextBtn.disabled = true;
-            await step.onNext();
+            await step.action();
             nextBtn.disabled = false;
         }
         currentStep++;
@@ -191,8 +178,15 @@
     });
 
     prevBtn.addEventListener('click', () => {
+        // La lógica para ir atrás podría necesitar revertir las animaciones.
+        // Por ahora, solo retrocede el paso.
         currentStep--;
         showStep(currentStep);
+    });
+
+    doneBtn.addEventListener('click', () => {
+        document.getElementById('noteModalOverlay').style.display = 'flex';
+        endTour();
     });
 
     // --- Lógica de Inicio (Estable y Correcta) ---
