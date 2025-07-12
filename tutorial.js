@@ -47,35 +47,38 @@
         { // PASO 6
             element: '#seccion4-wrapper',
             title: 'Resolución de la Llamada',
-            text: 'Finalmente, documenta aquí el resultado de la llamada. Presiona "Siguiente" para continuar.',
-            action: () => collapseAllSections()
+            text: 'Finalmente, documenta aquí el resultado de la llamada. Al presionar "Siguiente", todas las secciones se expandirán.',
+            action: () => expandAllSections()
         },
         { // PASO 7
+            element: '#callNoteForm',
+            title: 'Vista Expandida',
+            text: 'Todas las secciones están ahora visibles. Presiona "Siguiente" para continuar y generar la nota final.',
+            position: 'left-center' // Posición especial
+        },
+        { // PASO 8
             element: '#btnSee',
             title: 'Ver Nota Final',
             text: 'Al presionar "Siguiente", se generará la nota completa y se mostrará en un nuevo modal.',
             action: () => document.querySelector('#btnSee').click()
         },
-        { // PASO 8
+        { // PASO 9
             element: '#noteModalOverlay .modal-content',
             title: 'Nota Final Generada',
-            text: 'Esta es la nota completa. Presiona "Siguiente" para continuar.',
-            isModalAction: true
+            text: 'Esta es la nota completa. Presiona "Siguiente" para continuar.'
         },
-        { // PASO 9
+        { // PASO 10
             element: '#modalSeparateBtn',
             title: 'Dividir Nota',
             text: 'Al presionar "Siguiente", se dividirá la nota y se mostrará en un nuevo modal.',
-            action: () => document.querySelector('#modalSeparateBtn').click(),
-            isModalAction: true
-        },
-        { // PASO 10
-            element: '#separateNoteModalOverlay .modal-content',
-            title: 'Nota Dividida',
-            text: 'Perfecto. Ahora presiona "Siguiente" para resaltar el botón de guardado.',
-            isModalAction: true
+            action: () => document.querySelector('#modalSeparateBtn').click()
         },
         { // PASO 11
+            element: '#separateNoteModalOverlay .modal-content',
+            title: 'Nota Dividida',
+            text: 'Perfecto. Ahora presiona "Siguiente" para resaltar el botón de guardado.'
+        },
+        { // PASO 12
             element: '#separateModalCopySaveBtn',
             title: 'Guardar Nota',
             text: 'Al presionar "Siguiente", se simulará que guardas la nota y se abrirá el historial.',
@@ -83,10 +86,9 @@
                 document.getElementById('separateNoteModalOverlay').style.display = 'none';
                 document.getElementById('noteModalOverlay').style.display = 'none';
                 document.getElementById('btnHistory').click();
-            },
-            isModalAction: true
+            }
         },
-        { // PASO 12
+        { // PASO 13
             element: '#historySidebar',
             title: 'Panel de Historial',
             text: '¡Excelente! Has llegado al final del tour. Haz clic en "Finalizar".'
@@ -108,7 +110,6 @@
         
         const step = steps[stepIndex];
         
-        // Limpiar resaltado anterior de forma robusta
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
         }
@@ -124,22 +125,23 @@
             return;
         }
         
-        // Lógica de visibilidad corregida
-        popover.classList.remove('active');
+        // Lógica de visibilidad que funciona:
+        // 1. Mostrar el overlay y el popover
         overlay.classList.remove('hidden');
-        
+        popover.classList.remove('hidden');
+
+        // 2. Actualizar contenido
         popoverTitle.textContent = step.title;
         popoverText.textContent = step.text;
         
+        // 3. Resaltar el nuevo elemento
         targetElement.classList.add('tutorial-highlight');
         highlightedElement = targetElement;
         
-        // Usar requestAnimationFrame para asegurar que el popover es medible antes de posicionarlo
-        requestAnimationFrame(() => {
-            positionPopover(targetElement, step.position);
-            popover.classList.add('active');
-        });
+        // 4. Posicionar el popover
+        positionPopover(targetElement, step.position);
 
+        // 5. Configurar botones
         const isLastStep = stepIndex === steps.length - 1;
         prevBtn.classList.toggle('hidden', stepIndex === 0);
         nextBtn.classList.toggle('hidden', isLastStep);
@@ -148,7 +150,7 @@
 
     function endTour() {
         overlay.classList.add('hidden');
-        popover.classList.remove('active');
+        popover.classList.add('hidden');
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
         }
@@ -166,6 +168,10 @@
             case 'left-center':
                 top = targetRect.top + (targetRect.height / 2) - (popoverRect.height / 2);
                 left = targetRect.left - popoverRect.width - 15;
+                break;
+            case 'center':
+                top = window.innerHeight / 2 - popoverRect.height / 2;
+                left = window.innerWidth / 2 - popoverRect.width / 2;
                 break;
             default:
                 top = targetRect.bottom + 15;
@@ -210,12 +216,16 @@
             await waitForTransition(expandSection);
         }
     }
+
+    async function expandAllSections() {
+        const sections = document.querySelectorAll('.form-section.collapsed');
+        for (const section of sections) { section.querySelector('.section-title')?.click(); }
+        if (sections.length > 0) await waitForTransition(sections[sections.length - 1]);
+    }
     
     async function collapseAllSections() {
         const sections = document.querySelectorAll('.form-section:not(.collapsed)');
-        for (const section of sections) {
-            section.querySelector('.section-title')?.click();
-        }
+        for (const section of sections) { section.querySelector('.section-title')?.click(); }
         if (sections.length > 0) await waitForTransition(sections[sections.length - 1]);
     }
 
@@ -235,9 +245,40 @@
     doneBtn.addEventListener('click', endTour);
 
     // --- Lógica de Inicio (Estable y Correcta) ---
+    function createSampleNoteIfNeeded() {
+        try {
+            const dbName = 'noteAppDB';
+            const request = indexedDB.open(dbName);
+            request.onsuccess = function(event) {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains('notes')) {
+                    db.close(); return;
+                }
+                const transaction = db.transaction(['notes'], 'readonly');
+                const objectStore = transaction.objectStore('notes');
+                const countRequest = objectStore.count();
+                countRequest.onsuccess = function() {
+                    if (countRequest.result === 0) {
+                        const addTransaction = db.transaction(['notes'], 'readwrite');
+                        const addObjectStore = addTransaction.objectStore('notes');
+                        const sampleNote = {
+                            id: `sample-${Date.now()}`,
+                            ban: '123456789', cid: '987654321', name: 'John Doe (Sample)', cbr: '1122334455',
+                            timestamp: new Date().toISOString(),
+                            note: 'Esta es una nota de ejemplo para el tutorial.', formData: {}
+                        };
+                        addObjectStore.add(sampleNote);
+                    }
+                };
+                db.close();
+            };
+        } catch (e) { console.error("No se pudo verificar/crear la nota de ejemplo:", e); }
+    }
+
     function checkAndShowWelcomeModal() {
         if (localStorage.getItem('tutorialCompleted') === 'true') return;
         
+        createSampleNoteIfNeeded();
         const welcomeModal = document.getElementById('welcomeModalOverlay');
         const startBtn = document.getElementById('startTakingNotesBtn');
         const nameInput = document.getElementById('welcomeAgentNameInput');
