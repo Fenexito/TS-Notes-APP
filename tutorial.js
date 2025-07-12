@@ -41,14 +41,12 @@
         highlightClass: 'custom-intro-highlight',
         tooltipClass: 'custom-intro-tooltip',
         steps: [
-            // --- PASO 1 (MODIFICADO): Solo informativo ---
             {
                 element: document.querySelector('.sticky-header-container'),
                 title: 'Encabezado Principal',
                 intro: 'Esta es la barra de acciones principal. Aquí encuentras los botones para ver, guardar y reiniciar tu nota.',
                 position: 'bottom'
             },
-            // --- PASOS 2 a 5: Secciones del formulario (sin cambios en su definición) ---
             {
                 element: document.querySelector('#callNoteForm'),
                 title: 'Tu Espacio de Trabajo',
@@ -69,24 +67,17 @@
                 title: 'Análisis WiFi y TVS',
                 intro: 'Ya casi terminamos. Haz clic en la última sección: "Resolution".'
             },
-            // --- PASO 6 (MODIFICADO): Ahora lleva al botón SEE ---
+            // --- PASO FINAL (MODIFICADO) ---
             {
                 element: document.querySelector('#seccion4-wrapper'),
                 title: 'Resolución de la Llamada',
-                intro: 'Finalmente, documenta aquí el resultado de la llamada. Presiona "Siguiente" para continuar.',
+                intro: '¡Has completado la parte interactiva! Haz clic en "Finalizar" para ver la nota completa y terminar el tour.',
                 position: 'top'
-            },
-            // --- PASO 7 (NUEVO): Pide hacer clic en el botón SEE ---
-            {
-                element: document.querySelector('#btnSee'),
-                title: 'Ver Nota Final',
-                intro: 'Ahora, haz clic en el botón "SEE" para generar la nota completa con toda la información que has ingresado. Esto finalizará el tour.',
-                position: 'bottom'
             }
         ]
     });
 
-    // --- MANEJO DE LA INTERACCIÓN (ACTUALIZADO) ---
+    // --- MANEJO DE LA INTERACCIÓN (SIMPLIFICADO) ---
     const setupManualAdvance = (triggerSelector, nextStepIndex) => {
         const trigger = document.querySelector(triggerSelector);
         if (trigger) {
@@ -103,31 +94,30 @@
         const currentStepIndex = this._currentStep;
 
         switch (currentStepIndex) {
-            // El caso 0 (header) ya no necesita lógica aquí, usará el botón "Siguiente" por defecto.
             case 1: // En el paso del formulario principal
-                setupManualAdvance('#seccion1 .section-title', 3); // Ve al paso con índice 2
+                setupManualAdvance('#seccion1 .section-title', 3);
                 break;
             case 2: // En el paso de la sección 1
-                setupManualAdvance('#seccion2 .section-title', 4); // Ve al paso con índice 3
+                setupManualAdvance('#seccion2 .section-title', 4);
                 break;
             case 3: // En el paso de la sección 2
-                setupManualAdvance('#seccion3 .section-title', 5); // Ve al paso con índice 4
+                setupManualAdvance('#seccion3 .section-title', 5);
                 break;
             case 4: // En el paso de la sección 3
-                setupManualAdvance('#seccion4 .section-title', 6); // Ve al paso con índice 5
-                break;
-            // El caso 5 (sección 4) usará el botón "Siguiente" por defecto.
-            case 6: // En el nuevo paso 7 (botón SEE)
-                const seeBtn = document.querySelector('#btnSee');
-                seeBtn.classList.add('introjs-showElement'); // Hace el botón "SEE" interactivo
-                seeBtn.addEventListener('click', () => {
-                    // Al hacer clic, se finaliza el tour.
-                    intro.exit();
-                }, { once: true });
+                setupManualAdvance('#seccion4 .section-title', 6);
                 break;
         }
     });
 
+    // Se dispara al hacer clic en el último botón "Done" (o "Finalizar")
+    intro.oncomplete(function() {
+        // Abre el modal de la nota final
+        document.getElementById('noteModalOverlay').style.display = 'flex';
+        // Marca el tutorial como completado
+        localStorage.setItem('tutorialCompleted', 'true');
+    });
+
+    // Se dispara si el usuario cierra el tour antes de tiempo
     intro.onexit(function() {
         localStorage.setItem('tutorialCompleted', 'true');
     });
