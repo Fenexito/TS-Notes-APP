@@ -156,20 +156,29 @@
             return;
         }
         
+        // 1. Limpiar el estado anterior
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
         }
+        popover.classList.remove('active');
         
+        // 2. Actualizar el contenido del popover
         popoverTitle.textContent = step.title;
         popoverText.textContent = step.text;
         overlay.classList.remove('hidden');
         
+        // 3. Resaltar el nuevo elemento
         targetElement.classList.add('tutorial-highlight');
         highlightedElement = targetElement;
         
-        positionPopover(targetElement, step.position);
-        popover.classList.add('active');
+        // 4. Usar requestAnimationFrame para posicionar y luego mostrar.
+        // ESTA ES LA CORRECCIÓN CLAVE PARA EVITAR QUE EL POPOVER NO APAREZCA.
+        requestAnimationFrame(() => {
+            positionPopover(targetElement, step.position);
+            popover.classList.add('active');
+        });
 
+        // 5. Configurar botones
         const isLastStep = stepIndex === steps.length - 1;
         prevBtn.classList.toggle('hidden', stepIndex === 0);
         nextBtn.classList.toggle('hidden', step.isManualAction || isLastStep);
@@ -193,6 +202,7 @@
 
     function positionPopover(targetElement, position = 'bottom-center') {
         const targetRect = targetElement.getBoundingClientRect();
+        // Ahora el popover es medible porque esta lógica se ejecuta en el siguiente frame de animación
         const popoverRect = popover.getBoundingClientRect();
         let top, left;
 
@@ -266,7 +276,7 @@
         
         actionElement.addEventListener('click', async () => {
             // Lógica especial para el botón "COPY AND SAVE"
-            if (targetElement.id === 'separateModalCopySaveBtn') {
+            if (targetElement.id === 'separateNoteModalCopySaveBtn') {
                 document.getElementById('separateNoteModalOverlay').style.display = 'none';
                 document.getElementById('noteModalOverlay').style.display = 'none';
                 document.getElementById('btnHistory').click();
