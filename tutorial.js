@@ -156,38 +156,22 @@
             return;
         }
         
-        // 1. Limpiar el estado anterior
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
         }
-        popover.classList.remove('active');
         
-        // 2. Actualizar el contenido del popover
         popoverTitle.textContent = step.title;
         popoverText.textContent = step.text;
-        overlay.classList.remove('hidden');
         
-        // 3. Resaltar el nuevo elemento
+        // LÓGICA DE VISIBILIDAD CORREGIDA Y SIMPLIFICADA
+        overlay.classList.remove('hidden');
+        popover.classList.remove('hidden'); // <-- HACE EL POPOVER VISIBLE Y MEDIBLE
+        
         targetElement.classList.add('tutorial-highlight');
         highlightedElement = targetElement;
         
-        // 4. LÓGICA DE POSICIONAMIENTO CORREGIDA
-        // Hacemos el popover visible pero transparente para medirlo
-        popover.style.visibility = 'visible';
-        popover.style.opacity = '0';
+        positionPopover(targetElement, step.position);
 
-        // Forzamos el recálculo del layout leyendo una propiedad.
-        // Esto garantiza que getBoundingClientRect() devuelva valores correctos.
-        void popover.offsetHeight; 
-
-        requestAnimationFrame(() => {
-            positionPopover(targetElement, step.position);
-            // Hacemos el popover visible con la transición de CSS
-            popover.style.opacity = '1';
-            popover.classList.add('active');
-        });
-
-        // 5. Configurar botones
         const isLastStep = stepIndex === steps.length - 1;
         prevBtn.classList.toggle('hidden', stepIndex === 0);
         nextBtn.classList.toggle('hidden', step.isManualAction || isLastStep);
@@ -200,8 +184,7 @@
 
     function endTour() {
         overlay.classList.add('hidden');
-        popover.classList.remove('active');
-        popover.style.visibility = 'hidden';
+        popover.classList.add('hidden');
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
         }
