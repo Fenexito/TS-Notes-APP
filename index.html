@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>APad - NoteApp</title>
-    <link rel="stylesheet" href="https://unpkg.com/intro.js/minified/introjs.min.css">
     <link rel="stylesheet" href="/style.css">
    
     <link rel="manifest" href="/manifest.json">
@@ -792,8 +791,18 @@
         <p>TELUS FFH PURE FIBER Tech Support | x331671 | Alex Van Houtven | June 2025</p>
     </footer>
 
+    <div id="custom-tutorial-overlay" class="hidden"></div>
+    <div id="custom-tutorial-popover" class="hidden">
+        <div id="tutorial-popover-title"></div>
+        <div id="tutorial-popover-text"></div>
+        <div class="tutorial-popover-actions">
+            <button id="tutorial-prev-btn">Anterior</button>
+            <button id="tutorial-next-btn">Siguiente</button>
+            <button id="tutorial-done-btn">Finalizar</button>
+        </div>
+    </div>
+    
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
-    <script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
     <script src="script.js"></script>
     <script src="tutorial.js"></script>
 </body>
