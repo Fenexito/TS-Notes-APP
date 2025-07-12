@@ -207,12 +207,4 @@
     window.addEventListener('load', checkAndShowWelcomeModal);
 
 })();
-```
 
-### ¿Por qué este código es mejor?
-
-1.  **`waitForTransition` Robusto:** La función que espera a que terminen las animaciones ahora tiene un "plan B". Si la animación no se completa en 500ms (o no existe), el tutorial continuará de todos modos, evitando que se quede colgado.
-2.  **Lógica de Pasos Corregida:** El flujo de expandir y colapsar secciones ahora sigue la secuencia exacta que pediste.
-3.  **Claridad del Código:** He reestructurado las funciones para que sea más fácil entender qué hace cada parte.
-
-Con estos cambios, el tutorial debería funcionar de manera fluida y predecib
