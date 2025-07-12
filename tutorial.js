@@ -92,14 +92,13 @@
         const targetElement = document.querySelector(step.element);
 
         if (!targetElement) {
-            console.error(`Elemento del tutorial no encontrado: ${step.element}`);
-            // Esperar un poco por si el elemento está apareciendo
+            // Esperar un poco por si el elemento (como un modal) está apareciendo
             setTimeout(() => {
                 const elementAfterWait = document.querySelector(step.element);
                 if (elementAfterWait) {
                     showStep(stepIndex);
                 } else {
-                    console.error("El elemento sigue sin aparecer. Finalizando tour.");
+                    console.error(`Elemento del tutorial no encontrado: ${step.element}. Finalizando tour.`);
                     endTour();
                 }
             }, 300);
@@ -126,10 +125,12 @@
         // Posicionar el popover
         positionPopover(targetElement);
 
-        // --- LÓGICA DE BOTONES CORREGIDA ---
+        // --- LÓGICA DE BOTONES RESTAURADA Y CORRECTA ---
         const isLastStep = stepIndex === steps.length - 1;
         prevBtn.classList.toggle('hidden', stepIndex === 0);
-        nextBtn.classList.toggle('hidden', isLastStep || step.isManualAction);
+        // El botón Siguiente se oculta si es una acción manual o el último paso
+        nextBtn.classList.toggle('hidden', step.isManualAction || isLastStep);
+        // El botón Finalizar solo se muestra en el último paso
         doneBtn.classList.toggle('hidden', !isLastStep);
 
         if (step.isManualAction) {
@@ -178,7 +179,7 @@
 
     async function expandSection(sectionSelector) {
         const section = document.querySelector(sectionSelector);
-        if (section) {
+        if (section && section.classList.contains('collapsed')) {
             const title = section.querySelector('.section-title');
             if (title) {
                 title.click();
@@ -193,14 +194,16 @@
         
         if (collapseSection && !collapseSection.classList.contains('collapsed')) {
             const title = collapseSection.querySelector('.section-title');
-            if (title) title.click();
+            if (title) {
+                title.click();
+                await waitForTransition(collapseSection); // Espera a que termine de colapsar
+            }
         }
         if (expandSection && expandSection.classList.contains('collapsed')) {
             const title = expandSection.querySelector('.section-title');
             if (title) {
-                await new Promise(res => setTimeout(res, 50));
                 title.click();
-                await waitForTransition(expandSection);
+                await waitForTransition(expandSection); // Espera a que termine de expandir
             }
         }
     }
