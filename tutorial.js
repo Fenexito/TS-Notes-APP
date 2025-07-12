@@ -2,19 +2,23 @@
 (function() {
 
     // --- Elementos del DOM ---
+    const overlay = document.getElementById('custom-tutorial-overlay');
     const popover = document.getElementById('custom-tutorial-popover');
     const popoverTitle = document.getElementById('tutorial-popover-title');
     const popoverText = document.getElementById('tutorial-popover-text');
     const prevBtn = document.getElementById('tutorial-prev-btn');
     const nextBtn = document.getElementById('tutorial-next-btn');
     const doneBtn = document.getElementById('tutorial-done-btn');
-    let currentStep = -1;
+    let currentStep = 0;
     let highlightedElement = null;
 
     // --- Definición de los Pasos del Tutorial ---
     const steps = [
-        { // 0: Modal de Bienvenida (manejado por separado)
-            // Este paso es conceptual, la lógica está en checkAndShowWelcomeModal
+        { // 0: Modal de Bienvenida
+            element: '#welcomeModalOverlay .modal-content',
+            title: '¡Bienvenido a APad!',
+            text: 'Para comenzar, por favor ingresa tu nombre de agente en el campo de texto y presiona "START".',
+            isManualAction: true
         },
         { // 1: Encabezado
             element: '.sticky-header-container',
@@ -55,22 +59,23 @@
             element: '#btnSee',
             title: 'Ver Nota Final',
             text: 'Ahora, haz clic en el botón "SEE" para generar la nota completa. Esto abrirá un nuevo modal y finalizará el tour.',
-            isManualAction: true // El usuario debe hacer clic
+            isManualAction: true
         }
     ];
 
     // --- Funciones Principales del Tour ---
 
     function startTour() {
-        currentStep = 1; // Empezamos en el paso del encabezado
+        document.getElementById('welcomeModalOverlay').style.display = 'flex';
+        currentStep = 0;
         showStep(currentStep);
     }
 
     function showStep(stepIndex) {
-        if (stepIndex < 1 || stepIndex >= steps.length) {
+        if (stepIndex < 0 || stepIndex >= steps.length) {
             return endTour();
         }
-
+        
         const step = steps[stepIndex];
         const targetElement = document.querySelector(step.element);
 
@@ -79,6 +84,7 @@
             return endTour();
         }
 
+        overlay.classList.remove('hidden');
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
         }
@@ -92,16 +98,17 @@
         
         positionPopover(targetElement);
 
-        prevBtn.classList.toggle('hidden', stepIndex <= 1);
+        prevBtn.classList.toggle('hidden', stepIndex === 0);
         nextBtn.classList.toggle('hidden', step.isManualAction || stepIndex === steps.length - 1);
-        doneBtn.classList.toggle('hidden', true); // El botón Done no se usa
+        doneBtn.classList.toggle('hidden', true);
 
         if (step.isManualAction) {
-            prepareManualAction(targetElement);
+            prepareManualAction(targetElement, stepIndex);
         }
     }
 
     function endTour() {
+        overlay.classList.add('hidden');
         popover.classList.remove('active');
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
@@ -123,7 +130,6 @@
         popover.style.left = `${left}px`;
     }
     
-    // Función robusta que no se cuelga si no hay animación
     function waitForTransition(element, timeout = 500) {
         return new Promise(resolve => {
             const onEnd = () => {
@@ -131,7 +137,7 @@
                 clearTimeout(timer);
                 resolve();
             };
-            const timer = setTimeout(onEnd, timeout); // Fallback por si no hay transición
+            const timer = setTimeout(onEnd, timeout);
             element.addEventListener('transitionend', onEnd);
         });
     }
@@ -153,15 +159,27 @@
     }
     
     function collapseAllSections() {
-        document.querySelectorAll('.form-section.collapsed').forEach(sec => sec.classList.add('collapsed'));
+        document.querySelectorAll('.form-section').forEach(sec => sec.classList.add('collapsed'));
     }
 
-    function prepareManualAction(targetElement) {
-        targetElement.addEventListener('click', function handleManualClick() {
-            // El clic del usuario abre el modal de la nota final (lógica en script.js)
-            // Y aquí finalizamos el tour.
-            endTour();
-        }, { once: true });
+    function prepareManualAction(targetElement, stepIndex) {
+        if (stepIndex === 0) { // Lógica para el modal de bienvenida
+            const startBtn = document.getElementById('startTakingNotesBtn');
+            const nameInput = document.getElementById('welcomeAgentNameInput');
+            const startHandler = () => {
+                if (nameInput.value.trim() !== '') {
+                    document.getElementById('welcomeModalOverlay').style.display = 'none';
+                    currentStep++;
+                    showStep(currentStep);
+                }
+            };
+            startBtn.addEventListener('click', startHandler, { once: true });
+            nameInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); startBtn.click(); }
+            }, { once: true });
+        } else if (stepIndex === 7) { // Lógica para el botón SEE
+            targetElement.addEventListener('click', endTour, { once: true });
+        }
     }
 
     // --- Event Listeners ---
@@ -177,34 +195,19 @@
     });
 
     prevBtn.addEventListener('click', () => {
+        // Aquí se podría añadir lógica para revertir las acciones si es necesario
         currentStep--;
         showStep(currentStep);
     });
 
     // --- Lógica de Inicio ---
-    function checkAndShowWelcomeModal() {
+    function checkAndStartTutorial() {
         if (localStorage.getItem('tutorialCompleted') === 'true') {
             return;
         }
-        const welcomeModal = document.getElementById('welcomeModalOverlay');
-        const startBtn = document.getElementById('startTakingNotesBtn');
-        const nameInput = document.getElementById('welcomeAgentNameInput');
-        
-        welcomeModal.style.display = 'flex';
-        
-        const startHandler = () => {
-            if (nameInput.value.trim() !== '') {
-                welcomeModal.style.display = 'none';
-                startTour();
-            }
-        };
-        startBtn.addEventListener('click', startHandler);
-        nameInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') e.preventDefault(); startHandler();
-        });
+        startTour();
     }
 
-    window.addEventListener('load', checkAndShowWelcomeModal);
+    window.addEventListener('load', checkAndStartTutorial);
 
 })();
-
