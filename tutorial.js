@@ -35,10 +35,26 @@
     function startTheTour() {
     const intro = introJs();
 
+    // Función reutilizable para el botón "Siguiente" personalizado
+    const createNextButtonAction = (triggerSelector) => {
+        return function() {
+            // 1. Simula un clic en el título para expandir la sección
+            const trigger = document.querySelector(triggerSelector);
+            if (trigger) {
+                trigger.click();
+            }
+            
+            // 2. Espera a que la animación termine
+            setTimeout(() => {
+                // 3. Avanza al siguiente paso del tour
+                this.nextStep();
+            }, 450); // Ajusta este tiempo si es necesario
+        };
+    };
+
     intro.setOptions({
         showProgress: true,
         disableInteraction: true,
-        highlightClass: 'custom-intro-highlight',
         tooltipClass: 'custom-intro-tooltip',
         steps: [
             {
@@ -50,70 +66,76 @@
             {
                 element: document.querySelector('#callNoteForm'),
                 title: 'Tu Espacio de Trabajo',
-                intro: 'Este es el formulario principal. Para continuar, haz clic en "Account Info & Verification".'
+                intro: 'Este es el formulario principal. Al presionar "Siguiente", la primera sección se expandirá automáticamente.',
+                buttons: [
+                    {
+                        text: 'Anterior',
+                        action: function() { this.previousStep(); }
+                    },
+                    {
+                        text: 'Siguiente',
+                        action: createNextButtonAction('#seccion1 .section-title')
+                    }
+                ]
             },
             {
                 element: document.querySelector('#seccion1-wrapper'),
                 title: 'Información de la Cuenta',
-                intro: '¡Excelente! Aquí ingresas los datos del cliente. Ahora, haz clic en "Status, Issue and Troubleshoot Steps".'
+                intro: '¡Excelente! La primera sección se ha expandido. Al presionar "Siguiente", continuaremos con la próxima.',
+                buttons: [
+                    {
+                        text: 'Anterior',
+                        action: function() { this.previousStep(); }
+                    },
+                    {
+                        text: 'Siguiente',
+                        action: createNextButtonAction('#seccion2 .section-title')
+                    }
+                ]
             },
             {
                 element: document.querySelector('#seccion2-wrapper'),
                 title: 'Detalles del Problema',
-                intro: 'Perfecto. Ahora haz clic en "Advanced Wifi Analytics & TVS".'
+                intro: 'Ahora se ha expandido la sección de "Detalles del Problema".',
+                buttons: [
+                    {
+                        text: 'Anterior',
+                        action: function() { this.previousStep(); }
+                    },
+                    {
+                        text: 'Siguiente',
+                        action: createNextButtonAction('#seccion3 .section-title')
+                    }
+                ]
             },
             {
                 element: document.querySelector('#seccion3-wrapper'),
                 title: 'Análisis WiFi y TVS',
-                intro: 'Ya casi terminamos. Haz clic en la última sección: "Resolution".'
+                intro: 'Esta es la sección de "Análisis WiFi y TVS".',
+                buttons: [
+                    {
+                        text: 'Anterior',
+                        action: function() { this.previousStep(); }
+                    },
+                    {
+                        text: 'Siguiente',
+                        action: createNextButtonAction('#seccion4 .section-title')
+                    }
+                ]
             },
-            // --- PASO FINAL (MODIFICADO) ---
             {
                 element: document.querySelector('#seccion4-wrapper'),
                 title: 'Resolución de la Llamada',
                 intro: '¡Has completado la parte interactiva! Haz clic en "Finalizar" para ver la nota completa y terminar el tour.',
                 position: 'top'
+                // Este último paso usará el botón "Hecho" por defecto.
             }
         ]
     });
 
-    // --- MANEJO DE LA INTERACCIÓN (SIMPLIFICADO) ---
-    const setupManualAdvance = (triggerSelector, nextStepIndex) => {
-        const trigger = document.querySelector(triggerSelector);
-        if (trigger) {
-            trigger.classList.add('introjs-showElement');
-            trigger.addEventListener('click', () => {
-                setTimeout(() => {
-                    intro.goToStep(nextStepIndex);
-                }, 450);
-            }, { once: true });
-        }
-    };
-
-    intro.onbeforechange(function(targetElement) {
-        const currentStepIndex = this._currentStep;
-
-        switch (currentStepIndex) {
-            case 1: // En el paso del formulario principal
-                setupManualAdvance('#seccion1 .section-title', 3);
-                break;
-            case 2: // En el paso de la sección 1
-                setupManualAdvance('#seccion2 .section-title', 4);
-                break;
-            case 3: // En el paso de la sección 2
-                setupManualAdvance('#seccion3 .section-title', 5);
-                break;
-            case 4: // En el paso de la sección 3
-                setupManualAdvance('#seccion4 .section-title', 6);
-                break;
-        }
-    });
-
     // Se dispara al hacer clic en el último botón "Done" (o "Finalizar")
     intro.oncomplete(function() {
-        // Abre el modal de la nota final
         document.getElementById('noteModalOverlay').style.display = 'flex';
-        // Marca el tutorial como completado
         localStorage.setItem('tutorialCompleted', 'true');
     });
 
