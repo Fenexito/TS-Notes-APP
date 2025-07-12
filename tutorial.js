@@ -1,5 +1,6 @@
 // Se utiliza una IIFE para evitar conflictos.
 (function() {
+
     // --- Elementos del DOM ---
     const overlay = document.getElementById('custom-tutorial-overlay');
     const popover = document.getElementById('custom-tutorial-popover');
@@ -14,42 +15,42 @@
 
     // --- Definición de los Pasos del Tutorial ---
     const steps = [
-        { // 0
+        { // 0: Encabezado
             element: '.sticky-header-container',
             title: 'Encabezado Principal',
             text: 'Esta es la barra de acciones principal. Aquí encuentras los botones para ver, guardar y reiniciar tu nota.'
         },
-        { // 1
+        { // 1: Formulario
             element: '#callNoteForm',
             title: 'Tu Espacio de Trabajo',
             text: 'Este es el formulario principal. Al presionar "Siguiente", la primera sección se expandirá automáticamente.',
             onNext: () => expandSection('#seccion1')
         },
-        { // 2
+        { // 2: Sección 1
             element: '#seccion1-wrapper',
             title: 'Información de la Cuenta',
-            text: '¡Excelente! La primera sección se ha expandido. Al presionar "Siguiente", esta se colapsará y continuaremos con la próxima.',
+            text: '¡Excelente! Al presionar "Siguiente", esta sección se colapsará y continuaremos con la próxima.',
             onNext: () => switchSection('#seccion1', '#seccion2')
         },
-        { // 3
+        { // 3: Sección 2
             element: '#seccion2-wrapper',
             title: 'Detalles del Problema',
             text: 'Ahora se ha expandido la sección de "Detalles del Problema".',
             onNext: () => switchSection('#seccion2', '#seccion3')
         },
-        { // 4
+        { // 4: Sección 3
             element: '#seccion3-wrapper',
             title: 'Análisis WiFi y TVS',
             text: 'Esta es la sección de "Análisis WiFi y TVS".',
             onNext: () => switchSection('#seccion3', '#seccion4')
         },
-        { // 5
+        { // 5: Sección 4
             element: '#seccion4-wrapper',
             title: 'Resolución de la Llamada',
             text: 'Finalmente, documenta aquí el resultado de la llamada. Presiona "Siguiente" para continuar.',
             onNext: () => collapseAllSections()
         },
-        { // 6
+        { // 6: Botón SEE
             element: '#btnSee',
             title: 'Ver Nota Final',
             text: 'Ahora, haz clic en el botón "SEE" para generar la nota completa. Esto abrirá un nuevo modal y finalizará el tour.',
@@ -77,25 +78,35 @@
             return endTour();
         }
 
+        // Preparar el popover (oculto)
+        popover.classList.remove('active');
         overlay.classList.remove('hidden');
+
+        // Limpiar resaltado anterior
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
         }
 
+        // Actualizar contenido
         popoverTitle.textContent = step.title;
         popoverText.textContent = step.text;
-        
-        requestAnimationFrame(() => {
-            positionPopover(targetElement);
-            popover.classList.add('active');
-        });
 
+        // Resaltar el nuevo elemento
         targetElement.classList.add('tutorial-highlight');
         highlightedElement = targetElement;
         
+        // Posicionar y luego mostrar (LÓGICA CORREGIDA Y ROBUSTA)
+        // Usamos un pequeño timeout para asegurar que el navegador haya renderizado el contenido
+        // antes de que intentemos medir y posicionar el popover.
+        setTimeout(() => {
+            positionPopover(targetElement);
+            popover.classList.add('active');
+        }, 50); // 50ms es suficiente para que el navegador se ponga al día.
+
+        // Configurar botones
         prevBtn.classList.toggle('hidden', stepIndex === 0);
         nextBtn.classList.toggle('hidden', step.isManualAction || stepIndex === steps.length - 1);
-        doneBtn.classList.toggle('hidden', true);
+        doneBtn.classList.toggle('hidden', true); // No usamos el botón "Done" en este flujo.
 
         if (step.isManualAction) {
             prepareManualAction(targetElement);
@@ -111,20 +122,22 @@
         localStorage.setItem('tutorialCompleted', 'true');
     }
 
-    // --- Funciones de Ayuda (Sección Restaurada) ---
+    // --- Funciones de Ayuda ---
 
     function positionPopover(targetElement) {
         const targetRect = targetElement.getBoundingClientRect();
         const popoverRect = popover.getBoundingClientRect();
         let top = targetRect.bottom + 15;
         let left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2);
+
         if (left < 10) left = 10;
         if ((left + popoverRect.width) > window.innerWidth) left = window.innerWidth - popoverRect.width - 10;
         if ((top + popoverRect.height) > window.innerHeight) top = targetRect.top - popoverRect.height - 15;
+        
         popover.style.top = `${top}px`;
         popover.style.left = `${left}px`;
     }
-
+    
     function waitForTransition(element, timeout = 500) {
         return new Promise(resolve => {
             const onEnd = () => {
@@ -148,15 +161,9 @@
     async function switchSection(sectionToCollapseSelector, sectionToExpandSelector) {
         const sectionToCollapse = document.querySelector(sectionToCollapseSelector);
         const sectionToExpand = document.querySelector(sectionToExpandSelector);
-        if (sectionToCollapse) {
-            sectionToCollapse.classList.add('collapsed');
-        }
-        if (sectionToExpand) {
-            sectionToExpand.classList.remove('collapsed');
-        }
-        if (sectionToCollapse) {
-            await waitForTransition(sectionToCollapse);
-        }
+        if (sectionToCollapse) sectionToCollapse.classList.add('collapsed');
+        if (sectionToExpand) sectionToExpand.classList.remove('collapsed');
+        if (sectionToCollapse) await waitForTransition(sectionToCollapse);
     }
     
     async function collapseAllSections() {
@@ -168,9 +175,7 @@
     }
 
     function prepareManualAction(targetElement) {
-        targetElement.addEventListener('click', () => {
-            endTour();
-        }, { once: true });
+        targetElement.addEventListener('click', endTour, { once: true });
     }
 
     // --- Event Listeners de los botones del tutorial ---
@@ -189,8 +194,8 @@
         currentStep--;
         showStep(currentStep);
     });
-    
-    // --- Lógica de Inicio ---
+
+    // --- Lógica de Inicio (Estable y Correcta) ---
     function checkAndShowWelcomeModal() {
         if (localStorage.getItem('tutorialCompleted') === 'true') {
             return;
