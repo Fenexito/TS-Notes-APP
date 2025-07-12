@@ -35,20 +35,34 @@
     function startTheTour() {
     const intro = introJs();
 
-    // Función reutilizable para el botón "Siguiente" personalizado
-    const createNextButtonAction = (triggerSelector) => {
+    /**
+     * Esta es la nueva función de acción. Es la forma más robusta de sincronizar el tour
+     * con animaciones de CSS.
+     * @param {string} clickTriggerSelector - El selector del título de la sección en el que hay que hacer clic.
+     * @param {string} animatedElementSelector - El selector de la sección que se expande y se anima.
+     */
+    const createExpansionAction = (clickTriggerSelector, animatedElementSelector) => {
         return function() {
-            // 1. Simula un clic en el título para expandir la sección
-            const trigger = document.querySelector(triggerSelector);
-            if (trigger) {
-                trigger.click();
+            // 'this' se refiere a la instancia del tour (intro)
+            const tourInstance = this;
+
+            const triggerElement = document.querySelector(clickTriggerSelector);
+            const animatedElement = document.querySelector(animatedElementSelector);
+
+            if (triggerElement && animatedElement) {
+                // 1. Añadimos un listener que se disparará UNA SOLA VEZ cuando la animación termine.
+                animatedElement.addEventListener('transitionend', function onAnimationEnd() {
+                    // 3. Cuando la animación termina, avanzamos al siguiente paso.
+                    tourInstance.nextStep();
+                }, { once: true }); // {once: true} es crucial, asegura que el listener se elimine solo.
+
+                // 2. Simulamos el clic para iniciar la animación de expansión.
+                triggerElement.click();
+            } else {
+                // Fallback por si algo falla: avanzar después de un tiempo prudencial.
+                console.error("No se encontró el trigger o el elemento animado.");
+                setTimeout(() => tourInstance.nextStep(), 500);
             }
-            
-            // 2. Espera a que la animación termine
-            setTimeout(() => {
-                // 3. Avanza al siguiente paso del tour
-                this.nextStep();
-            }, 450); // Ajusta este tiempo si es necesario
         };
     };
 
@@ -60,7 +74,7 @@
             {
                 element: document.querySelector('.sticky-header-container'),
                 title: 'Encabezado Principal',
-                intro: 'Esta es la barra de acciones principal. Aquí encuentras los botones para ver, guardar y reiniciar tu nota.',
+                intro: 'Esta es la barra de acciones principal...',
                 position: 'bottom'
             },
             {
@@ -68,14 +82,8 @@
                 title: 'Tu Espacio de Trabajo',
                 intro: 'Este es el formulario principal. Al presionar "Siguiente", la primera sección se expandirá automáticamente.',
                 buttons: [
-                    {
-                        text: 'Anterior',
-                        action: function() { this.previousStep(); }
-                    },
-                    {
-                        text: 'Siguiente',
-                        action: createNextButtonAction('#seccion1 .section-title')
-                    }
+                    { text: 'Anterior', action: function() { this.previousStep(); } },
+                    { text: 'Siguiente', action: createExpansionAction('#seccion1 .section-title', '#seccion1') }
                 ]
             },
             {
@@ -83,14 +91,8 @@
                 title: 'Información de la Cuenta',
                 intro: '¡Excelente! La primera sección se ha expandido. Al presionar "Siguiente", continuaremos con la próxima.',
                 buttons: [
-                    {
-                        text: 'Anterior',
-                        action: function() { this.previousStep(); }
-                    },
-                    {
-                        text: 'Siguiente',
-                        action: createNextButtonAction('#seccion2 .section-title')
-                    }
+                    { text: 'Anterior', action: function() { this.previousStep(); } },
+                    { text: 'Siguiente', action: createExpansionAction('#seccion2 .section-title', '#seccion2') }
                 ]
             },
             {
@@ -98,14 +100,8 @@
                 title: 'Detalles del Problema',
                 intro: 'Ahora se ha expandido la sección de "Detalles del Problema".',
                 buttons: [
-                    {
-                        text: 'Anterior',
-                        action: function() { this.previousStep(); }
-                    },
-                    {
-                        text: 'Siguiente',
-                        action: createNextButtonAction('#seccion3 .section-title')
-                    }
+                    { text: 'Anterior', action: function() { this.previousStep(); } },
+                    { text: 'Siguiente', action: createExpansionAction('#seccion3 .section-title', '#seccion3') }
                 ]
             },
             {
@@ -113,14 +109,8 @@
                 title: 'Análisis WiFi y TVS',
                 intro: 'Esta es la sección de "Análisis WiFi y TVS".',
                 buttons: [
-                    {
-                        text: 'Anterior',
-                        action: function() { this.previousStep(); }
-                    },
-                    {
-                        text: 'Siguiente',
-                        action: createNextButtonAction('#seccion4 .section-title')
-                    }
+                    { text: 'Anterior', action: function() { this.previousStep(); } },
+                    { text: 'Siguiente', action: createExpansionAction('#seccion4 .section-title', '#seccion4') }
                 ]
             },
             {
@@ -128,18 +118,15 @@
                 title: 'Resolución de la Llamada',
                 intro: '¡Has completado la parte interactiva! Haz clic en "Finalizar" para ver la nota completa y terminar el tour.',
                 position: 'top'
-                // Este último paso usará el botón "Hecho" por defecto.
             }
         ]
     });
 
-    // Se dispara al hacer clic en el último botón "Done" (o "Finalizar")
     intro.oncomplete(function() {
         document.getElementById('noteModalOverlay').style.display = 'flex';
         localStorage.setItem('tutorialCompleted', 'true');
     });
 
-    // Se dispara si el usuario cierra el tour antes de tiempo
     intro.onexit(function() {
         localStorage.setItem('tutorialCompleted', 'true');
     });
