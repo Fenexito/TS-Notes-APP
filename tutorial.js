@@ -11,6 +11,7 @@
     const doneBtn = document.getElementById('tutorial-done-btn');
     
     let currentStep = 0;
+    let highlightedElement = null; // Variable para mantener una referencia directa al elemento resaltado
     
     // --- Definición de los Pasos del Tutorial ---
     const steps = [
@@ -113,10 +114,10 @@
         
         const step = steps[stepIndex];
         
-        // Limpiar resaltado anterior de forma robusta
-        const previousHighlight = document.querySelector('.tutorial-highlight');
-        if (previousHighlight) {
-            previousHighlight.classList.remove('tutorial-highlight');
+        // --- LÓGICA DE RESALTADO CORREGIDA ---
+        // 1. Limpiar el resaltado anterior usando la referencia directa.
+        if (highlightedElement) {
+            highlightedElement.classList.remove('tutorial-highlight');
         }
 
         const targetElement = document.querySelector(step.element);
@@ -133,7 +134,6 @@
         popoverTitle.textContent = step.title;
         popoverText.textContent = step.text;
         
-        // Lógica de overlay y resaltado
         if (step.isModalAction) {
             overlay.classList.add('hidden');
         } else {
@@ -142,7 +142,9 @@
         
         popover.classList.remove('hidden');
         
+        // 2. Aplicar el nuevo resaltado y guardar la referencia.
         targetElement.classList.add('tutorial-highlight');
+        highlightedElement = targetElement;
         
         positionPopover(targetElement, step.position);
 
@@ -155,9 +157,10 @@
     function endTour() {
         overlay.classList.add('hidden');
         popover.classList.add('hidden');
-        const finalHighlight = document.querySelector('.tutorial-highlight');
-        if (finalHighlight) {
-            finalHighlight.classList.remove('tutorial-highlight');
+        // Limpiar el último resaltado al finalizar
+        if (highlightedElement) {
+            highlightedElement.classList.remove('tutorial-highlight');
+            highlightedElement = null;
         }
         localStorage.setItem('tutorialCompleted', 'true');
     }
