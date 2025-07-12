@@ -48,45 +48,18 @@
             element: '#seccion4-wrapper',
             title: 'Resolución de la Llamada',
             text: 'Finalmente, documenta aquí el resultado de la llamada. Al presionar "Siguiente", todas las secciones se expandirán.',
-            action: () => expandAllSections() // NUEVA ACCIÓN
+            action: () => expandAllSections()
         },
-        { // 6
-            element: '#btnSee',
-            title: 'Ver Nota Final',
-            text: 'Ahora, haz clic en el botón "SEE" para generar la nota completa. Esto abrirá un nuevo modal y continuará el tutorial.',
-            isManualAction: true
+        { // 6 (NUEVO PASO INTERMEDIO)
+            element: '#callNoteForm',
+            title: 'Vista Expandida',
+            text: 'Todas las secciones están ahora visibles. Presiona "Siguiente" para continuar y generar la nota final.'
         },
         { // 7
-            element: '#noteModalOverlay .modal-content',
-            title: 'Nota Final Generada',
-            text: 'Esta es la nota completa. Al presionar "Siguiente", te pediremos que dividas la nota.'
-        },
-        { // 8
-            element: '#modalSeparateBtn',
-            title: 'Dividir Nota',
-            text: 'Ahora, haz clic en el botón "SPLIT" para ver la nota dividida en secciones.',
+            element: '#btnSee',
+            title: 'Ver Nota Final',
+            text: 'Ahora, haz clic en el botón "SEE" para generar la nota completa. Esto abrirá un nuevo modal y finalizará el tour.',
             isManualAction: true
-        },
-        { // 9
-            element: '#separateNoteModalOverlay .modal-content',
-            title: 'Nota Dividida',
-            text: 'Perfecto. Ahora haz clic en el botón "COPY AND SAVE" para simular que guardas la nota y ver el historial.',
-            isManualAction: true
-        },
-        { // 10
-            element: '#historySidebar',
-            title: 'Panel de Historial',
-            text: '¡Bien! La nota se "guardó" y el panel de historial se abrió. Aquí puedes ver todas tus notas anteriores.'
-        },
-        { // 11
-            element: '#historySearchInput',
-            title: 'Barra de Búsqueda',
-            text: 'Puedes usar esta barra para buscar rápidamente entre tus notas guardadas.'
-        },
-        { // 12
-            element: '.note-history-list .note-item:first-child',
-            title: 'Nota Guardada',
-            text: 'Así se ve una nota en el historial. ¡Has completado el tour! Haz clic en "Finalizar".'
         }
     ];
 
@@ -107,16 +80,8 @@
         const targetElement = document.querySelector(step.element);
 
         if (!targetElement) {
-            setTimeout(() => {
-                const elementAfterWait = document.querySelector(step.element);
-                if (elementAfterWait) {
-                    showStep(stepIndex);
-                } else {
-                    console.error(`Elemento del tutorial no encontrado: ${step.element}. Finalizando tour.`);
-                    endTour();
-                }
-            }, 300);
-            return;
+            console.error(`Elemento del tutorial no encontrado: ${step.element}`);
+            return endTour();
         }
         
         if (highlightedElement) {
@@ -140,7 +105,7 @@
         doneBtn.classList.toggle('hidden', !isLastStep);
 
         if (step.isManualAction) {
-            prepareManualAction(targetElement, stepIndex);
+            prepareManualAction(targetElement);
         }
     }
 
@@ -211,33 +176,16 @@
             section.querySelector('.section-title')?.click();
         }
         if (sections.length > 0) {
-            await waitForTransition(sections[sections.length - 1]);
-        }
-    }
-    
-    async function collapseAllSections() {
-        const sections = document.querySelectorAll('.form-section:not(.collapsed)');
-        for (const section of sections) {
-            section.querySelector('.section-title')?.click();
-        }
-        if (sections.length > 0) {
+            // Esperamos solo la última animación para ser eficientes
             await waitForTransition(sections[sections.length - 1]);
         }
     }
 
-    function prepareManualAction(targetElement, stepIndex) {
-        targetElement.addEventListener('click', async () => {
-            if (stepIndex === 9) { // Clic en "COPY AND SAVE"
-                // Simular cierre de modales y apertura de historial
-                document.getElementById('separateNoteModalOverlay').style.display = 'none';
-                document.getElementById('noteModalOverlay').style.display = 'none';
-                document.getElementById('btnHistory').click();
-            }
-            // Esperar un poco a que aparezca el siguiente elemento
-            setTimeout(() => {
-                currentStep++;
-                showStep(currentStep);
-            }, 300);
+    function prepareManualAction(targetElement) {
+        targetElement.addEventListener('click', () => {
+            // La lógica de la app se encarga de abrir el modal.
+            // El tour simplemente termina.
+            endTour();
         }, { once: true });
     }
 
@@ -259,49 +207,15 @@
     });
 
     doneBtn.addEventListener('click', () => {
+        // El botón Done ahora simplemente finaliza el tour.
         endTour();
     });
 
     // --- Lógica de Inicio (Estable y Correcta) ---
-    function createSampleNoteIfNeeded() {
-        const dbName = 'noteAppDB';
-        const request = indexedDB.open(dbName);
-    
-        request.onsuccess = function(event) {
-            const db = event.target.result;
-            const transaction = db.transaction(['notes'], 'readonly');
-            const objectStore = transaction.objectStore('notes');
-            const countRequest = objectStore.count();
-    
-            countRequest.onsuccess = function() {
-                if (countRequest.result === 0) {
-                    const addTransaction = db.transaction(['notes'], 'readwrite');
-                    const addObjectStore = addTransaction.objectStore('notes');
-                    const sampleNote = {
-                        id: `sample-${Date.now()}`,
-                        ban: '123456789',
-                        cid: '987654321',
-                        name: 'John Doe (Sample)',
-                        cbr: '1122334455',
-                        timestamp: new Date().toISOString(),
-                        note: 'Esta es una nota de ejemplo para el tutorial.',
-                        formData: {} // Puedes añadir datos del formulario si es necesario
-                    };
-                    addObjectStore.add(sampleNote);
-                }
-            };
-            db.close();
-        };
-        request.onerror = function(event) {
-            console.error("Error al abrir la base de datos para crear nota de ejemplo:", event.target.errorCode);
-        };
-    }
-
     function checkAndShowWelcomeModal() {
         if (localStorage.getItem('tutorialCompleted') === 'true') {
             return;
         }
-        createSampleNoteIfNeeded(); // Asegura que la nota de ejemplo exista
         const welcomeModal = document.getElementById('welcomeModalOverlay');
         const startBtn = document.getElementById('startTakingNotesBtn');
         const nameInput = document.getElementById('welcomeAgentNameInput');
