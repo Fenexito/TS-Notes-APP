@@ -54,13 +54,13 @@
             element: '#callNoteForm',
             title: 'Vista Expandida',
             text: 'Todas las secciones están ahora visibles. Presiona "Siguiente" para continuar y generar la nota final.',
-            position: 'left-center' // Posición especial
+            position: 'left-center'
         },
         { // PASO 8
             element: '#btnSee',
             title: 'Ver Nota Final',
             text: 'Al presionar "Siguiente", se generará la nota completa y se mostrará en un nuevo modal.',
-            action: () => document.querySelector('#btnSee').click() // Acción automática
+            action: () => document.querySelector('#btnSee').click()
         },
         { // PASO 9
             element: '#noteModalOverlay .modal-content',
@@ -71,66 +71,34 @@
             element: '#modalSeparateBtn',
             title: 'Dividir Nota',
             text: 'Al presionar "Siguiente", se dividirá la nota y se mostrará en un nuevo modal.',
-            action: () => document.querySelector('#modalSeparateBtn').click()
+            action: () => document.querySelector('#modalSeparateBtn').click(),
+            isModalAction: true // Indica que la acción ocurre dentro de un modal
         },
         { // PASO 11
             element: '#separateNoteModalOverlay .modal-content',
             title: 'Nota Dividida',
-            text: 'Perfecto. Al presionar "Siguiente", se simulará que guardas la nota y se abrirá el historial.',
+            text: 'Perfecto. Ahora presiona "Siguiente" para resaltar el botón de guardado.'
+        },
+        { // PASO 12
+            element: '#separateModalCopySaveBtn',
+            title: 'Guardar Nota',
+            text: 'Al presionar "Siguiente", se simulará que guardas la nota y se abrirá el historial.',
             action: () => {
                 document.getElementById('separateNoteModalOverlay').style.display = 'none';
                 document.getElementById('noteModalOverlay').style.display = 'none';
-                document.getElementById('btnHistory').click();
-            }
-        },
-        { // PASO 12
-            element: '#historySidebar',
-            title: 'Panel de Historial',
-            text: '¡Bien! La nota se "guardó" y el panel de historial se abrió. Aquí puedes ver todas tus notas anteriores.'
+            },
+            isModalAction: true
         },
         { // PASO 13
-            element: '#historySearchInput',
-            title: 'Barra de Búsqueda',
-            text: 'Puedes usar esta barra para buscar rápidamente entre tus notas guardadas.'
+            element: '#btnHistory',
+            title: 'Abrir Historial',
+            text: 'El botón de historial ahora está resaltado. Presiona "Siguiente" para abrir el panel.',
+            action: () => document.querySelector('#btnHistory').click()
         },
         { // PASO 14
-            element: '.note-history-list .note-item:first-child',
-            title: 'Nota Guardada',
-            text: 'Así se ve una nota en el historial. Cada nota guardada aparecerá aquí.'
-        },
-        { // PASO 15
-            element: '#historyactionsfooter',
-            title: 'Importar y Exportar',
-            text: 'Desde aquí puedes exportar todas tus notas a un archivo o importar notas desde otro dispositivo.'
-        },
-        { // PASO 16
-            element: '#closeHistoryBtn',
-            title: 'Cerrar Historial',
-            text: 'Al presionar "Siguiente", se cerrará el panel de historial.',
-            action: () => document.querySelector('#closeHistoryBtn').click()
-        },
-        { // PASO 17
-            element: '#btnChecklistMenu',
-            title: 'Menú de Checklist',
-            text: 'Este botón abre un menú con checklists útiles para tus llamadas. Al presionar "Siguiente", se abrirá.',
-            action: () => document.querySelector('#btnChecklistMenu').click()
-        },
-        { // PASO 18
-            element: '#checklistSidebar',
-            title: 'Checklist',
-            text: 'Este es el menú de checklist. Al presionar "Siguiente", se cerrará.',
-            action: () => document.querySelector('#closeChecklistBtn').click()
-        },
-        { // PASO 19
-            element: '#feedback-btn',
-            title: 'Enviar Comentarios',
-            text: 'Si tienes alguna idea o encuentras un problema, puedes enviarnos tus comentarios desde aquí.'
-        },
-        { // PASO 20
-            element: 'body',
-            title: '¡Todo Listo!',
-            text: 'Has completado el tour y estás listo para empezar a tomar notas. ¡Éxito!',
-            position: 'center'
+            element: '#historySidebar',
+            title: 'Panel de Historial',
+            text: '¡Excelente! Has llegado al final del tour. Haz clic en "Finalizar".'
         }
     ];
 
@@ -169,7 +137,13 @@
         popoverTitle.textContent = step.title;
         popoverText.textContent = step.text;
         
+        // Lógica de overlay y resaltado
         overlay.classList.remove('hidden');
+        if (step.isModalAction) {
+            // No usamos el overlay global, el modal actúa como su propio overlay
+            overlay.classList.add('hidden');
+        }
+        
         popover.classList.remove('hidden');
         
         targetElement.classList.add('tutorial-highlight');
@@ -208,7 +182,7 @@
                 top = window.innerHeight / 2 - popoverRect.height / 2;
                 left = window.innerWidth / 2 - popoverRect.width / 2;
                 break;
-            default: // bottom-center
+            default:
                 top = targetRect.bottom + 15;
                 left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2);
                 break;
