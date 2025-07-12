@@ -1730,29 +1730,26 @@ textarea {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgb(255 255 255 / 5%);
-    z-index: 10000;
+    background-color: rgba(0, 0, 0, 0.6); /* oscurecimiento */
+    z-index: 9997; /* justo debajo del popover y del highlight */
+    pointer-events: none; /* permite clic solo en elementos por encima */
+    transition: opacity 0.3s ease;
 }
 
-/* El elemento que será resaltado por el tour */
 .tutorial-highlight {
     position: relative;
-    z-index: 10001;
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
+    z-index: 9998 !important; /* resalta sobre el overlay */
+    box-shadow: 0 0 0 3px #fff, 0 0 15px rgba(255, 255, 255, 0.6);
     border-radius: 4px;
 }
 
-/* El popover o cuadro de diálogo del tutorial */
 #custom-tutorial-popover {
-    position: absolute; /* Se posicionará con JavaScript */
-    background: #ffffff;
-    color: #000000;
-    padding: 15px;
-    border-radius: 8px;
-    z-index: 10002;
-    max-width: 350px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    border: 1px solid #555;
+    position: fixed;
+    z-index: 9999 !important; /* siempre encima */
+    background: #fff;
+    padding: 16px;
+    border-radius: 6px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
 }
 
 #tutorial-popover-title {
