@@ -171,10 +171,19 @@
         targetElement.classList.add('tutorial-highlight');
         highlightedElement = targetElement;
         
-        // 4. Usar requestAnimationFrame para posicionar y luego mostrar.
-        // ESTA ES LA CORRECCIÓN CLAVE PARA EVITAR QUE EL POPOVER NO APAREZCA.
+        // 4. LÓGICA DE POSICIONAMIENTO CORREGIDA
+        // Hacemos el popover visible pero transparente para medirlo
+        popover.style.visibility = 'visible';
+        popover.style.opacity = '0';
+
+        // Forzamos el recálculo del layout leyendo una propiedad.
+        // Esto garantiza que getBoundingClientRect() devuelva valores correctos.
+        void popover.offsetHeight; 
+
         requestAnimationFrame(() => {
             positionPopover(targetElement, step.position);
+            // Hacemos el popover visible con la transición de CSS
+            popover.style.opacity = '1';
             popover.classList.add('active');
         });
 
@@ -185,13 +194,14 @@
         doneBtn.classList.toggle('hidden', !isLastStep);
 
         if (step.isManualAction) {
-            prepareManualAction(targetElement, step.manualActionTarget);
+            prepareManualAction(targetElement, step.manualActionTarget, stepIndex);
         }
     }
 
     function endTour() {
         overlay.classList.add('hidden');
         popover.classList.remove('active');
+        popover.style.visibility = 'hidden';
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
         }
@@ -202,7 +212,6 @@
 
     function positionPopover(targetElement, position = 'bottom-center') {
         const targetRect = targetElement.getBoundingClientRect();
-        // Ahora el popover es medible porque esta lógica se ejecuta en el siguiente frame de animación
         const popoverRect = popover.getBoundingClientRect();
         let top, left;
 
@@ -271,12 +280,12 @@
         if (sections.length > 0) await waitForTransition(sections[sections.length - 1]);
     }
 
-    function prepareManualAction(targetElement, manualActionTargetSelector) {
+    function prepareManualAction(targetElement, manualActionTargetSelector, stepIndex) {
         const actionElement = manualActionTargetSelector ? document.querySelector(manualActionTargetSelector) : targetElement;
         
         actionElement.addEventListener('click', async () => {
             // Lógica especial para el botón "COPY AND SAVE"
-            if (targetElement.id === 'separateNoteModalCopySaveBtn') {
+            if (stepIndex === 11) { // PASO 11
                 document.getElementById('separateNoteModalOverlay').style.display = 'none';
                 document.getElementById('noteModalOverlay').style.display = 'none';
                 document.getElementById('btnHistory').click();
@@ -306,8 +315,6 @@
 
     // --- Lógica de Inicio (Estable y Correcta) ---
     function createSampleNoteIfNeeded() {
-        // Esta función asume que tu app ya maneja la creación de la DB.
-        // Solo intenta leer para ver si está vacía.
         try {
             const dbName = 'noteAppDB';
             const request = indexedDB.open(dbName);
