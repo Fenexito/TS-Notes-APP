@@ -1716,7 +1716,7 @@ textarea {
 
 
 
-/* =============== ESTILOS PARA EL TUTORIAL PERSONALIZADO (V3 - TEMA CLARO) =============== */
+/* =============== ESTILOS PARA EL TUTORIAL PERSONALIZADO (V4 - TEMA CLARO) =============== */
 
 /* --- Clases de Control --- */
 .hidden {
@@ -1739,28 +1739,36 @@ textarea {
 
 /* --- Elementos del Tutorial --- */
 
-/* El elemento resaltado crea el efecto de "agujero" con fondo oscuro */
-.tutorial-highlight {
-    position: relative;
-    /* La sombra enorme cubre todo excepto el elemento, creando el fondo oscuro */
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
-    z-index: 10001;
-    border-radius: 5px;
-    /* Transición suave al cambiar de elemento */
-    transition: box-shadow 0.3s ease-in-out;
+/* 1. El overlay es una capa oscura semitransparente que cubre todo */
+#custom-tutorial-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(45, 55, 72, 0.7); /* Un gris oscuro/azulado */
+    z-index: 10000;
 }
 
-/* El popover o cuadro de diálogo del tutorial (AHORA CON TEMA CLARO) */
+/* 2. El elemento resaltado se coloca ENCIMA del overlay */
+.tutorial-highlight {
+    position: relative; /* Necesario para que z-index funcione correctamente */
+    z-index: 10001;
+    border-radius: 5px;
+    /* Ya no necesita la sombra 'box-shadow' para el efecto de fondo */
+}
+
+/* 3. El popover se coloca encima de todo lo demás */
 #custom-tutorial-popover {
-    position: fixed; /* Se posiciona relativo a la ventana para evitar problemas de scroll */
-    background: #ffffff; /* Fondo blanco */
-    color: #2d3748;   /* Texto oscuro */
+    position: fixed; /* Se posiciona relativo a la ventana */
+    background: #ffffff;
+    color: #2d3748;
     padding: 1rem;
     border-radius: 8px;
     z-index: 10002;
     max-width: 380px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2); /* Sombra más sutil */
-    border: 1px solid #e2e8f0; /* Borde gris claro */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    border: 1px solid #e2e8f0;
 }
 
 #tutorial-popover-title {
@@ -1768,8 +1776,8 @@ textarea {
     font-weight: bold;
     margin-bottom: 0.75rem;
     padding-bottom: 0.75rem;
-    border-bottom: 1px solid #e2e8f0; /* Borde separador claro */
-    color: #1a202c; /* Título muy oscuro */
+    border-bottom: 1px solid #e2e8f0;
+    color: #1a202c;
 }
 
 #tutorial-popover-text {
@@ -1785,7 +1793,7 @@ textarea {
 }
 
 .tutorial-popover-actions button {
-    background: #3182ce; /* Azul principal */
+    background: #3182ce;
     color: white;
     border: none;
     padding: 0.5rem 1rem;
@@ -1796,12 +1804,12 @@ textarea {
 }
 
 .tutorial-popover-actions button:hover {
-    background: #2b6cb0; /* Azul más oscuro al pasar el ratón */
+    background: #2b6cb0;
 }
 
 .tutorial-popover-actions button#tutorial-prev-btn {
-    background-color: #e2e8f0; /* Fondo gris claro */
-    color: #4a5568; /* Texto gris oscuro */
+    background-color: #e2e8f0;
+    color: #4a5568;
 }
 .tutorial-popover-actions button#tutorial-prev-btn:hover {
     background-color: #cbd5e0;
