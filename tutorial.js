@@ -59,8 +59,8 @@
         { // PASO 8
             element: '#btnSee',
             title: 'Ver Nota Final',
-            text: 'Ahora, haz clic en el botón "SEE" para generar la nota completa. Esto abrirá un nuevo modal.',
-            isManualAction: true
+            text: 'Al presionar "Siguiente", se generará la nota completa y se mostrará en un nuevo modal.',
+            action: () => document.querySelector('#btnSee').click() // Acción automática
         },
         { // PASO 9
             element: '#noteModalOverlay .modal-content',
@@ -70,14 +70,18 @@
         { // PASO 10
             element: '#modalSeparateBtn',
             title: 'Dividir Nota',
-            text: 'Ahora, haz clic en el botón "SPLIT" para ver la nota dividida en secciones.',
-            isManualAction: true
+            text: 'Al presionar "Siguiente", se dividirá la nota y se mostrará en un nuevo modal.',
+            action: () => document.querySelector('#modalSeparateBtn').click()
         },
         { // PASO 11
             element: '#separateNoteModalOverlay .modal-content',
             title: 'Nota Dividida',
-            text: 'Perfecto. Ahora haz clic en el botón "COPY AND SAVE" para simular que guardas la nota y ver el historial.',
-            isManualAction: true
+            text: 'Perfecto. Al presionar "Siguiente", se simulará que guardas la nota y se abrirá el historial.',
+            action: () => {
+                document.getElementById('separateNoteModalOverlay').style.display = 'none';
+                document.getElementById('noteModalOverlay').style.display = 'none';
+                document.getElementById('btnHistory').click();
+            }
         },
         { // PASO 12
             element: '#historySidebar',
@@ -102,21 +106,20 @@
         { // PASO 16
             element: '#closeHistoryBtn',
             title: 'Cerrar Historial',
-            text: 'Haz clic en el botón de cerrar para continuar.',
-            isManualAction: true
+            text: 'Al presionar "Siguiente", se cerrará el panel de historial.',
+            action: () => document.querySelector('#closeHistoryBtn').click()
         },
         { // PASO 17
             element: '#btnChecklistMenu',
             title: 'Menú de Checklist',
-            text: 'Este botón abre un menú con checklists útiles para tus llamadas. Haz clic en él para abrirlo.',
-            isManualAction: true
+            text: 'Este botón abre un menú con checklists útiles para tus llamadas. Al presionar "Siguiente", se abrirá.',
+            action: () => document.querySelector('#btnChecklistMenu').click()
         },
         { // PASO 18
             element: '#checklistSidebar',
             title: 'Checklist',
-            text: 'Este es el menú de checklist. Haz clic en el botón de cerrar para continuar.',
-            isManualAction: true,
-            manualActionTarget: '#closeChecklistBtn'
+            text: 'Este es el menú de checklist. Al presionar "Siguiente", se cerrará.',
+            action: () => document.querySelector('#closeChecklistBtn').click()
         },
         { // PASO 19
             element: '#feedback-btn',
@@ -145,6 +148,13 @@
         }
         
         const step = steps[stepIndex];
+        
+        // Limpiar resaltado anterior ANTES de buscar el nuevo elemento
+        if (highlightedElement) {
+            highlightedElement.classList.remove('tutorial-highlight');
+            highlightedElement = null;
+        }
+
         const targetElement = document.querySelector(step.element);
 
         if (!targetElement) {
@@ -156,16 +166,11 @@
             return;
         }
         
-        if (highlightedElement) {
-            highlightedElement.classList.remove('tutorial-highlight');
-        }
-        
         popoverTitle.textContent = step.title;
         popoverText.textContent = step.text;
         
-        // LÓGICA DE VISIBILIDAD CORREGIDA Y SIMPLIFICADA
         overlay.classList.remove('hidden');
-        popover.classList.remove('hidden'); // <-- HACE EL POPOVER VISIBLE Y MEDIBLE
+        popover.classList.remove('hidden');
         
         targetElement.classList.add('tutorial-highlight');
         highlightedElement = targetElement;
@@ -174,12 +179,8 @@
 
         const isLastStep = stepIndex === steps.length - 1;
         prevBtn.classList.toggle('hidden', stepIndex === 0);
-        nextBtn.classList.toggle('hidden', step.isManualAction || isLastStep);
+        nextBtn.classList.toggle('hidden', isLastStep);
         doneBtn.classList.toggle('hidden', !isLastStep);
-
-        if (step.isManualAction) {
-            prepareManualAction(targetElement, step.manualActionTarget, stepIndex);
-        }
     }
 
     function endTour() {
@@ -261,24 +262,6 @@
         const sections = document.querySelectorAll('.form-section:not(.collapsed)');
         for (const section of sections) { section.querySelector('.section-title')?.click(); }
         if (sections.length > 0) await waitForTransition(sections[sections.length - 1]);
-    }
-
-    function prepareManualAction(targetElement, manualActionTargetSelector, stepIndex) {
-        const actionElement = manualActionTargetSelector ? document.querySelector(manualActionTargetSelector) : targetElement;
-        
-        actionElement.addEventListener('click', async () => {
-            // Lógica especial para el botón "COPY AND SAVE"
-            if (stepIndex === 11) { // PASO 11
-                document.getElementById('separateNoteModalOverlay').style.display = 'none';
-                document.getElementById('noteModalOverlay').style.display = 'none';
-                document.getElementById('btnHistory').click();
-            }
-            
-            setTimeout(() => {
-                currentStep++;
-                showStep(currentStep);
-            }, 300);
-        }, { once: true });
     }
 
     // --- Event Listeners de los botones del tutorial ---
