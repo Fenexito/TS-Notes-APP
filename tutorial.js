@@ -11,8 +11,7 @@
     const doneBtn = document.getElementById('tutorial-done-btn');
     
     let currentStep = 0;
-    let highlightedElement = null;
-
+    
     // --- Definición de los Pasos del Tutorial ---
     const steps = [
         { // PASO 1
@@ -65,19 +64,21 @@
         { // PASO 9
             element: '#noteModalOverlay .modal-content',
             title: 'Nota Final Generada',
-            text: 'Esta es la nota completa. Presiona "Siguiente" para continuar.'
+            text: 'Esta es la nota completa. Presiona "Siguiente" para continuar.',
+            isModalAction: true
         },
         { // PASO 10
             element: '#modalSeparateBtn',
             title: 'Dividir Nota',
             text: 'Al presionar "Siguiente", se dividirá la nota y se mostrará en un nuevo modal.',
             action: () => document.querySelector('#modalSeparateBtn').click(),
-            isModalAction: true // Indica que la acción ocurre dentro de un modal
+            isModalAction: true
         },
         { // PASO 11
             element: '#separateNoteModalOverlay .modal-content',
             title: 'Nota Dividida',
-            text: 'Perfecto. Ahora presiona "Siguiente" para resaltar el botón de guardado.'
+            text: 'Perfecto. Ahora presiona "Siguiente" para resaltar el botón de guardado.',
+            isModalAction: true
         },
         { // PASO 12
             element: '#separateModalCopySaveBtn',
@@ -86,16 +87,11 @@
             action: () => {
                 document.getElementById('separateNoteModalOverlay').style.display = 'none';
                 document.getElementById('noteModalOverlay').style.display = 'none';
+                document.getElementById('btnHistory').click();
             },
             isModalAction: true
         },
         { // PASO 13
-            element: '#btnHistory',
-            title: 'Abrir Historial',
-            text: 'El botón de historial ahora está resaltado. Presiona "Siguiente" para abrir el panel.',
-            action: () => document.querySelector('#btnHistory').click()
-        },
-        { // PASO 14
             element: '#historySidebar',
             title: 'Panel de Historial',
             text: '¡Excelente! Has llegado al final del tour. Haz clic en "Finalizar".'
@@ -117,10 +113,10 @@
         
         const step = steps[stepIndex];
         
-        // Limpiar resaltado anterior ANTES de buscar el nuevo elemento
-        if (highlightedElement) {
-            highlightedElement.classList.remove('tutorial-highlight');
-            highlightedElement = null;
+        // Limpiar resaltado anterior de forma robusta
+        const previousHighlight = document.querySelector('.tutorial-highlight');
+        if (previousHighlight) {
+            previousHighlight.classList.remove('tutorial-highlight');
         }
 
         const targetElement = document.querySelector(step.element);
@@ -138,16 +134,15 @@
         popoverText.textContent = step.text;
         
         // Lógica de overlay y resaltado
-        overlay.classList.remove('hidden');
         if (step.isModalAction) {
-            // No usamos el overlay global, el modal actúa como su propio overlay
             overlay.classList.add('hidden');
+        } else {
+            overlay.classList.remove('hidden');
         }
         
         popover.classList.remove('hidden');
         
         targetElement.classList.add('tutorial-highlight');
-        highlightedElement = targetElement;
         
         positionPopover(targetElement, step.position);
 
@@ -160,8 +155,9 @@
     function endTour() {
         overlay.classList.add('hidden');
         popover.classList.add('hidden');
-        if (highlightedElement) {
-            highlightedElement.classList.remove('tutorial-highlight');
+        const finalHighlight = document.querySelector('.tutorial-highlight');
+        if (finalHighlight) {
+            finalHighlight.classList.remove('tutorial-highlight');
         }
         localStorage.setItem('tutorialCompleted', 'true');
     }
