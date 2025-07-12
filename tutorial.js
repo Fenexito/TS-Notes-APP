@@ -11,8 +11,8 @@
     const doneBtn = document.getElementById('tutorial-done-btn');
     
     let currentStep = 0;
-    let highlightedElement = null; // Variable para mantener una referencia directa al elemento resaltado
-    
+    let highlightedElement = null;
+
     // --- Definición de los Pasos del Tutorial ---
     const steps = [
         { // PASO 1
@@ -47,41 +47,35 @@
         { // PASO 6
             element: '#seccion4-wrapper',
             title: 'Resolución de la Llamada',
-            text: 'Finalmente, documenta aquí el resultado de la llamada. Al presionar "Siguiente", todas las secciones se expandirán.',
-            action: () => expandAllSections()
+            text: 'Finalmente, documenta aquí el resultado de la llamada. Presiona "Siguiente" para continuar.',
+            action: () => collapseAllSections()
         },
         { // PASO 7
-            element: '#callNoteForm',
-            title: 'Vista Expandida',
-            text: 'Todas las secciones están ahora visibles. Presiona "Siguiente" para continuar y generar la nota final.',
-            position: 'left-center'
-        },
-        { // PASO 8
             element: '#btnSee',
             title: 'Ver Nota Final',
             text: 'Al presionar "Siguiente", se generará la nota completa y se mostrará en un nuevo modal.',
             action: () => document.querySelector('#btnSee').click()
         },
-        { // PASO 9
+        { // PASO 8
             element: '#noteModalOverlay .modal-content',
             title: 'Nota Final Generada',
             text: 'Esta es la nota completa. Presiona "Siguiente" para continuar.',
             isModalAction: true
         },
-        { // PASO 10
+        { // PASO 9
             element: '#modalSeparateBtn',
             title: 'Dividir Nota',
             text: 'Al presionar "Siguiente", se dividirá la nota y se mostrará en un nuevo modal.',
             action: () => document.querySelector('#modalSeparateBtn').click(),
             isModalAction: true
         },
-        { // PASO 11
+        { // PASO 10
             element: '#separateNoteModalOverlay .modal-content',
             title: 'Nota Dividida',
             text: 'Perfecto. Ahora presiona "Siguiente" para resaltar el botón de guardado.',
             isModalAction: true
         },
-        { // PASO 12
+        { // PASO 11
             element: '#separateModalCopySaveBtn',
             title: 'Guardar Nota',
             text: 'Al presionar "Siguiente", se simulará que guardas la nota y se abrirá el historial.',
@@ -92,7 +86,7 @@
             },
             isModalAction: true
         },
-        { // PASO 13
+        { // PASO 12
             element: '#historySidebar',
             title: 'Panel de Historial',
             text: '¡Excelente! Has llegado al final del tour. Haz clic en "Finalizar".'
@@ -114,8 +108,7 @@
         
         const step = steps[stepIndex];
         
-        // --- LÓGICA DE RESALTADO CORREGIDA ---
-        // 1. Limpiar el resaltado anterior usando la referencia directa.
+        // Limpiar resaltado anterior de forma robusta
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
         }
@@ -131,22 +124,21 @@
             return;
         }
         
+        // Lógica de visibilidad corregida
+        popover.classList.remove('active');
+        overlay.classList.remove('hidden');
+        
         popoverTitle.textContent = step.title;
         popoverText.textContent = step.text;
         
-        if (step.isModalAction) {
-            overlay.classList.add('hidden');
-        } else {
-            overlay.classList.remove('hidden');
-        }
-        
-        popover.classList.remove('hidden');
-        
-        // 2. Aplicar el nuevo resaltado y guardar la referencia.
         targetElement.classList.add('tutorial-highlight');
         highlightedElement = targetElement;
         
-        positionPopover(targetElement, step.position);
+        // Usar requestAnimationFrame para asegurar que el popover es medible antes de posicionarlo
+        requestAnimationFrame(() => {
+            positionPopover(targetElement, step.position);
+            popover.classList.add('active');
+        });
 
         const isLastStep = stepIndex === steps.length - 1;
         prevBtn.classList.toggle('hidden', stepIndex === 0);
@@ -156,11 +148,9 @@
 
     function endTour() {
         overlay.classList.add('hidden');
-        popover.classList.add('hidden');
-        // Limpiar el último resaltado al finalizar
+        popover.classList.remove('active');
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
-            highlightedElement = null;
         }
         localStorage.setItem('tutorialCompleted', 'true');
     }
@@ -176,10 +166,6 @@
             case 'left-center':
                 top = targetRect.top + (targetRect.height / 2) - (popoverRect.height / 2);
                 left = targetRect.left - popoverRect.width - 15;
-                break;
-            case 'center':
-                top = window.innerHeight / 2 - popoverRect.height / 2;
-                left = window.innerWidth / 2 - popoverRect.width / 2;
                 break;
             default:
                 top = targetRect.bottom + 15;
@@ -224,16 +210,12 @@
             await waitForTransition(expandSection);
         }
     }
-
-    async function expandAllSections() {
-        const sections = document.querySelectorAll('.form-section.collapsed');
-        for (const section of sections) { section.querySelector('.section-title')?.click(); }
-        if (sections.length > 0) await waitForTransition(sections[sections.length - 1]);
-    }
     
     async function collapseAllSections() {
         const sections = document.querySelectorAll('.form-section:not(.collapsed)');
-        for (const section of sections) { section.querySelector('.section-title')?.click(); }
+        for (const section of sections) {
+            section.querySelector('.section-title')?.click();
+        }
         if (sections.length > 0) await waitForTransition(sections[sections.length - 1]);
     }
 
@@ -253,40 +235,9 @@
     doneBtn.addEventListener('click', endTour);
 
     // --- Lógica de Inicio (Estable y Correcta) ---
-    function createSampleNoteIfNeeded() {
-        try {
-            const dbName = 'noteAppDB';
-            const request = indexedDB.open(dbName);
-            request.onsuccess = function(event) {
-                const db = event.target.result;
-                if (!db.objectStoreNames.contains('notes')) {
-                    db.close(); return;
-                }
-                const transaction = db.transaction(['notes'], 'readonly');
-                const objectStore = transaction.objectStore('notes');
-                const countRequest = objectStore.count();
-                countRequest.onsuccess = function() {
-                    if (countRequest.result === 0) {
-                        const addTransaction = db.transaction(['notes'], 'readwrite');
-                        const addObjectStore = addTransaction.objectStore('notes');
-                        const sampleNote = {
-                            id: `sample-${Date.now()}`,
-                            ban: '123456789', cid: '987654321', name: 'John Doe (Sample)', cbr: '1122334455',
-                            timestamp: new Date().toISOString(),
-                            note: 'Esta es una nota de ejemplo para el tutorial.', formData: {}
-                        };
-                        addObjectStore.add(sampleNote);
-                    }
-                };
-                db.close();
-            };
-        } catch (e) { console.error("No se pudo verificar/crear la nota de ejemplo:", e); }
-    }
-
     function checkAndShowWelcomeModal() {
         if (localStorage.getItem('tutorialCompleted') === 'true') return;
         
-        createSampleNoteIfNeeded();
         const welcomeModal = document.getElementById('welcomeModalOverlay');
         const startBtn = document.getElementById('startTakingNotesBtn');
         const nameInput = document.getElementById('welcomeAgentNameInput');
