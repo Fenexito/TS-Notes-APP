@@ -15,47 +15,47 @@
 
     // --- Definición de los Pasos del Tutorial ---
     const steps = [
-        { // 0
+        { // PASO 1
             element: '.sticky-header-container',
             title: 'Encabezado Principal',
             text: 'Esta es la barra de acciones principal. Aquí encuentras los botones para ver, guardar y reiniciar tu nota.'
         },
-        { // 1
+        { // PASO 2
             element: '#callNoteForm',
             title: 'Tu Espacio de Trabajo',
             text: 'Este es el formulario principal. Al presionar "Siguiente", la primera sección se expandirá automáticamente.',
             action: () => expandSection('#seccion1')
         },
-        { // 2
+        { // PASO 3
             element: '#seccion1-wrapper',
             title: 'Información de la Cuenta',
             text: '¡Excelente! Al presionar "Siguiente", esta sección se colapsará y continuaremos con la próxima.',
             action: () => switchSection('#seccion1', '#seccion2')
         },
-        { // 3
+        { // PASO 4
             element: '#seccion2-wrapper',
             title: 'Detalles del Problema',
             text: 'Ahora se ha expandido la sección de "Detalles del Problema".',
             action: () => switchSection('#seccion2', '#seccion3')
         },
-        { // 4
+        { // PASO 5
             element: '#seccion3-wrapper',
             title: 'Análisis WiFi y TVS',
             text: 'Esta es la sección de "Análisis WiFi y TVS".',
             action: () => switchSection('#seccion3', '#seccion4')
         },
-        { // 5
+        { // PASO 6
             element: '#seccion4-wrapper',
             title: 'Resolución de la Llamada',
             text: 'Finalmente, documenta aquí el resultado de la llamada. Al presionar "Siguiente", todas las secciones se expandirán.',
             action: () => expandAllSections()
         },
-        { // 6 (NUEVO PASO INTERMEDIO)
+        { // PASO 7
             element: '#callNoteForm',
             title: 'Vista Expandida',
             text: 'Todas las secciones están ahora visibles. Presiona "Siguiente" para continuar y generar la nota final.'
         },
-        { // 7
+        { // PASO 8
             element: '#btnSee',
             title: 'Ver Nota Final',
             text: 'Ahora, haz clic en el botón "SEE" para generar la nota completa. Esto abrirá un nuevo modal y finalizará el tour.',
