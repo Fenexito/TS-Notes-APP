@@ -1,51 +1,61 @@
 // Se utiliza una IIFE para evitar conflictos.
 (function() {
-    // --- Configuración del Tutorial ---
-    const steps = [
-        {
-            element: '.sticky-header-container',
-            title: 'Encabezado Principal',
-            text: 'Esta es la barra de acciones principal. Aquí encuentras los botones para ver, guardar y reiniciar tu nota.'
-        },
-        {
-            element: '#callNoteForm',
-            title: 'Tu Espacio de Trabajo',
-            text: 'Este es el formulario principal. Al presionar "Siguiente", la primera sección se expandirá automáticamente.',
-            action: () => expandSection('#seccion1 .section-title', '#seccion1')
-        },
-        {
-            element: '#seccion1-wrapper',
-            title: 'Información de la Cuenta',
-            text: '¡Excelente! La primera sección se ha expandido. Al presionar "Siguiente", continuaremos con la próxima.',
-            action: () => expandSection('#seccion2 .section-title', '#seccion2')
-        },
-        {
-            element: '#seccion2-wrapper',
-            title: 'Detalles del Problema',
-            text: 'Ahora se ha expandido la sección de "Detalles del Problema".',
-            action: () => expandSection('#seccion3 .section-title', '#seccion3')
-        },
-        {
-            element: '#seccion3-wrapper',
-            title: 'Análisis WiFi y TVS',
-            text: 'Esta es la sección de "Análisis WiFi y TVS".',
-            action: () => expandSection('#seccion4 .section-title', '#seccion4')
-        },
-        {
-            element: '#seccion4-wrapper',
-            title: 'Resolución de la Llamada',
-            text: '¡Has completado la parte interactiva! Haz clic en "Finalizar" para ver la nota completa y terminar el tour.'
-        }
-    ];
 
-    let currentStep = -1;
-    const overlay = document.getElementById('custom-tutorial-overlay');
+    // --- Elementos del DOM ---
     const popover = document.getElementById('custom-tutorial-popover');
     const popoverTitle = document.getElementById('tutorial-popover-title');
     const popoverText = document.getElementById('tutorial-popover-text');
     const prevBtn = document.getElementById('tutorial-prev-btn');
     const nextBtn = document.getElementById('tutorial-next-btn');
     const doneBtn = document.getElementById('tutorial-done-btn');
+    let currentStep = -1;
+    let highlightedElement = null;
+
+    // --- Definición de los Pasos del Tutorial ---
+    const steps = [
+        { // 0
+            element: '.sticky-header-container',
+            title: 'Encabezado Principal',
+            text: 'Esta es la barra de acciones principal. Aquí encuentras los botones para ver, guardar y reiniciar tu nota.'
+        },
+        { // 1
+            element: '#callNoteForm',
+            title: 'Formulario de Notas',
+            text: 'Este es el formulario principal donde ingresarás toda la información. Al presionar "Siguiente", la primera sección se expandirá automáticamente.'
+        },
+        { // 2
+            element: '#seccion1-wrapper',
+            title: 'Información de la Cuenta',
+            text: '¡Excelente! La primera sección se ha expandido. Al presionar "Siguiente", esta se colapsará y continuaremos con la próxima.',
+            onNext: () => toggleSection('#seccion2')
+        },
+        { // 3
+            element: '#seccion2-wrapper',
+            title: 'Detalles del Problema',
+            text: 'Ahora se ha expandido la sección de "Detalles del Problema".',
+            onNext: () => toggleSection('#seccion3')
+        },
+        { // 4
+            element: '#seccion3-wrapper',
+            title: 'Análisis WiFi y TVS',
+            text: 'Esta es la sección de "Análisis WiFi y TVS".',
+            onNext: () => toggleSection('#seccion4')
+        },
+        { // 5
+            element: '#seccion4-wrapper',
+            title: 'Resolución de la Llamada',
+            text: 'Finalmente, documenta aquí el resultado de la llamada. Presiona "Siguiente" para continuar.',
+            onNext: () => collapseAllSections()
+        },
+        { // 6
+            element: '#btnSee',
+            title: 'Ver Nota Final',
+            text: 'Ahora, haz clic en el botón "SEE" para generar la nota completa. Esto abrirá un nuevo modal y continuará el tutorial.',
+            isManualAction: true // Indica que el usuario debe hacer clic en el elemento
+        }
+    ];
+
+    // --- Funciones Principales del Tour ---
 
     function startTour() {
         currentStep = 0;
@@ -64,67 +74,100 @@
             console.error(`Elemento del tutorial no encontrado: ${step.element}`);
             return endTour();
         }
-        
+
         // Limpiar resaltado anterior
-        document.querySelector('.tutorial-highlight')?.classList.remove('tutorial-highlight');
-        
+        if (highlightedElement) {
+            highlightedElement.classList.remove('tutorial-highlight');
+        }
+
         // Actualizar contenido del popover
         popoverTitle.textContent = step.title;
         popoverText.textContent = step.text;
-
-        // Mostrar overlay y popover
-        overlay.classList.remove('hidden');
-        popover.classList.remove('hidden');
+        popover.classList.add('active');
 
         // Resaltar el nuevo elemento
         targetElement.classList.add('tutorial-highlight');
+        highlightedElement = targetElement;
         
         // Posicionar el popover
-        const targetRect = targetElement.getBoundingClientRect();
-        popover.style.top = `${targetRect.bottom + 10}px`;
-        popover.style.left = `${targetRect.left}px`;
-        
-        // Ajustar si se sale de la pantalla
-        if (targetRect.left + popover.offsetWidth > window.innerWidth) {
-            popover.style.left = `${window.innerWidth - popover.offsetWidth - 20}px`;
-        }
-        if (targetRect.bottom + popover.offsetHeight > window.innerHeight) {
-            popover.style.top = `${targetRect.top - popover.offsetHeight - 10}px`;
-        }
+        positionPopover(targetElement);
 
         // Configurar botones
         prevBtn.classList.toggle('hidden', stepIndex === 0);
-        nextBtn.classList.toggle('hidden', stepIndex === steps.length - 1);
+        nextBtn.classList.toggle('hidden', step.isManualAction || stepIndex === steps.length - 1);
         doneBtn.classList.toggle('hidden', stepIndex !== steps.length - 1);
+
+        // Si es una acción manual, preparamos el listener
+        if (step.isManualAction) {
+            prepareManualAction(targetElement);
+        }
     }
 
     function endTour() {
-        overlay.classList.add('hidden');
-        popover.classList.add('hidden');
-        document.querySelector('.tutorial-highlight')?.classList.remove('tutorial-highlight');
+        popover.classList.remove('active');
+        if (highlightedElement) {
+            highlightedElement.classList.remove('tutorial-highlight');
+        }
         localStorage.setItem('tutorialCompleted', 'true');
     }
 
-    function expandSection(triggerSelector, animatedElementSelector) {
-        return new Promise(resolve => {
-            const trigger = document.querySelector(triggerSelector);
-            const animated = document.querySelector(animatedElementSelector);
-            if (trigger && animated) {
-                animated.addEventListener('transitionend', resolve, { once: true });
-                trigger.click();
-            } else {
-                resolve(); // Resuelve la promesa inmediatamente si no se encuentra el elemento
-            }
-        });
+    // --- Funciones de Ayuda ---
+
+    function positionPopover(targetElement) {
+        const targetRect = targetElement.getBoundingClientRect();
+        const popoverRect = popover.getBoundingClientRect();
+
+        let top = targetRect.bottom + 15;
+        let left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2);
+
+        // Ajustar si se sale de la pantalla
+        if (left < 10) left = 10;
+        if ((left + popoverRect.width) > window.innerWidth) left = window.innerWidth - popoverRect.width - 10;
+        if ((top + popoverRect.height) > window.innerHeight) top = targetRect.top - popoverRect.height - 15;
+
+        popover.style.top = `${top}px`;
+        popover.style.left = `${left}px`;
     }
     
+    async function toggleSection(sectionToShowSelector) {
+        const allSections = document.querySelectorAll('.form-section');
+        const sectionToShow = document.querySelector(sectionToShowSelector);
+        
+        // Colapsa todas las secciones
+        allSections.forEach(sec => sec.classList.add('collapsed'));
+        
+        // Expande la sección deseada
+        if (sectionToShow) {
+            await waitForTransition(sectionToShow);
+            sectionToShow.classList.remove('collapsed');
+            await waitForTransition(sectionToShow);
+        }
+    }
+
+    function collapseAllSections() {
+        document.querySelectorAll('.form-section').forEach(sec => sec.classList.add('collapsed'));
+    }
+
+    function waitForTransition(element) {
+        return new Promise(resolve => {
+            element.addEventListener('transitionend', resolve, { once: true });
+        });
+    }
+
+    function prepareManualAction(targetElement) {
+        targetElement.addEventListener('click', function handleManualClick() {
+            currentStep++;
+            showStep(currentStep);
+            // El tutorial continuará después del clic del usuario
+        }, { once: true });
+    }
+
     // --- Event Listeners de los botones del tutorial ---
     nextBtn.addEventListener('click', async () => {
         const step = steps[currentStep];
-        if (step.action) {
-            // Si el paso tiene una acción (expandir), la ejecuta y espera
-            nextBtn.disabled = true; // Deshabilita el botón mientras se anima
-            await step.action();
+        if (step.onNext) {
+            nextBtn.disabled = true;
+            await step.onNext();
             nextBtn.disabled = false;
         }
         currentStep++;
@@ -132,6 +175,7 @@
     });
 
     prevBtn.addEventListener('click', () => {
+        // Lógica para ir atrás (puede necesitar colapsar/expandir también)
         currentStep--;
         showStep(currentStep);
     });
@@ -149,20 +193,27 @@
         const welcomeModal = document.getElementById('welcomeModalOverlay');
         const startBtn = document.getElementById('startTakingNotesBtn');
         const nameInput = document.getElementById('welcomeAgentNameInput');
+        
         welcomeModal.style.display = 'flex';
-        startBtn.addEventListener('click', () => {
+        
+        const startHandler = () => {
             if (nameInput.value.trim() !== '') {
+                // Aquí puedes guardar el nombre del agente si lo necesitas
+                // localStorage.setItem('agentName', nameInput.value.trim());
                 welcomeModal.style.display = 'none';
                 startTour();
             }
-        });
+        };
+
+        startBtn.addEventListener('click', startHandler);
         nameInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && nameInput.value.trim() !== '') {
+            if (e.key === 'Enter') {
                 e.preventDefault();
-                startBtn.click();
+                startHandler();
             }
         });
     }
 
     window.addEventListener('load', checkAndShowWelcomeModal);
+
 })();
