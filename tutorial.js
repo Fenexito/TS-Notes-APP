@@ -47,7 +47,30 @@
         { // 5
             element: '#seccion4-wrapper',
             title: 'Resolución de la Llamada',
-            text: '¡Has completado la parte interactiva! Haz clic en "Finalizar" para ver la nota completa y terminar el tour.'
+            text: 'Finalmente, documenta aquí el resultado de la llamada. Presiona "Siguiente" para continuar.',
+            action: () => collapseAllSections()
+        },
+        { // 6
+            element: '#btnSee',
+            title: 'Ver Nota Final',
+            text: 'Ahora, haz clic en el botón "SEE" para generar la nota completa. Esto abrirá un nuevo modal y continuará el tutorial.',
+            isManualAction: true
+        },
+        { // 7
+            element: '#noteModalOverlay .modal-content',
+            title: 'Nota Final Generada',
+            text: 'Esta es la nota completa. Al presionar "Siguiente", te pediremos que dividas la nota.'
+        },
+        { // 8
+            element: '#modalSeparateBtn',
+            title: 'Dividir Nota',
+            text: 'Ahora, haz clic en el botón "SPLIT" para ver la nota dividida en secciones.',
+            isManualAction: true
+        },
+        { // 9
+            element: '#separateNoteModalOverlay .modal-content',
+            title: 'Nota Dividida',
+            text: '¡Excelente! Has completado el tour. Haz clic en "Finalizar".'
         }
     ];
 
@@ -70,7 +93,17 @@
 
         if (!targetElement) {
             console.error(`Elemento del tutorial no encontrado: ${step.element}`);
-            return endTour();
+            // Esperar un poco por si el elemento está apareciendo
+            setTimeout(() => {
+                const elementAfterWait = document.querySelector(step.element);
+                if (elementAfterWait) {
+                    showStep(stepIndex);
+                } else {
+                    console.error("El elemento sigue sin aparecer. Finalizando tour.");
+                    endTour();
+                }
+            }, 300);
+            return;
         }
         
         // Limpiar resaltado anterior
@@ -96,8 +129,12 @@
         // --- LÓGICA DE BOTONES CORREGIDA ---
         const isLastStep = stepIndex === steps.length - 1;
         prevBtn.classList.toggle('hidden', stepIndex === 0);
-        nextBtn.classList.toggle('hidden', isLastStep);
+        nextBtn.classList.toggle('hidden', isLastStep || step.isManualAction);
         doneBtn.classList.toggle('hidden', !isLastStep);
+
+        if (step.isManualAction) {
+            prepareManualAction(targetElement);
+        }
     }
 
     function endTour() {
@@ -154,19 +191,39 @@
         const collapseSection = document.querySelector(sectionToCollapseSelector);
         const expandSection = document.querySelector(sectionToExpandSelector);
         
-        if (collapseSection) {
+        if (collapseSection && !collapseSection.classList.contains('collapsed')) {
             const title = collapseSection.querySelector('.section-title');
             if (title) title.click();
         }
-        if (expandSection) {
+        if (expandSection && expandSection.classList.contains('collapsed')) {
             const title = expandSection.querySelector('.section-title');
             if (title) {
-                // Esperamos un poco para que la animación de colapsar no interfiera
                 await new Promise(res => setTimeout(res, 50));
                 title.click();
                 await waitForTransition(expandSection);
             }
         }
+    }
+
+    async function collapseAllSections() {
+        const openSections = document.querySelectorAll('.form-section:not(.collapsed)');
+        for (const section of openSections) {
+            const title = section.querySelector('.section-title');
+            if (title) {
+                title.click();
+                await waitForTransition(section);
+            }
+        }
+    }
+
+    function prepareManualAction(targetElement) {
+        targetElement.addEventListener('click', () => {
+            // La lógica de la app abre el modal. El tutorial espera un poco y avanza.
+            setTimeout(() => {
+                currentStep++;
+                showStep(currentStep);
+            }, 200); // Pequeño retraso para que el modal aparezca
+        }, { once: true });
     }
 
     // --- Event Listeners de los botones del tutorial ---
@@ -189,7 +246,7 @@
     });
 
     doneBtn.addEventListener('click', () => {
-        document.getElementById('noteModalOverlay').style.display = 'flex';
+        // El botón Done ahora simplemente finaliza el tour.
         endTour();
     });
 
