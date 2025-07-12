@@ -7,12 +7,12 @@
     const popoverText = document.getElementById('tutorial-popover-text');
     const prevBtn = document.getElementById('tutorial-prev-btn');
     const nextBtn = document.getElementById('tutorial-next-btn');
-    const doneBtn = document.getElementById('tutorial-done-btn'); // Aunque no se usa, lo mantenemos por si acaso.
+    const doneBtn = document.getElementById('tutorial-done-btn');
     
     let currentStep = 0;
     let highlightedElement = null;
 
-    // --- Definición de los Pasos del Tutorial (con nueva lógica) ---
+    // --- Definición de los Pasos del Tutorial ---
     const steps = [
         { // 0
             element: '.sticky-header-container',
@@ -95,7 +95,7 @@
         
         prevBtn.classList.toggle('hidden', stepIndex === 0);
         nextBtn.classList.toggle('hidden', step.isManualAction || stepIndex === steps.length - 1);
-        doneBtn.classList.toggle('hidden', true); // El botón 'Done' no se usa en este flujo
+        doneBtn.classList.toggle('hidden', true);
 
         if (step.isManualAction) {
             prepareManualAction(targetElement);
@@ -111,7 +111,19 @@
         localStorage.setItem('tutorialCompleted', 'true');
     }
 
-    // --- Funciones de Ayuda para Animaciones ---
+    // --- Funciones de Ayuda (Sección Restaurada) ---
+
+    function positionPopover(targetElement) {
+        const targetRect = targetElement.getBoundingClientRect();
+        const popoverRect = popover.getBoundingClientRect();
+        let top = targetRect.bottom + 15;
+        let left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2);
+        if (left < 10) left = 10;
+        if ((left + popoverRect.width) > window.innerWidth) left = window.innerWidth - popoverRect.width - 10;
+        if ((top + popoverRect.height) > window.innerHeight) top = targetRect.top - popoverRect.height - 15;
+        popover.style.top = `${top}px`;
+        popover.style.left = `${left}px`;
+    }
 
     function waitForTransition(element, timeout = 500) {
         return new Promise(resolve => {
@@ -142,7 +154,6 @@
         if (sectionToExpand) {
             sectionToExpand.classList.remove('collapsed');
         }
-        // Esperamos a que la animación de colapsar termine, que suele ser suficiente.
         if (sectionToCollapse) {
             await waitForTransition(sectionToCollapse);
         }
@@ -152,16 +163,12 @@
         const sections = document.querySelectorAll('.form-section:not(.collapsed)');
         if (sections.length > 0) {
             sections.forEach(sec => sec.classList.add('collapsed'));
-            // Esperamos a que la última sección termine su animación
             await waitForTransition(sections[sections.length - 1]);
         }
     }
 
     function prepareManualAction(targetElement) {
-        // Esta función hace que el elemento resaltado sea interactivo y espere un clic.
         targetElement.addEventListener('click', () => {
-            // La lógica de la app se encarga de abrir el modal.
-            // El tour simplemente termina.
             endTour();
         }, { once: true });
     }
@@ -179,8 +186,6 @@
     });
 
     prevBtn.addEventListener('click', () => {
-        // La lógica para ir hacia atrás podría ser más compleja si se quiere revertir la animación.
-        // Por ahora, simplemente muestra el paso anterior.
         currentStep--;
         showStep(currentStep);
     });
