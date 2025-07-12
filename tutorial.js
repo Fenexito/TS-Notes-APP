@@ -15,40 +15,39 @@
 
     // --- Definición de los Pasos del Tutorial ---
     const steps = [
-        { // 0: Encabezado
+        { // 0
             element: '.sticky-header-container',
             title: 'Encabezado Principal',
             text: 'Esta es la barra de acciones principal. Aquí encuentras los botones para ver, guardar y reiniciar tu nota.'
         },
-        { // 1: Formulario
+        { // 1
             element: '#callNoteForm',
             title: 'Tu Espacio de Trabajo',
             text: 'Este es el formulario principal. Al presionar "Siguiente", la primera sección se expandirá automáticamente.',
             action: () => expandSection('#seccion1')
         },
-        { // 2: Sección 1
+        { // 2
             element: '#seccion1-wrapper',
             title: 'Información de la Cuenta',
             text: '¡Excelente! Al presionar "Siguiente", esta sección se colapsará y continuaremos con la próxima.',
             action: () => switchSection('#seccion1', '#seccion2')
         },
-        { // 3: Sección 2
+        { // 3
             element: '#seccion2-wrapper',
             title: 'Detalles del Problema',
             text: 'Ahora se ha expandido la sección de "Detalles del Problema".',
             action: () => switchSection('#seccion2', '#seccion3')
         },
-        { // 4: Sección 3
+        { // 4
             element: '#seccion3-wrapper',
             title: 'Análisis WiFi y TVS',
             text: 'Esta es la sección de "Análisis WiFi y TVS".',
             action: () => switchSection('#seccion3', '#seccion4')
         },
-        { // 5: Sección 4
+        { // 5
             element: '#seccion4-wrapper',
             title: 'Resolución de la Llamada',
-            text: '¡Has completado la parte interactiva! Haz clic en "Finalizar" para ver la nota completa y terminar el tour.',
-            isLastStep: true
+            text: '¡Has completado la parte interactiva! Haz clic en "Finalizar" para ver la nota completa y terminar el tour.'
         }
     ];
 
@@ -83,9 +82,9 @@
         popoverTitle.textContent = step.title;
         popoverText.textContent = step.text;
 
-        // Mostrar overlay y popover - LÓGICA CLAVE RESTAURADA
+        // Mostrar overlay y popover
         overlay.classList.remove('hidden');
-        popover.classList.remove('hidden'); // <-- ESTO EVITA QUE EL POPOVER SEA INVISIBLE
+        popover.classList.remove('hidden');
 
         // Resaltar el nuevo elemento
         targetElement.classList.add('tutorial-highlight');
@@ -94,10 +93,11 @@
         // Posicionar el popover
         positionPopover(targetElement);
 
-        // Configurar botones
+        // --- LÓGICA DE BOTONES CORREGIDA ---
+        const isLastStep = stepIndex === steps.length - 1;
         prevBtn.classList.toggle('hidden', stepIndex === 0);
-        nextBtn.classList.toggle('hidden', step.isLastStep);
-        doneBtn.classList.toggle('hidden', !step.isLastStep);
+        nextBtn.classList.toggle('hidden', isLastStep);
+        doneBtn.classList.toggle('hidden', !isLastStep);
     }
 
     function endTour() {
@@ -142,24 +142,30 @@
     async function expandSection(sectionSelector) {
         const section = document.querySelector(sectionSelector);
         if (section) {
-            section.classList.remove('collapsed');
-            await waitForTransition(section);
+            const title = section.querySelector('.section-title');
+            if (title) {
+                title.click();
+                await waitForTransition(section);
+            }
         }
     }
 
     async function switchSection(sectionToCollapseSelector, sectionToExpandSelector) {
-        const sectionToCollapse = document.querySelector(sectionToCollapseSelector);
-        const sectionToExpand = document.querySelector(sectionToExpandSelector);
+        const collapseSection = document.querySelector(sectionToCollapseSelector);
+        const expandSection = document.querySelector(sectionToExpandSelector);
         
-        if (sectionToCollapse) {
-            sectionToCollapse.classList.add('collapsed');
+        if (collapseSection) {
+            const title = collapseSection.querySelector('.section-title');
+            if (title) title.click();
         }
-        if (sectionToExpand) {
-            sectionToExpand.classList.remove('collapsed');
-        }
-        
-        if (sectionToCollapse) {
-            await waitForTransition(sectionToCollapse);
+        if (expandSection) {
+            const title = expandSection.querySelector('.section-title');
+            if (title) {
+                // Esperamos un poco para que la animación de colapsar no interfiera
+                await new Promise(res => setTimeout(res, 50));
+                title.click();
+                await waitForTransition(expandSection);
+            }
         }
     }
 
