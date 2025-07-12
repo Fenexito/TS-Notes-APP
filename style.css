@@ -1715,20 +1715,73 @@ textarea {
 /* FIN: Estilos para Importar/Exportar */
 
 
-/*
- * ===================================================================
- * SOLUCIÓN FINAL Y AGRESIVA PARA LA INTERACCIÓN DEL MODAL EN INTRO.JS
- * ===================================================================
- */
 
-/*
- * Cuando el tour está en el paso del modal (identificado por la clase
- * en el body), le decimos a TODAS las capas de Intro.js (el overlay
- * y el resaltado) que ignoren por completo los clics del ratón.
- * Esto permite que los clics "atraviesen" las capas del tutorial
- * y lleguen a tu modal.
-*/
-body.intro-modal-step-active .introjs-overlay,
-body.intro-modal-step-active .introjs-helperLayer {
-  pointer-events: none !important;
+/* =============== ESTILOS PARA EL TUTORIAL PERSONALIZADO =============== */
+
+/* La clase 'hidden' simplemente oculta los elementos */
+.hidden {
+    display: none !important;
+}
+
+/* El overlay oscuro de fondo */
+#custom-tutorial-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.75);
+    z-index: 10000;
+}
+
+/* El elemento que será resaltado por el tour */
+.tutorial-highlight {
+    position: relative;
+    z-index: 10001;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
+    border-radius: 4px;
+}
+
+/* El popover o cuadro de diálogo del tutorial */
+#custom-tutorial-popover {
+    position: absolute; /* Se posicionará con JavaScript */
+    background: #333;
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    z-index: 10002;
+    max-width: 350px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    border: 1px solid #555;
+}
+
+#tutorial-popover-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #555;
+    padding-bottom: 10px;
+}
+
+#tutorial-popover-text {
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.tutorial-popover-actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.tutorial-popover-actions button {
+    background: #5c67f2;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.tutorial-popover-actions button:hover {
+    background: #4a54c9;
 }
