@@ -1731,13 +1731,13 @@ textarea {
     width: 100vw;
     height: 100vh;
     background: rgb(255 255 255 / 5%);
-    z-index: 10000;
+    z-index: 10000 !important;
 }
 
 /* El elemento que será resaltado por el tour */
 .tutorial-highlight {
     position: relative;
-    z-index: 10001;
+    z-index: 10001 !important;
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
     border-radius: 4px;
 }
@@ -1749,7 +1749,7 @@ textarea {
     color: #000000;
     padding: 15px;
     border-radius: 8px;
-    z-index: 10002;
+    z-index: 10002 !important;
     max-width: 350px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.5);
     border: 1px solid #555;
