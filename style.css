@@ -1800,12 +1800,12 @@ textarea {
 
 @keyframes pulse-glow {
     0% {
-        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5);
     }
     70% {
-        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.75);
     }
     100% {
-        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 1);
     }
 }
