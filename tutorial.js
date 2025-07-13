@@ -90,22 +90,12 @@
         },
         { // PASO 9
             element: '#noteModalOverlay .modal-content',
-            title: 'Nota Final Generada',
-            text: 'Esta es la nota completa. Presiona "Siguiente" para continuar.'
-        },
-        { // PASO 10
-            element: '#noteModalOverlay .modal-content',
             title: 'Dividir Nota',
             text: 'Al presionar "Siguiente", se dividirá la nota y se mostrará en un nuevo modal.',
             action: () => document.querySelector('#modalSeparateBtn').click(),
             spotlightElement: '#modalSeparateBtn'
         },
-        { // PASO 11
-            element: '#separateNoteModalOverlay .modal-content',
-            title: 'Nota Dividida',
-            text: 'Perfecto. Ahora presiona "Siguiente" para resaltar el botón de guardado.'
-        },
-        { // PASO 12
+        { // PASO 10
             element: '#separateNoteModalOverlay .modal-content',
             title: 'Guardar Nota',
             text: 'Al presionar "Siguiente", se simulará que guardas la nota y se abrirá el historial.',
@@ -271,28 +261,55 @@
         if (sections.length > 0) await waitForTransition(sections[sections.length - 1]);
     }
     
-    // --- Carga de Datos de Ejemplo ---
+    // --- Carga de Datos de Ejemplo (FUNCIÓN ACTUALIZADA) ---
     function loadSampleDataIntoForm(data) {
+        // Llenar todos los campos con los datos de ejemplo
         Object.keys(data).forEach(key => {
             const element = document.getElementById(key);
             if (element) {
                 if (element.type === 'checkbox') {
                     element.checked = data[key];
-                } else if (element.type === 'radio') {
-                    // This assumes radio group has the same name
-                    const radioGroup = document.querySelectorAll(`input[name="${element.name}"]`);
-                    radioGroup.forEach(radio => {
-                        if (radio.value === data[key]) {
-                            radio.checked = true;
-                        }
-                    });
                 } else {
                     element.value = data[key];
                 }
-                // Disparar un evento de 'input' para que cualquier listener en la app reaccione
+                // Disparar un evento de 'input' para que la app reaccione (ej. contadores de caracteres)
                 element.dispatchEvent(new Event('input', { bubbles: true }));
             }
         });
+
+        // --- Forzar la visibilidad de los campos ocultos para el tutorial ---
+
+        // Hacer visible el campo XID (si existe)
+        const xidContainer = document.getElementById('xidFieldContainer');
+        if (xidContainer) xidContainer.style.display = 'block';
+
+        // Hacer visibles los campos de Optik TV Legacy
+        const optikTvFields = document.getElementById('optikTvLegacySpecificFields');
+        if (optikTvFields) {
+            optikTvFields.style.display = 'flex';
+            document.getElementById('xVuStatusSelect').disabled = false;
+            document.getElementById('packetLossSelect').disabled = false;
+        }
+        
+        // Hacer visible el campo TVS Key
+        const tvsKeyContainer = document.getElementById('tvsKeyFieldContainer');
+        if (tvsKeyContainer) tvsKeyContainer.style.display = 'block';
+
+        // Habilitar el select de Transfer
+        const transferCheckbox = document.getElementById('transferCheckbox');
+        const transferSelect = document.getElementById('transferSelect');
+        if (transferCheckbox && transferSelect) {
+            transferCheckbox.checked = true;
+            transferSelect.disabled = false;
+        }
+        
+        // Habilitar el select de AWA Alerts 2
+        const awaAlerts2Checkbox = document.getElementById('enableAwaAlerts2');
+        const awaAlerts2Select = document.getElementById('awaAlerts2Select');
+        if(awaAlerts2Checkbox && awaAlerts2Select) {
+            awaAlerts2Checkbox.checked = true;
+            awaAlerts2Select.disabled = false;
+        }
     }
 
     // --- Event Listeners de los botones del tutorial ---
