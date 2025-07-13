@@ -128,18 +128,14 @@
         // Lógica de visibilidad que funciona:
         // 1. Mostrar el overlay y el popover
         overlay.classList.remove('hidden');
-overlay.style.zIndex = '10000';
         popover.classList.remove('hidden');
-popover.style.zIndex = '10002';
 
         // 2. Actualizar contenido
         popoverTitle.textContent = step.title;
         popoverText.textContent = step.text;
         
         // 3. Resaltar el nuevo elemento
-                targetElement.classList.add('tutorial-highlight');
-        targetElement.style.position = 'relative';
-        targetElement.style.zIndex = '10001';
+        targetElement.classList.add('tutorial-highlight');
         highlightedElement = targetElement;
         
         // 4. Posicionar el popover
