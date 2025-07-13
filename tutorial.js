@@ -57,7 +57,7 @@
             position: 'left-center' // Posición especial
         },
         { // PASO 8
-            element: '#btnSee',
+            element: '.sticky-header-container', // CAMBIO APLICADO
             title: 'Ver Nota Final',
             text: 'Al presionar "Siguiente", se generará la nota completa y se mostrará en un nuevo modal.',
             action: () => document.querySelector('#btnSee').click()
