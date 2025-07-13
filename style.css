@@ -1074,7 +1074,7 @@ textarea {
     height: 100%;
     background-color: #f8f8f8;
     box-shadow: 5px 0 15px rgba(0, 0, 0, 0.15);
-    z-index: 1020;
+    z-index: 1011;
     transition: transform 0.3s ease-in-out;
     display: flex;
     flex-direction: column;
