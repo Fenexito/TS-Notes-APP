@@ -12,7 +12,31 @@
     
     let currentStep = 0;
     let highlightedElement = null;
-    let spotlightedElement = null; // NUEVA VARIABLE para el foco secundario
+    let spotlightedElement = null;
+
+    // --- DATOS DE EJEMPLO PARA EL TUTORIAL ---
+    const sampleNoteData = {
+        ban: '9999999', cid: '8888888', name: 'Alexander', cbr: '77777777',
+        caller: 'Owner', verifiedBy: 'Security Questions', address: '1234 Maple RD, BC V1B0X9',
+        serviceOnCsr: 'Active', outage: 'no', errorsInNC: 'no', accountSuspended: 'no',
+        serviceSelect: 'Optik TV (Legacy)', issueSelect: 'Video Quality Issues',
+        cxIssueText: 'This is the place were you are gonna save the information from the cx issue. You can add as much info as you need to fill all the information that your cx is sharing with you about the problem',
+        physicalCheckList1Select: 'VIP5662w, Power connected properly / Powered ON, Connected WIRELES, HDMI connected / Input selected properly',
+        xVuStatusSelect: 'Critical Errors Found', packetLossSelect: 'Some Packet Loss',
+        additionalinfoText: 'This is an aditional Text to add info that is relevant to the issue or the solution',
+        troubleshootingProcessText: 'His is the place were you are gonna put ALL YOUR TROUBLESHOOT PROCESS. Including all the relevant information you need to follow to solve the problem, including Reboot, FR, CORE consultation, ETC.',
+        awaAlertsSelect: 'Broadband DOWNSTREAM congestion (cx using more than 80% of the speed plan)',
+        awaAlerts2Select: 'Occasional Slowspeed in ONE device',
+        awaStepsSelect: "Advice cx about issues but cx don't want to troubheshoot this now",
+        activeDevicesInput: '10', totalDevicesInput: '20',
+        downloadBeforeInput: '110Mbps', uploadBeforeInput: '90Mbps',
+        downloadAfterInput: '580Mbps', uploadAfterInput: '490Mbps',
+        tvsSelect: 'YES', tvsKeyInput: 'JSH182HF',
+        extraStepsSelect: 'Use go/send to share PIN reset instructions',
+        resolvedSelect: 'Yes | EOC', transferSelect: 'TRANSFER TO FFH CARE',
+        csrOrderInput: '99999999', ticketInput: '000000001111111',
+        skillToggle: true
+    };
 
     // --- Definición de los Pasos del Tutorial ---
     const steps = [
@@ -24,13 +48,13 @@
         { // PASO 2
             element: '#callNoteForm',
             title: 'Tu Espacio de Trabajo',
-            text: 'Este es el formulario principal. Al presionar "Siguiente", la primera sección se expandirá automáticamente.',
+            text: 'Este es el formulario principal, que hemos llenado con datos de ejemplo. Al presionar "Siguiente", la primera sección se expandirá.',
             action: () => expandSection('#seccion1')
         },
         { // PASO 3
             element: '#seccion1-wrapper',
             title: 'Información de la Cuenta',
-            text: '¡Excelente! Al presionar "Siguiente", esta sección se colapsará y continuaremos con la próxima.',
+            text: 'Como puedes ver, los campos ya contienen información. Al presionar "Siguiente", esta sección se colapsará y continuaremos con la próxima.',
             action: () => switchSection('#seccion1', '#seccion2')
         },
         { // PASO 4
@@ -60,9 +84,9 @@
         { // PASO 8
             element: '.sticky-header-container',
             title: 'Ver Nota Final',
-            text: 'Al presionar "Siguiente", se generará la nota completa y se mostrará en un nuevo modal.',
+            text: 'Al presionar "Siguiente", se generará la nota completa basada en los datos de ejemplo.',
             action: () => document.querySelector('#btnSee').click(),
-            spotlightElement: '#btnSee' // PROPIEDAD para el foco secundario
+            spotlightElement: '#btnSee'
         },
         { // PASO 9
             element: '#noteModalOverlay .modal-content',
@@ -70,11 +94,11 @@
             text: 'Esta es la nota completa. Presiona "Siguiente" para continuar.'
         },
         { // PASO 10
-            element: '#noteModalOverlay .modal-content', // Mantiene el highlight del paso 9
+            element: '#noteModalOverlay .modal-content',
             title: 'Dividir Nota',
             text: 'Al presionar "Siguiente", se dividirá la nota y se mostrará en un nuevo modal.',
             action: () => document.querySelector('#modalSeparateBtn').click(),
-            spotlightElement: '#modalSeparateBtn' // Agrega spotlight al botón
+            spotlightElement: '#modalSeparateBtn'
         },
         { // PASO 11
             element: '#separateNoteModalOverlay .modal-content',
@@ -82,7 +106,7 @@
             text: 'Perfecto. Ahora presiona "Siguiente" para resaltar el botón de guardado.'
         },
         { // PASO 12
-            element: '#separateNoteModalOverlay .modal-content', // Mantiene el highlight del paso 11
+            element: '#separateNoteModalOverlay .modal-content',
             title: 'Guardar Nota',
             text: 'Al presionar "Siguiente", se simulará que guardas la nota y se abrirá el historial.',
             action: () => {
@@ -90,18 +114,35 @@
                 document.getElementById('noteModalOverlay').style.display = 'none';
                 document.getElementById('btnHistory').click();
             },
-            spotlightElement: '#separateModalCopySaveBtn' // Agrega spotlight al botón
+            spotlightElement: '#separateModalCopySaveBtn'
         },
         { // PASO 13
             element: '#historySidebar',
             title: 'Panel de Historial',
-            text: '¡Excelente! Has llegado al final del tour. Haz clic en "Finalizar".'
+            text: '¡Bien! La nota de ejemplo se "guardó" y el panel de historial se abrió.'
+        },
+        { // PASO 14
+            element: '.note-history-list .note-item:first-child',
+            title: 'Nota Guardada',
+            text: 'Así se ve una nota en el historial. Ahora simularemos cómo eliminarla.'
+        },
+        { // PASO 15
+            element: '.note-history-list .note-item:first-child .delete-note-btn',
+            title: 'Eliminar Nota',
+            text: 'Para eliminar una nota, haz clic en el icono de la papelera. Al presionar "Siguiente", simularemos esta acción.',
+            action: () => document.querySelector('.note-history-list .note-item:first-child .delete-note-btn')?.click()
+        },
+        { // PASO 16
+            element: '#historySidebar',
+            title: 'Nota Eliminada',
+            text: '¡Perfecto! La nota ha sido eliminada. Has completado el tour. Haz clic en "Finalizar".'
         }
     ];
 
     // --- Funciones Principales del Tour ---
 
     function startTour() {
+        loadSampleDataIntoForm(sampleNoteData);
         document.querySelectorAll('.form-section').forEach(sec => sec.classList.add('collapsed'));
         currentStep = 0;
         showStep(currentStep);
@@ -114,7 +155,6 @@
         
         const step = steps[stepIndex];
         
-        // Limpiar resaltados anteriores
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
         }
@@ -141,7 +181,6 @@
         targetElement.classList.add('tutorial-highlight');
         highlightedElement = targetElement;
         
-        // Aplicar foco secundario si está definido
         if (step.spotlightElement) {
             const spotElement = document.querySelector(step.spotlightElement);
             if (spotElement) {
@@ -161,12 +200,8 @@
     function endTour() {
         overlay.classList.add('hidden');
         popover.classList.add('hidden');
-        if (highlightedElement) {
-            highlightedElement.classList.remove('tutorial-highlight');
-        }
-        if (spotlightedElement) {
-            spotlightedElement.classList.remove('tutorial-spotlight');
-        }
+        if (highlightedElement) highlightedElement.classList.remove('tutorial-highlight');
+        if (spotlightedElement) spotlightedElement.classList.remove('tutorial-spotlight');
         localStorage.setItem('tutorialCompleted', 'true');
     }
 
@@ -236,10 +271,28 @@
         if (sections.length > 0) await waitForTransition(sections[sections.length - 1]);
     }
     
-    async function collapseAllSections() {
-        const sections = document.querySelectorAll('.form-section:not(.collapsed)');
-        for (const section of sections) { section.querySelector('.section-title')?.click(); }
-        if (sections.length > 0) await waitForTransition(sections[sections.length - 1]);
+    // --- Carga de Datos de Ejemplo ---
+    function loadSampleDataIntoForm(data) {
+        Object.keys(data).forEach(key => {
+            const element = document.getElementById(key);
+            if (element) {
+                if (element.type === 'checkbox') {
+                    element.checked = data[key];
+                } else if (element.type === 'radio') {
+                    // This assumes radio group has the same name
+                    const radioGroup = document.querySelectorAll(`input[name="${element.name}"]`);
+                    radioGroup.forEach(radio => {
+                        if (radio.value === data[key]) {
+                            radio.checked = true;
+                        }
+                    });
+                } else {
+                    element.value = data[key];
+                }
+                // Disparar un evento de 'input' para que cualquier listener en la app reaccione
+                element.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        });
     }
 
     // --- Event Listeners de los botones del tutorial ---
@@ -274,13 +327,17 @@
                     if (countRequest.result === 0) {
                         const addTransaction = db.transaction(['notes'], 'readwrite');
                         const addObjectStore = addTransaction.objectStore('notes');
-                        const sampleNote = {
+                        const noteToSave = {
                             id: `sample-${Date.now()}`,
-                            ban: '123456789', cid: '987654321', name: 'John Doe (Sample)', cbr: '1122334455',
+                            ban: sampleNoteData.ban,
+                            cid: sampleNoteData.cid,
+                            name: sampleNoteData.name,
+                            cbr: sampleNoteData.cbr,
                             timestamp: new Date().toISOString(),
-                            note: 'Esta es una nota de ejemplo para el tutorial.', formData: {}
+                            note: 'Esta es una nota de ejemplo para el tutorial.',
+                            formData: sampleNoteData
                         };
-                        addObjectStore.add(sampleNote);
+                        addObjectStore.add(noteToSave);
                     }
                 };
                 db.close();
