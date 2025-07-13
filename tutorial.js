@@ -62,7 +62,7 @@
             title: 'Ver Nota Final',
             text: 'Al presionar "Siguiente", se generará la nota completa y se mostrará en un nuevo modal.',
             action: () => document.querySelector('#btnSee').click(),
-            spotlightElement: '#btnSee' // NUEVA PROPIEDAD para el foco secundario
+            spotlightElement: '#btnSee' // PROPIEDAD para el foco secundario
         },
         { // PASO 9
             element: '#noteModalOverlay .modal-content',
@@ -70,10 +70,11 @@
             text: 'Esta es la nota completa. Presiona "Siguiente" para continuar.'
         },
         { // PASO 10
-            element: '#modalSeparateBtn',
+            element: '#noteModalOverlay .modal-content', // Mantiene el highlight del paso 9
             title: 'Dividir Nota',
             text: 'Al presionar "Siguiente", se dividirá la nota y se mostrará en un nuevo modal.',
-            action: () => document.querySelector('#modalSeparateBtn').click()
+            action: () => document.querySelector('#modalSeparateBtn').click(),
+            spotlightElement: '#modalSeparateBtn' // Agrega spotlight al botón
         },
         { // PASO 11
             element: '#separateNoteModalOverlay .modal-content',
@@ -81,14 +82,15 @@
             text: 'Perfecto. Ahora presiona "Siguiente" para resaltar el botón de guardado.'
         },
         { // PASO 12
-            element: '#separateModalCopySaveBtn',
+            element: '#separateNoteModalOverlay .modal-content', // Mantiene el highlight del paso 11
             title: 'Guardar Nota',
             text: 'Al presionar "Siguiente", se simulará que guardas la nota y se abrirá el historial.',
             action: () => {
                 document.getElementById('separateNoteModalOverlay').style.display = 'none';
                 document.getElementById('noteModalOverlay').style.display = 'none';
                 document.getElementById('btnHistory').click();
-            }
+            },
+            spotlightElement: '#separateModalCopySaveBtn' // Agrega spotlight al botón
         },
         { // PASO 13
             element: '#historySidebar',
