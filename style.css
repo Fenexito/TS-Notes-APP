@@ -1785,3 +1785,27 @@ textarea {
 .tutorial-popover-actions button:hover {
     background: #30007a;
 }
+
+
+/* --- NUEVA SECCIÓN: EFECTO SPOTLIGHT --- */
+
+/* El elemento con spotlight se pone encima del overlay oscuro */
+.tutorial-spotlight {
+    position: relative;
+    z-index: 10002;
+    border-radius: 5px; /* Coincide con el radio del botón */
+    /* Animación de pulso brillante */
+    animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+}
