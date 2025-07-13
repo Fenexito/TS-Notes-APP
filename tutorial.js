@@ -12,6 +12,7 @@
     
     let currentStep = 0;
     let highlightedElement = null;
+    let spotlightedElement = null; // NUEVA VARIABLE para el foco secundario
 
     // --- Definición de los Pasos del Tutorial ---
     const steps = [
@@ -54,13 +55,14 @@
             element: '#callNoteForm',
             title: 'Vista Expandida',
             text: 'Todas las secciones están ahora visibles. Presiona "Siguiente" para continuar y generar la nota final.',
-            position: 'left-center' // Posición especial
+            position: 'left-center'
         },
         { // PASO 8
-            element: '.sticky-header-container', // CAMBIO APLICADO
+            element: '.sticky-header-container',
             title: 'Ver Nota Final',
             text: 'Al presionar "Siguiente", se generará la nota completa y se mostrará en un nuevo modal.',
-            action: () => document.querySelector('#btnSee').click()
+            action: () => document.querySelector('#btnSee').click(),
+            spotlightElement: '#btnSee' // NUEVA PROPIEDAD para el foco secundario
         },
         { // PASO 9
             element: '#noteModalOverlay .modal-content',
@@ -110,8 +112,12 @@
         
         const step = steps[stepIndex];
         
+        // Limpiar resaltados anteriores
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
+        }
+        if (spotlightedElement) {
+            spotlightedElement.classList.remove('tutorial-spotlight');
         }
 
         const targetElement = document.querySelector(step.element);
@@ -125,23 +131,25 @@
             return;
         }
         
-        // Lógica de visibilidad que funciona:
-        // 1. Mostrar el overlay y el popover
         overlay.classList.remove('hidden');
         popover.classList.remove('hidden');
-
-        // 2. Actualizar contenido
         popoverTitle.textContent = step.title;
         popoverText.textContent = step.text;
         
-        // 3. Resaltar el nuevo elemento
         targetElement.classList.add('tutorial-highlight');
         highlightedElement = targetElement;
         
-        // 4. Posicionar el popover
+        // Aplicar foco secundario si está definido
+        if (step.spotlightElement) {
+            const spotElement = document.querySelector(step.spotlightElement);
+            if (spotElement) {
+                spotElement.classList.add('tutorial-spotlight');
+                spotlightedElement = spotElement;
+            }
+        }
+        
         positionPopover(targetElement, step.position);
 
-        // 5. Configurar botones
         const isLastStep = stepIndex === steps.length - 1;
         prevBtn.classList.toggle('hidden', stepIndex === 0);
         nextBtn.classList.toggle('hidden', isLastStep);
@@ -153,6 +161,9 @@
         popover.classList.add('hidden');
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
+        }
+        if (spotlightedElement) {
+            spotlightedElement.classList.remove('tutorial-spotlight');
         }
         localStorage.setItem('tutorialCompleted', 'true');
     }
