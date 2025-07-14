@@ -196,10 +196,10 @@
             }
         },
          { // PASO 21 (CORREGIDO)
-            element: '#feedback-widget',
+            element: 'body',
             title: 'Envíanos tus ideas',
             text: 'Si tienes alguna sugerencia para mejorar la app, ¡nos encantaría escucharla! Usa este botón para enviar tus comentarios.',
-            position: 'top',
+            position: 'manual-feedback',
             spotlightElement: '#feedback-btn',
         },
         { // PASO 22
