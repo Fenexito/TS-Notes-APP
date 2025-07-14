@@ -35,7 +35,7 @@
         extraStepsSelect: 'Use go/send to share PIN reset instructions',
         resolvedSelect: 'Yes | EOC', transferSelect: 'TRANSFER TO FFH CARE',
         csrOrderInput: '99999999', ticketInput: '000000001111111',
-        skillToggle: false // Corregido a false para que el skill sea FFH por defecto
+        skillToggle: false // false = FFH, true = SHS
     };
 
     // --- Definición de los Pasos del Tutorial ---
@@ -81,19 +81,19 @@
             text: 'Todas las secciones están ahora visibles. Presiona "Siguiente" para continuar y generar la nota final.',
             position: 'left-center'
         },
-        { // PASO 8 (NUEVO)
+        { // PASO 8
             element: '.sticky-header-container',
             title: 'Botón de Guardar',
             text: 'Este botón guarda la nota actual en tu historial local. Presiona "Siguiente" para continuar.',
             spotlightElement: '#btnSave'
         },
-        { // PASO 9 (NUEVO)
+        { // PASO 9
             element: '.sticky-header-container',
             title: 'Botón de Reiniciar',
             text: 'Este botón limpia todo el formulario para empezar una nueva nota. Presiona "Siguiente" para continuar.',
             spotlightElement: '#btnReset'
         },
-        { // PASO 10 (ANTERIOR PASO 8)
+        { // PASO 10
             element: '.sticky-header-container',
             title: 'Ver Nota Final',
             text: 'Al presionar "Siguiente", se generará la nota completa basada en los datos de ejemplo.',
@@ -141,9 +141,7 @@
             title: 'Guardar Nota',
             text: 'Al presionar "Siguiente", se simulará que guardas la nota, se cerrarán los modales y se reiniciará el formulario.',
             action: () => {
-                document.getElementById('separateNoteModalOverlay').style.display = 'none';
-                document.getElementById('noteModalOverlay').style.display = 'none';
-                document.querySelector('#btnReset').click(); // Simula el reinicio
+                document.querySelector('#separateModalCopySaveBtn').click();
             },
             spotlightElement: '#separateModalCopySaveBtn'
         },
@@ -306,13 +304,19 @@
             if (element) {
                 if (element.type === 'checkbox') {
                     element.checked = data[key];
+                } else if (element.type === 'radio') {
+                    // Lógica para radio buttons
+                    const radioToSelect = document.querySelector(`input[name="${element.name}"][value="${data[key]}"]`);
+                    if (radioToSelect) {
+                        radioToSelect.checked = true;
+                    }
                 } else {
                     element.value = data[key];
                 }
                 dispatchEvents(element);
                 // Si es un select, esperamos un poco para que se carguen las opciones dependientes
                 if (element.tagName === 'SELECT') {
-                    await new Promise(res => setTimeout(res, 100));
+                    await new Promise(res => setTimeout(res, 150));
                 }
             }
         }
