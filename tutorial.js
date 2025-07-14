@@ -186,16 +186,29 @@
             title: 'Menú de Checklists',
             text: 'Este es el menú de checklists y opciones. Te ayuda a asegurar que cumplas con todos los mandatos de excelencia en cada llamada.',
             position: 'right',
-            noHighlight: true // Esta propiedad evita el conflicto de CSS.
+            noHighlight: true, // Evita el conflicto de CSS.
+            action: async () => {
+                const closeBtn = document.querySelector('#closeChecklistBtn');
+                if (closeBtn) {
+                    closeBtn.click();
+                    await waitForTransition(document.getElementById('checklistSidebar'));
+                }
+            }
         },
         { // PASO 21
-            element: '#checklistSidebar',
-            title: 'Mandatos de Excelencia',
-            text: 'Esta es la primera sección. Asegúrate de completar todos los puntos relevantes antes de finalizar la interacción.',
-            position: 'right',
-            spotlightElement: '.checklist-section:first-child .checklist-section-title',
-            noHighlight: true // Se recomienda usar también aquí para mantener la consistencia.
-        }
+            element: '#feedback-widget',
+            title: 'Envíanos tus ideas',
+            text: 'Si tienes alguna sugerencia para mejorar la app, ¡nos encantaría escucharla! Usa este botón para enviar tus comentarios.',
+            position: 'top',
+            spotlightElement: '#feedback-btn'
+        },
+        { // PASO 22
+            element: 'body',
+            title: '¡Has completado el tutorial!',
+            text: 'Ya estás listo para usar APad. Presiona "Finalizar" para limpiar el formulario y empezar a tomar tus propias notas.',
+            position: 'center',
+            noHighlight: true
+        },
     ];
 
     // --- Funciones Principales del Tour ---
