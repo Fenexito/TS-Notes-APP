@@ -130,74 +130,21 @@
             element: '.sticky-header-container',
             title: 'Nota Guardada',
             text: '¡Perfecto! La nota se ha "guardado". Ahora, presiona "Siguiente" para abrir el historial.',
-            action: () => document.querySelector('#btnHistory').click(),
+            action: async () => { // CORREGIDO: Acción asíncrona para esperar la animación
+                const historyBtn = document.querySelector('#btnHistory');
+                if (historyBtn) {
+                    historyBtn.click();
+                    // Esperamos a que el sidebar termine su transición
+                    await waitForTransition(document.getElementById('historySidebar'));
+                }
+            },
             spotlightElement: '#btnHistory'
         },
-        { // PASO 16
+        { // PASO 16 (NUEVO)
             element: '#historySidebar',
             title: 'Panel de Historial',
-            text: 'Este es el panel de historial. Presiona "Siguiente" para continuar.',
+            text: 'Este es el panel de historial. Haz clic en "Finalizar" para terminar el tour.',
             position: 'left'
-        },
-        { // PASO 17
-            element: '#historySidebar',
-            title: 'Barra de Búsqueda',
-            text: 'Puedes usar esta barra para buscar rápidamente entre tus notas guardadas.',
-            position: 'left',
-            spotlightElement: '#historySearchInput'
-        },
-        { // PASO 18
-            element: '#historySidebar',
-            title: 'Importar y Exportar',
-            text: 'Desde aquí puedes exportar todas tus notas a un archivo o importar notas desde otro dispositivo.',
-            position: 'left',
-            spotlightElement: '#historyactionsfooter'
-        },
-        { // PASO 19
-            element: '.sticky-header-container',
-            title: 'Menú Izquierdo',
-            text: 'El historial se ha cerrado. Ahora, presiona "Siguiente" para abrir el menú de la izquierda.',
-            action: async () => {
-                document.querySelector('#closeHistoryBtn').click();
-                await waitForTransition(document.getElementById('historySidebar'));
-            },
-            spotlightElement: '#btnChecklistMenu'
-        },
-        { // PASO 20
-            element: '#btnChecklistMenu',
-            title: 'Abrir Menú',
-            text: 'Haz clic en "Siguiente" para abrir el menú de checklist.',
-            action: () => document.querySelector('#btnChecklistMenu').click()
-        },
-        { // PASO 21
-            element: '#checklistSidebar',
-            title: 'Menú de Checklist',
-            text: 'Este menú contiene checklists útiles para tus llamadas. Presiona "Siguiente" para continuar.',
-            position: 'right'
-        },
-        { // PASO 22
-            element: '#feedback-btn',
-            title: 'Enviar Comentarios',
-            text: 'Si tienes alguna idea, puedes enviarla desde este botón. Al presionar "Siguiente", cerraremos el menú de la izquierda.',
-            action: () => document.querySelector('#closeChecklistBtn').click()
-        },
-        { // PASO 23
-            element: '#feedback-btn',
-            title: 'Abrir Feedback',
-            text: 'Al presionar "Siguiente", abriremos el modal de feedback.',
-            action: () => document.querySelector('#feedback-btn').click()
-        },
-        { // PASO 24
-            element: '#feedbackModalOverlay .modal-content',
-            title: 'Modal de Feedback',
-            text: 'Desde aquí puedes enviar tus comentarios. Al presionar "Siguiente", lo cerraremos.',
-            action: () => document.querySelector('#closeFeedbackModalBtn').click()
-        },
-        { // PASO 25
-            element: 'body',
-            title: '¡Todo Listo!',
-            text: 'Has completado el tour y estás listo para empezar a tomar notas. ¡Éxito!',
-            position: 'center'
         }
     ];
 
@@ -284,16 +231,14 @@
         let top, left;
 
         const historySidebar = document.getElementById('historySidebar');
-        const checklistSidebar = document.getElementById('checklistSidebar');
         const isHistoryOpen = historySidebar && historySidebar.classList.contains('active');
-        const isChecklistOpen = checklistSidebar && checklistSidebar.classList.contains('active');
 
         switch (position) {
             case 'left-center':
                 top = targetRect.top + (targetRect.height / 2) - (popoverRect.height / 2);
                 left = targetRect.left - popoverRect.width - 15;
                 break;
-            case 'left':
+            case 'left': // CORREGIDO: Posicionamiento a la izquierda del menú
                 top = targetRect.top + 20;
                 left = targetRect.left - popover.offsetWidth - 20;
                 break;
@@ -309,12 +254,6 @@
                 top = targetRect.bottom + 15;
                 left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2);
                 break;
-        }
-
-        if (isHistoryOpen) {
-            left = historySidebar.getBoundingClientRect().left - popover.offsetWidth - 20;
-        } else if (isChecklistOpen) {
-            left = checklistSidebar.getBoundingClientRect().right + 20;
         }
 
         if (left < 10) left = 10;
