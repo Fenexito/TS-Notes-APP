@@ -83,121 +83,77 @@
         },
         { // PASO 8
             element: '.sticky-header-container',
-            title: 'Botón de Guardar',
+            title: 'Botones de la App',
             text: 'Este botón guarda la nota actual en tu historial local. Presiona "Siguiente" para continuar.',
-            spotlightElement: '#btnSave'
+            spotlightElement: '#topactions'
         },
         { // PASO 9
-            element: '.sticky-header-container',
-            title: 'Botón de Reiniciar',
-            text: 'Este botón limpia todo el formulario para empezar una nueva nota. Presiona "Siguiente" para continuar.',
-            spotlightElement: '#btnReset'
-        },
-        { // PASO 10
             element: '.sticky-header-container',
             title: 'Ver Nota Final',
             text: 'Al presionar "Siguiente", se generará la nota completa basada en los datos de ejemplo.',
             action: () => document.querySelector('#btnSee').click(),
             spotlightElement: '#btnSee'
         },
-        { // PASO 11
+        { // PASO 10
             element: '#noteModalOverlay .modal-content',
             title: 'Nota Final Generada',
             text: 'Esta es la nota completa. Exploraremos sus opciones. Presiona "Siguiente".',
             spotlightElement: '#modalNoteTextarea'
         },
-        { // PASO 12
+        { // PASO 11
             element: '#noteModalOverlay .modal-content',
-            title: 'Botón de Copiar',
-            text: 'Este botón copia la nota completa a tu portapapeles.',
-            spotlightElement: '#modalCopyBtn'
-        },
-        { // PASO 13
-            element: '#noteModalOverlay .modal-content',
-            title: 'Botón de Resolución',
-            text: 'Este botón copia únicamente la sección de resolución de la nota.',
-            spotlightElement: '#modalResolutionBtn'
-        },
-        { // PASO 14
-            element: '#noteModalOverlay .modal-content',
-            title: 'Botón Copilot',
+            title: 'Botones de la Nota Final',
             text: 'Este botón envía la nota a una IA para obtener un resumen o sugerencias.',
-            spotlightElement: '#modalCopilotBtn'
+            spotlightElement: '#modal-actions'
         },
-        { // PASO 15
+        { // PASO 12
             element: '#noteModalOverlay .modal-content',
             title: 'Dividir Nota',
             text: 'Al presionar "Siguiente", se dividirá la nota y se mostrará en un nuevo modal.',
             action: () => document.querySelector('#modalSeparateBtn').click(),
             spotlightElement: '#modalSeparateBtn'
         },
-        { // PASO 16
+        { // PASO 13
             element: '#separateNoteModalOverlay .modal-content',
             title: 'Notas Divididas',
             text: 'Aquí puedes ver la nota dividida en dos partes, cada una con su propio botón para copiar.',
             spotlightElement: '.separate-notes-container'
         },
-        { // PASO 17
+        { // PASO 14
             element: '#separateNoteModalOverlay .modal-content',
             title: 'Guardar Nota',
             text: 'Al presionar "Siguiente", se simulará que guardas la nota y se abrirá el historial.',
             action: () => document.querySelector('#separateModalCopySaveBtn').click(),
             spotlightElement: '#separateModalCopySaveBtn'
         },
-        { // PASO 18
+        { // PASO 15
             element: '.sticky-header-container',
             title: 'Nota Guardada',
             text: '¡Perfecto! La nota se ha "guardado". Ahora, presiona "Siguiente" para abrir el historial.',
             action: () => document.querySelector('#btnHistory').click(),
             spotlightElement: '#btnHistory'
         },
-        { // PASO 19
+        { // PASO 16
             element: '#historySidebar',
             title: 'Panel de Historial',
             text: 'Este es el panel de historial. Presiona "Siguiente" para continuar.',
             position: 'left'
         },
-        { // PASO 20
+        { // PASO 17
             element: '#historySidebar',
             title: 'Barra de Búsqueda',
             text: 'Puedes usar esta barra para buscar rápidamente entre tus notas guardadas.',
             position: 'left',
             spotlightElement: '#historySearchInput'
         },
-        { // PASO 21
+        { // PASO 18
             element: '#historySidebar',
             title: 'Importar y Exportar',
             text: 'Desde aquí puedes exportar todas tus notas a un archivo o importar notas desde otro dispositivo.',
             position: 'left',
             spotlightElement: '#historyactionsfooter'
         },
-        { // PASO 22
-            element: '#historySidebar',
-            title: 'Nota Guardada',
-            text: 'Así se ve una nota en el historial. Cada nota guardada aparecerá aquí.',
-            position: 'left',
-            spotlightElement: '.note-history-list .note-item:first-child .date-group'
-        },
-        { // PASO 23
-            element: '#historySidebar',
-            title: 'Acciones de Nota',
-            text: 'Estos botones te permiten ver, editar o eliminar la nota.',
-            position: 'left',
-            spotlightElement: '.note-history-list .note-item:first-child .note-actions'
-        },
-        { // PASO 24
-            element: '.note-history-list .note-item:first-child .delete-note-btn',
-            title: 'Eliminar Nota',
-            text: 'Al presionar "Siguiente", simularemos la eliminación de la nota.',
-            action: () => document.querySelector('.note-history-list .note-item:first-child .delete-note-btn')?.click()
-        },
-        { // PASO 25
-            element: '#customConfirmModal .modal-content',
-            title: 'Confirmar Eliminación',
-            text: 'La aplicación siempre pide confirmación. Al presionar "Siguiente", aceptaremos.',
-            action: () => document.querySelector('#confirmYesBtn').click()
-        },
-        { // PASO 26
+        { // PASO 19
             element: '.sticky-header-container',
             title: 'Menú Izquierdo',
             text: 'El historial se ha cerrado. Ahora, presiona "Siguiente" para abrir el menú de la izquierda.',
@@ -207,13 +163,13 @@
             },
             spotlightElement: '#btnChecklistMenu'
         },
-        { // PASO 27
+        { // PASO 20
             element: '#checklistSidebar',
             title: 'Menú de Checklist',
             text: 'Este menú contiene checklists útiles para tus llamadas. Presiona "Siguiente" para continuar.',
             position: 'right'
         },
-        { // PASO 28
+        { // PASO 21
             element: '#checklistSidebar',
             title: 'Enviar Comentarios',
             text: 'Si tienes alguna idea, puedes enviarla desde el botón de feedback. Al presionar "Siguiente", cerraremos este menú.',
@@ -221,19 +177,19 @@
             spotlightElement: '#feedback-btn',
             position: 'right'
         },
-        { // PASO 29
+        { // PASO 22
             element: '#feedback-btn',
             title: 'Abrir Feedback',
             text: 'Al presionar "Siguiente", abriremos el modal de feedback.',
             action: () => document.querySelector('#feedback-btn').click()
         },
-        { // PASO 30
+        { // PASO 23
             element: '#feedbackModalOverlay .modal-content',
             title: 'Modal de Feedback',
             text: 'Desde aquí puedes enviar tus comentarios. Al presionar "Siguiente", lo cerraremos.',
             action: () => document.querySelector('#closeFeedbackModalBtn').click()
         },
-        { // PASO 31
+        { // PASO 24
             element: 'body',
             title: '¡Todo Listo!',
             text: 'Has completado el tour y estás listo para empezar a tomar notas. ¡Éxito!',
