@@ -35,7 +35,7 @@
         extraStepsSelect: 'Use go/send to share PIN reset instructions',
         resolvedSelect: 'Yes | EOC', transferSelect: 'TRANSFER TO FFH CARE',
         csrOrderInput: '99999999', ticketInput: '000000001111111',
-        skillToggle: true
+        skillToggle: false // Corregido a false para que el skill sea FFH por defecto
     };
 
     // --- Definición de los Pasos del Tutorial ---
@@ -81,19 +81,19 @@
             text: 'Todas las secciones están ahora visibles. Presiona "Siguiente" para continuar y generar la nota final.',
             position: 'left-center'
         },
-        { // PASO 8
+        { // PASO 8 (NUEVO)
             element: '.sticky-header-container',
             title: 'Botón de Guardar',
             text: 'Este botón guarda la nota actual en tu historial local. Presiona "Siguiente" para continuar.',
             spotlightElement: '#btnSave'
         },
-        { // PASO 9
+        { // PASO 9 (NUEVO)
             element: '.sticky-header-container',
             title: 'Botón de Reiniciar',
             text: 'Este botón limpia todo el formulario para empezar una nueva nota. Presiona "Siguiente" para continuar.',
             spotlightElement: '#btnReset'
         },
-        { // PASO 10
+        { // PASO 10 (ANTERIOR PASO 8)
             element: '.sticky-header-container',
             title: 'Ver Nota Final',
             text: 'Al presionar "Siguiente", se generará la nota completa basada en los datos de ejemplo.',
@@ -131,21 +131,26 @@
             spotlightElement: '#modalSeparateBtn'
         },
         { // PASO 16
-            element: '#separateNoteModalOverlay .separate-notes-container',
+            element: '#separateNoteModalOverlay .modal-content',
             title: 'Notas Divididas',
-            text: 'Aquí puedes ver la nota dividida en dos partes, cada una con su propio botón para copiar.'
+            text: 'Aquí puedes ver la nota dividida en dos partes, cada una con su propio botón para copiar.',
+            spotlightElement: '.separate-notes-container'
         },
         { // PASO 17
             element: '#separateNoteModalOverlay .modal-content',
             title: 'Guardar Nota',
-            text: 'Al presionar "Siguiente", se simulará que guardas la nota y se abrirá el historial.',
-            action: () => document.querySelector('#separateModalCopySaveBtn').click(),
+            text: 'Al presionar "Siguiente", se simulará que guardas la nota, se cerrarán los modales y se reiniciará el formulario.',
+            action: () => {
+                document.getElementById('separateNoteModalOverlay').style.display = 'none';
+                document.getElementById('noteModalOverlay').style.display = 'none';
+                document.querySelector('#btnReset').click(); // Simula el reinicio
+            },
             spotlightElement: '#separateModalCopySaveBtn'
         },
         { // PASO 18
             element: '.sticky-header-container',
             title: 'Nota Guardada',
-            text: '¡Perfecto! La nota se ha "guardado", los modales se han cerrado y el formulario se ha reiniciado. Ahora, presiona "Siguiente" para ver el historial.',
+            text: '¡Perfecto! Ahora presiona "Siguiente" para abrir el historial y ver la nota de ejemplo.',
             action: () => document.querySelector('#btnHistory').click(),
             spotlightElement: '#btnHistory'
         },
@@ -290,6 +295,11 @@
     
     // --- Carga de Datos de Ejemplo (FUNCIÓN MEJORADA) ---
     async function loadSampleDataIntoForm(data) {
+        const dispatchEvents = (element) => {
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+        };
+
         // Itera sobre los datos y los asigna a los campos del formulario
         for (const key in data) {
             const element = document.getElementById(key);
@@ -299,12 +309,10 @@
                 } else {
                     element.value = data[key];
                 }
-                // Dispara un evento para que la app reaccione
-                element.dispatchEvent(new Event('change', { bubbles: true }));
-                element.dispatchEvent(new Event('input', { bubbles: true }));
+                dispatchEvents(element);
                 // Si es un select, esperamos un poco para que se carguen las opciones dependientes
                 if (element.tagName === 'SELECT') {
-                    await new Promise(res => setTimeout(res, 50));
+                    await new Promise(res => setTimeout(res, 100));
                 }
             }
         }
