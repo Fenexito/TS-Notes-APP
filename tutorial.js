@@ -33,7 +33,7 @@
         downloadAfterInput: '580Mbps', uploadAfterInput: '490Mbps',
         tvsSelect: 'YES', tvsKeyInput: 'JSH182HF',
         extraStepsSelect: 'Use go/send to share PIN reset instructions',
-        resolvedSelect: 'Yes | EOC', transferSelect: 'TRANSFER TO FFH CARE',
+        resolvedSelect: 'Yes | EOC', transferCheckbox: true, transferSelect: 'TRANSFER TO FFH CARE',
         csrOrderInput: '99999999', ticketInput: '000000001111111',
         skillToggle: false
     };
@@ -103,7 +103,8 @@
         { // PASO 11
             element: '#noteModalOverlay .modal-content',
             title: 'Nota Final Generada',
-            text: 'Esta es la nota completa. Exploraremos sus opciones. Presiona "Siguiente".'
+            text: 'Esta es la nota completa. Exploraremos sus opciones. Presiona "Siguiente".',
+            spotlightElement: '#modalNoteTextarea'
         },
         { // PASO 12
             element: '#noteModalOverlay .modal-content',
@@ -175,7 +176,7 @@
             title: 'Nota Guardada',
             text: 'Así se ve una nota en el historial. Cada nota guardada aparecerá aquí.',
             position: 'left',
-            spotlightElement: '.note-history-list .note-item:first-child'
+            spotlightElement: '.note-history-list .note-item:first-child .date-group'
         },
         { // PASO 23
             element: '#historySidebar',
@@ -200,7 +201,10 @@
             element: '.sticky-header-container',
             title: 'Menú Izquierdo',
             text: 'El historial se ha cerrado. Ahora, presiona "Siguiente" para abrir el menú de la izquierda.',
-            action: () => document.querySelector('#btnChecklistMenu').click(),
+            action: () => {
+                document.querySelector('#closeHistoryBtn').click();
+                setTimeout(() => document.querySelector('#btnChecklistMenu').click(), 400);
+            },
             spotlightElement: '#btnChecklistMenu'
         },
         { // PASO 27
@@ -301,7 +305,6 @@
         if (highlightedElement) highlightedElement.classList.remove('tutorial-highlight');
         if (spotlightedElement) spotlightedElement.classList.remove('tutorial-spotlight');
         localStorage.setItem('tutorialCompleted', 'true');
-        // Reiniciar el formulario al final del tour
         document.querySelector('#btnReset').click();
     }
 
@@ -311,6 +314,10 @@
         const targetRect = targetElement.getBoundingClientRect();
         const popoverRect = popover.getBoundingClientRect();
         let top, left;
+
+        // Posicionamiento inteligente si el menú de historial está abierto
+        const historySidebar = document.getElementById('historySidebar');
+        const isHistoryOpen = historySidebar && historySidebar.classList.contains('active');
 
         switch (position) {
             case 'left-center':
@@ -333,6 +340,10 @@
                 top = targetRect.bottom + 15;
                 left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2);
                 break;
+        }
+
+        if (isHistoryOpen) {
+            left -= (historySidebar.offsetWidth / 2);
         }
 
         if (left < 10) left = 10;
