@@ -95,14 +95,16 @@
             spotlightElement: '#btnSee'
         },
         { // PASO 10
-            element: '#modalNoteTextarea', // CORREGIDO: Resalta directamente el textarea
+            element: '#noteModalOverlay .modal-content',
             title: 'Nota Final Generada',
-            text: 'Esta es la nota completa. Exploraremos sus opciones. Presiona "Siguiente".'
+            text: 'Esta es la nota completa. Exploraremos sus opciones. Presiona "Siguiente".',
+            spotlightElement: '#modalNoteTextarea'
         },
         { // PASO 11
-            element: '.modal-actions', // CORREGIDO: Resalta directamente el contenedor de acciones
+            element: '#noteModalOverlay .modal-content',
             title: 'Botones de la Nota Final',
-            text: 'Estos botones te permiten realizar acciones con la nota generada.'
+            text: 'Estos botones te permiten realizar acciones con la nota generada.',
+            spotlightElement: '.modal-actions'
         },
         { // PASO 12
             element: '#noteModalOverlay .modal-content',
@@ -135,7 +137,7 @@
             element: '#historySidebar',
             title: 'Panel de Historial',
             text: 'Este es el panel de historial. Presiona "Siguiente" para continuar.',
-            position: 'left' // CORREGIDO: Posición para el menú lateral
+            position: 'left'
         },
         { // PASO 17
             element: '#historySidebar',
@@ -155,7 +157,7 @@
             element: '.sticky-header-container',
             title: 'Menú Izquierdo',
             text: 'El historial se ha cerrado. Ahora, presiona "Siguiente" para abrir el menú de la izquierda.',
-            action: async () => { // CORREGIDO: La acción ahora cierra el menú
+            action: async () => {
                 document.querySelector('#closeHistoryBtn').click();
                 await waitForTransition(document.getElementById('historySidebar'));
                 document.querySelector('#btnChecklistMenu').click();
@@ -166,10 +168,10 @@
             element: '#checklistSidebar',
             title: 'Menú de Checklist',
             text: 'Este menú contiene checklists útiles para tus llamadas. Presiona "Siguiente" para continuar.',
-            position: 'right' // CORREGIDO: Posición para el menú izquierdo
+            position: 'right'
         },
         { // PASO 21
-            element: '#feedback-btn', // CORREGIDO: El elemento principal ahora es el botón de feedback
+            element: '#feedback-btn',
             title: 'Enviar Comentarios',
             text: 'Si tienes alguna idea, puedes enviarla desde este botón. Al presionar "Siguiente", cerraremos el menú de la izquierda.',
             action: () => document.querySelector('#closeChecklistBtn').click()
@@ -244,7 +246,6 @@
             }
         }
         
-        // Usar requestAnimationFrame para asegurar que el popover es medible antes de posicionarlo
         requestAnimationFrame(() => {
             positionPopover(targetElement, step.position);
         });
@@ -268,7 +269,14 @@
 
     function positionPopover(targetElement, position = 'bottom-center') {
         const targetRect = targetElement.getBoundingClientRect();
+        
+        // Forzar al popover a ser medible antes de getBoundingClientRect
+        popover.style.visibility = 'hidden';
+        popover.classList.add('active');
         const popoverRect = popover.getBoundingClientRect();
+        popover.style.visibility = ''; // Restaurar visibilidad
+        popover.classList.remove('active'); // Mantenerlo oculto hasta el final
+
         let top, left;
 
         const historySidebar = document.getElementById('historySidebar');
@@ -302,7 +310,6 @@
         if (isHistoryOpen) {
             left -= (historySidebar.offsetWidth / 2);
         } else if (isChecklistOpen) {
-            // Asumiendo que el menú izquierdo tiene un ancho similar
             left += (checklistSidebar.offsetWidth / 2);
         }
 
@@ -313,6 +320,9 @@
         
         popover.style.top = `${top}px`;
         popover.style.left = `${left}px`;
+        
+        // Finalmente, hacer visible el popover
+        popover.classList.add('active');
     }
     
     function waitForTransition(element, timeout = 500) {
