@@ -1448,7 +1448,7 @@ textarea {
 .note-actions {
     display: flex;
     gap: 5px;
-    justify-content: flex-end;
+    justify-content: space-around;
     flex-wrap: wrap;
     margin-top: 6px;
 }
