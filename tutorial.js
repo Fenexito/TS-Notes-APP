@@ -81,21 +81,43 @@
             text: 'Todas las secciones están ahora visibles. Presiona "Siguiente" para continuar y generar la nota final.',
             position: 'left-center'
         },
-        { // PASO 8
+        { // PASO 8 (NUEVO)
+            element: '.sticky-header-container',
+            title: 'Botón de Guardar',
+            text: 'Este botón guarda la nota actual en tu historial local. Presiona "Siguiente" para continuar.',
+            spotlightElement: '#btnSave'
+        },
+        { // PASO 9 (NUEVO)
+            element: '.sticky-header-container',
+            title: 'Botón de Reiniciar',
+            text: 'Este botón limpia todo el formulario para empezar una nueva nota. Presiona "Siguiente" para continuar.',
+            spotlightElement: '#btnReset'
+        },
+        { // PASO 10 (ANTERIOR PASO 8)
             element: '.sticky-header-container',
             title: 'Ver Nota Final',
             text: 'Al presionar "Siguiente", se generará la nota completa basada en los datos de ejemplo.',
             action: () => document.querySelector('#btnSee').click(),
             spotlightElement: '#btnSee'
         },
-        { // PASO 9
+        { // PASO 11
+            element: '#noteModalOverlay .modal-content',
+            title: 'Nota Final Generada',
+            text: 'Esta es la nota completa. Presiona "Siguiente" para continuar.'
+        },
+        { // PASO 12
             element: '#noteModalOverlay .modal-content',
             title: 'Dividir Nota',
             text: 'Al presionar "Siguiente", se dividirá la nota y se mostrará en un nuevo modal.',
             action: () => document.querySelector('#modalSeparateBtn').click(),
             spotlightElement: '#modalSeparateBtn'
         },
-        { // PASO 10
+        { // PASO 13
+            element: '#separateNoteModalOverlay .modal-content',
+            title: 'Nota Dividida',
+            text: 'Perfecto. Ahora presiona "Siguiente" para resaltar el botón de guardado.'
+        },
+        { // PASO 14
             element: '#separateNoteModalOverlay .modal-content',
             title: 'Guardar Nota',
             text: 'Al presionar "Siguiente", se simulará que guardas la nota y se abrirá el historial.',
@@ -106,23 +128,23 @@
             },
             spotlightElement: '#separateModalCopySaveBtn'
         },
-        { // PASO 13
+        { // PASO 15
             element: '#historySidebar',
             title: 'Panel de Historial',
             text: '¡Bien! La nota de ejemplo se "guardó" y el panel de historial se abrió.'
         },
-        { // PASO 14
+        { // PASO 16
             element: '.note-history-list .note-item:first-child',
             title: 'Nota Guardada',
             text: 'Así se ve una nota en el historial. Ahora simularemos cómo eliminarla.'
         },
-        { // PASO 15
+        { // PASO 17
             element: '.note-history-list .note-item:first-child .delete-note-btn',
             title: 'Eliminar Nota',
             text: 'Para eliminar una nota, haz clic en el icono de la papelera. Al presionar "Siguiente", simularemos esta acción.',
             action: () => document.querySelector('.note-history-list .note-item:first-child .delete-note-btn')?.click()
         },
-        { // PASO 16
+        { // PASO 18
             element: '#historySidebar',
             title: 'Nota Eliminada',
             text: '¡Perfecto! La nota ha sido eliminada. Has completado el tour. Haz clic en "Finalizar".'
@@ -261,10 +283,10 @@
         if (sections.length > 0) await waitForTransition(sections[sections.length - 1]);
     }
     
-    // --- Carga de Datos de Ejemplo (FUNCIÓN ACTUALIZADA) ---
+    // --- Carga de Datos de Ejemplo (FUNCIÓN MEJORADA) ---
     function loadSampleDataIntoForm(data) {
-        // Llenar todos los campos con los datos de ejemplo
-        Object.keys(data).forEach(key => {
+        // Itera sobre los datos y los asigna a los campos del formulario
+        for (const key in data) {
             const element = document.getElementById(key);
             if (element) {
                 if (element.type === 'checkbox') {
@@ -272,44 +294,25 @@
                 } else {
                     element.value = data[key];
                 }
-                // Disparar un evento de 'input' para que la app reaccione (ej. contadores de caracteres)
+                // Dispara un evento para que la app reaccione (ej. mostrar campos condicionales)
+                element.dispatchEvent(new Event('change', { bubbles: true }));
                 element.dispatchEvent(new Event('input', { bubbles: true }));
             }
-        });
-
-        // --- Forzar la visibilidad de los campos ocultos para el tutorial ---
-
-        // Hacer visible el campo XID (si existe)
-        const xidContainer = document.getElementById('xidFieldContainer');
-        if (xidContainer) xidContainer.style.display = 'block';
-
-        // Hacer visibles los campos de Optik TV Legacy
-        const optikTvFields = document.getElementById('optikTvLegacySpecificFields');
-        if (optikTvFields) {
-            optikTvFields.style.display = 'flex';
-            document.getElementById('xVuStatusSelect').disabled = false;
-            document.getElementById('packetLossSelect').disabled = false;
         }
         
-        // Hacer visible el campo TVS Key
-        const tvsKeyContainer = document.getElementById('tvsKeyFieldContainer');
-        if (tvsKeyContainer) tvsKeyContainer.style.display = 'block';
-
-        // Habilitar el select de Transfer
-        const transferCheckbox = document.getElementById('transferCheckbox');
-        const transferSelect = document.getElementById('transferSelect');
-        if (transferCheckbox && transferSelect) {
-            transferCheckbox.checked = true;
-            transferSelect.disabled = false;
-        }
-        
-        // Habilitar el select de AWA Alerts 2
+        // Forzar visibilidad y habilitación de campos que no reaccionan al evento 'change'
+        // Esto asegura que todos los datos del tutorial sean visibles.
         const awaAlerts2Checkbox = document.getElementById('enableAwaAlerts2');
+        if (awaAlerts2Checkbox) awaAlerts2Checkbox.checked = true;
+        
         const awaAlerts2Select = document.getElementById('awaAlerts2Select');
-        if(awaAlerts2Checkbox && awaAlerts2Select) {
-            awaAlerts2Checkbox.checked = true;
-            awaAlerts2Select.disabled = false;
-        }
+        if (awaAlerts2Select) awaAlerts2Select.disabled = false;
+        
+        const transferCheckbox = document.getElementById('transferCheckbox');
+        if(transferCheckbox) transferCheckbox.checked = true;
+
+        const transferSelect = document.getElementById('transferSelect');
+        if(transferSelect) transferSelect.disabled = false;
     }
 
     // --- Event Listeners de los botones del tutorial ---
@@ -346,10 +349,7 @@
                         const addObjectStore = addTransaction.objectStore('notes');
                         const noteToSave = {
                             id: `sample-${Date.now()}`,
-                            ban: sampleNoteData.ban,
-                            cid: sampleNoteData.cid,
-                            name: sampleNoteData.name,
-                            cbr: sampleNoteData.cbr,
+                            ban: sampleNoteData.ban, cid: sampleNoteData.cid, name: sampleNoteData.name, cbr: sampleNoteData.cbr,
                             timestamp: new Date().toISOString(),
                             note: 'Esta es una nota de ejemplo para el tutorial.',
                             formData: sampleNoteData
