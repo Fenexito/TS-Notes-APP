@@ -35,7 +35,7 @@
         extraStepsSelect: 'Use go/send to share PIN reset instructions',
         resolvedSelect: 'Yes | EOC', transferSelect: 'TRANSFER TO FFH CARE',
         csrOrderInput: '99999999', ticketInput: '000000001111111',
-        skillToggle: false // false = FFH, true = SHS
+        skillToggle: false
     };
 
     // --- Definición de los Pasos del Tutorial ---
@@ -139,23 +139,101 @@
         { // PASO 17
             element: '#separateNoteModalOverlay .modal-content',
             title: 'Guardar Nota',
-            text: 'Al presionar "Siguiente", se simulará que guardas la nota, se cerrarán los modales y se reiniciará el formulario.',
-            action: () => {
-                document.querySelector('#separateModalCopySaveBtn').click();
-            },
+            text: 'Al presionar "Siguiente", se simulará que guardas la nota y se abrirá el historial.',
+            action: () => document.querySelector('#separateModalCopySaveBtn').click(),
             spotlightElement: '#separateModalCopySaveBtn'
         },
         { // PASO 18
             element: '.sticky-header-container',
             title: 'Nota Guardada',
-            text: '¡Perfecto! Ahora presiona "Siguiente" para abrir el historial y ver la nota de ejemplo.',
+            text: '¡Perfecto! La nota se ha "guardado". Ahora, presiona "Siguiente" para abrir el historial.',
             action: () => document.querySelector('#btnHistory').click(),
             spotlightElement: '#btnHistory'
         },
         { // PASO 19
             element: '#historySidebar',
             title: 'Panel de Historial',
-            text: '¡Excelente! Has llegado al final del tour. Haz clic en "Finalizar".'
+            text: 'Este es el panel de historial. Presiona "Siguiente" para continuar.',
+            position: 'left'
+        },
+        { // PASO 20
+            element: '#historySidebar',
+            title: 'Barra de Búsqueda',
+            text: 'Puedes usar esta barra para buscar rápidamente entre tus notas guardadas.',
+            position: 'left',
+            spotlightElement: '#historySearchInput'
+        },
+        { // PASO 21
+            element: '#historySidebar',
+            title: 'Importar y Exportar',
+            text: 'Desde aquí puedes exportar todas tus notas a un archivo o importar notas desde otro dispositivo.',
+            position: 'left',
+            spotlightElement: '#historyactionsfooter'
+        },
+        { // PASO 22
+            element: '#historySidebar',
+            title: 'Nota Guardada',
+            text: 'Así se ve una nota en el historial. Cada nota guardada aparecerá aquí.',
+            position: 'left',
+            spotlightElement: '.note-history-list .note-item:first-child'
+        },
+        { // PASO 23
+            element: '#historySidebar',
+            title: 'Acciones de Nota',
+            text: 'Estos botones te permiten ver, editar o eliminar la nota.',
+            position: 'left',
+            spotlightElement: '.note-history-list .note-item:first-child .note-actions'
+        },
+        { // PASO 24
+            element: '.note-history-list .note-item:first-child .delete-note-btn',
+            title: 'Eliminar Nota',
+            text: 'Al presionar "Siguiente", simularemos la eliminación de la nota.',
+            action: () => document.querySelector('.note-history-list .note-item:first-child .delete-note-btn')?.click()
+        },
+        { // PASO 25
+            element: '#customConfirmModal .modal-content',
+            title: 'Confirmar Eliminación',
+            text: 'La aplicación siempre pide confirmación. Al presionar "Siguiente", aceptaremos.',
+            action: () => document.querySelector('#confirmYesBtn').click()
+        },
+        { // PASO 26
+            element: '.sticky-header-container',
+            title: 'Menú Izquierdo',
+            text: 'El historial se ha cerrado. Ahora, presiona "Siguiente" para abrir el menú de la izquierda.',
+            action: () => document.querySelector('#btnChecklistMenu').click(),
+            spotlightElement: '#btnChecklistMenu'
+        },
+        { // PASO 27
+            element: '#checklistSidebar',
+            title: 'Menú de Checklist',
+            text: 'Este menú contiene checklists útiles para tus llamadas. Presiona "Siguiente" para continuar.',
+            position: 'right'
+        },
+        { // PASO 28
+            element: '#checklistSidebar',
+            title: 'Enviar Comentarios',
+            text: 'Si tienes alguna idea, puedes enviarla desde el botón de feedback. Al presionar "Siguiente", cerraremos este menú.',
+            action: () => document.querySelector('#closeChecklistBtn').click(),
+            spotlightElement: '#feedback-btn',
+            position: 'right'
+        },
+        { // PASO 29
+            element: '#feedback-btn',
+            title: 'Abrir Feedback',
+            text: 'Al presionar "Siguiente", abriremos el modal de feedback.',
+            action: () => document.querySelector('#feedback-btn').click()
+        },
+        { // PASO 30
+            element: '#feedbackModalOverlay .modal-content',
+            title: 'Modal de Feedback',
+            text: 'Desde aquí puedes enviar tus comentarios. Al presionar "Siguiente", lo cerraremos.',
+            action: () => document.querySelector('#closeFeedbackModalBtn').click()
+        },
+        { // PASO 31
+            element: 'body',
+            title: '¡Todo Listo!',
+            text: 'Has completado el tour y estás listo para empezar a tomar notas. ¡Éxito!',
+            position: 'center'
         }
     ];
 
@@ -223,6 +301,8 @@
         if (highlightedElement) highlightedElement.classList.remove('tutorial-highlight');
         if (spotlightedElement) spotlightedElement.classList.remove('tutorial-spotlight');
         localStorage.setItem('tutorialCompleted', 'true');
+        // Reiniciar el formulario al final del tour
+        document.querySelector('#btnReset').click();
     }
 
     // --- Funciones de Ayuda ---
@@ -237,11 +317,19 @@
                 top = targetRect.top + (targetRect.height / 2) - (popoverRect.height / 2);
                 left = targetRect.left - popoverRect.width - 15;
                 break;
+            case 'left':
+                top = targetRect.top + 20;
+                left = targetRect.left - popover.offsetWidth - 20;
+                break;
+            case 'right':
+                top = targetRect.top + 20;
+                left = targetRect.right + 20;
+                break;
             case 'center':
                 top = window.innerHeight / 2 - popoverRect.height / 2;
                 left = window.innerWidth / 2 - popoverRect.width / 2;
                 break;
-            default:
+            default: // bottom-center
                 top = targetRect.bottom + 15;
                 left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2);
                 break;
@@ -298,23 +386,18 @@
             element.dispatchEvent(new Event('input', { bubbles: true }));
         };
 
-        // Itera sobre los datos y los asigna a los campos del formulario
         for (const key in data) {
             const element = document.getElementById(key);
             if (element) {
                 if (element.type === 'checkbox') {
                     element.checked = data[key];
                 } else if (element.type === 'radio') {
-                    // Lógica para radio buttons
                     const radioToSelect = document.querySelector(`input[name="${element.name}"][value="${data[key]}"]`);
-                    if (radioToSelect) {
-                        radioToSelect.checked = true;
-                    }
+                    if (radioToSelect) radioToSelect.checked = true;
                 } else {
                     element.value = data[key];
                 }
                 dispatchEvents(element);
-                // Si es un select, esperamos un poco para que se carguen las opciones dependientes
                 if (element.tagName === 'SELECT') {
                     await new Promise(res => setTimeout(res, 150));
                 }
