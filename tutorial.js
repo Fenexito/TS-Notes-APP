@@ -167,8 +167,6 @@
                 }
             }
         },
-    
-        // --- PASO CORREGIDO ---
         { // PASO 19
             element: '.sticky-header-container',
             title: 'Menú Izquierdo',
@@ -183,23 +181,21 @@
             },
             spotlightElement: '#btnChecklistMenu'
         },
-    
-        // --- NUEVO PASO ---
         { // PASO 20
             element: '#checklistSidebar',
             title: 'Menú de Checklists',
             text: 'Este es el menú de checklists y opciones. Te ayuda a asegurar que cumplas con todos los mandatos de excelencia en cada llamada.',
-            position: 'right'
+            position: 'right',
+            noHighlight: true // Esta propiedad evita el conflicto de CSS.
         },
-    
-        // --- NUEVO PASO ---
         { // PASO 21
             element: '#checklistSidebar',
             title: 'Mandatos de Excelencia',
             text: 'Esta es la primera sección. Asegúrate de completar todos los puntos relevantes antes de finalizar la interacción.',
             position: 'right',
-            spotlightElement: '.checklist-section:first-child .checklist-section-title'
-        },
+            spotlightElement: '.checklist-section:first-child .checklist-section-title',
+            noHighlight: true // Se recomienda usar también aquí para mantener la consistencia.
+        }
     ];
 
     // --- Funciones Principales del Tour ---
@@ -241,9 +237,13 @@
         popoverTitle.textContent = step.title;
         popoverText.textContent = step.text;
         
-        targetElement.classList.add('tutorial-highlight');
-        highlightedElement = targetElement;
-        
+        if (!step.noHighlight) {
+            targetElement.classList.add('tutorial-highlight');
+            highlightedElement = targetElement;
+        } else {
+            highlightedElement = null; // Nos aseguramos de que no haya un elemento resaltado
+        }
+
         if (step.spotlightElement) {
             const spotElement = document.querySelector(step.spotlightElement);
             if (spotElement) {
