@@ -95,16 +95,14 @@
             spotlightElement: '#btnSee'
         },
         { // PASO 10
-            element: '#noteModalOverlay .modal-content',
+            element: '#modalNoteTextarea', // CORREGIDO: Resalta directamente el textarea
             title: 'Nota Final Generada',
-            text: 'Esta es la nota completa. Exploraremos sus opciones. Presiona "Siguiente".',
-            spotlightElement: '#modalNoteTextarea'
+            text: 'Esta es la nota completa. Exploraremos sus opciones. Presiona "Siguiente".'
         },
         { // PASO 11
-            element: '#noteModalOverlay .modal-content',
+            element: '.modal-actions', // CORREGIDO: Resalta directamente el contenedor de acciones
             title: 'Botones de la Nota Final',
-            text: 'Estos botones te permiten realizar acciones con la nota generada.',
-            spotlightElement: '.modal-actions'
+            text: 'Estos botones te permiten realizar acciones con la nota generada.'
         },
         { // PASO 12
             element: '#noteModalOverlay .modal-content',
@@ -137,7 +135,7 @@
             element: '#historySidebar',
             title: 'Panel de Historial',
             text: 'Este es el panel de historial. Presiona "Siguiente" para continuar.',
-            position: 'left'
+            position: 'left' // CORREGIDO: Posición para el menú lateral
         },
         { // PASO 17
             element: '#historySidebar',
@@ -157,7 +155,7 @@
             element: '.sticky-header-container',
             title: 'Menú Izquierdo',
             text: 'El historial se ha cerrado. Ahora, presiona "Siguiente" para abrir el menú de la izquierda.',
-            action: async () => {
+            action: async () => { // CORREGIDO: La acción ahora cierra el menú
                 document.querySelector('#closeHistoryBtn').click();
                 await waitForTransition(document.getElementById('historySidebar'));
                 document.querySelector('#btnChecklistMenu').click();
@@ -168,15 +166,13 @@
             element: '#checklistSidebar',
             title: 'Menú de Checklist',
             text: 'Este menú contiene checklists útiles para tus llamadas. Presiona "Siguiente" para continuar.',
-            position: 'right'
+            position: 'right' // CORREGIDO: Posición para el menú izquierdo
         },
         { // PASO 21
-            element: '#checklistSidebar',
+            element: '#feedback-btn', // CORREGIDO: El elemento principal ahora es el botón de feedback
             title: 'Enviar Comentarios',
-            text: 'Si tienes alguna idea, puedes enviarla desde el botón de feedback. Al presionar "Siguiente", cerraremos este menú.',
-            action: () => document.querySelector('#closeChecklistBtn').click(),
-            spotlightElement: '#feedback-btn',
-            position: 'right'
+            text: 'Si tienes alguna idea, puedes enviarla desde este botón. Al presionar "Siguiente", cerraremos el menú de la izquierda.',
+            action: () => document.querySelector('#closeChecklistBtn').click()
         },
         { // PASO 22
             element: '#feedback-btn',
@@ -248,7 +244,10 @@
             }
         }
         
-        positionPopover(targetElement, step.position);
+        // Usar requestAnimationFrame para asegurar que el popover es medible antes de posicionarlo
+        requestAnimationFrame(() => {
+            positionPopover(targetElement, step.position);
+        });
 
         const isLastStep = stepIndex === steps.length - 1;
         prevBtn.classList.toggle('hidden', stepIndex === 0);
@@ -303,6 +302,7 @@
         if (isHistoryOpen) {
             left -= (historySidebar.offsetWidth / 2);
         } else if (isChecklistOpen) {
+            // Asumiendo que el menú izquierdo tiene un ancho similar
             left += (checklistSidebar.offsetWidth / 2);
         }
 
