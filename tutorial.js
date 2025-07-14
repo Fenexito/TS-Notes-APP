@@ -303,6 +303,10 @@
         const isChecklistOpen = checklistSidebar && checklistSidebar.classList.contains('active');
 
         switch (position) {
+            case 'top':
+                top = targetRect.top - popoverRect.height - 15; // 15px de margen superior
+                left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2);
+                break;
             case 'left-center':
                 top = targetRect.top + (targetRect.height / 2) - (popoverRect.height / 2);
                 left = targetRect.left - popoverRect.width - 15;
