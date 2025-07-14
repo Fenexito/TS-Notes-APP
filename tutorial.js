@@ -196,18 +196,19 @@
             }
         },
         { // PASO 21
-            element: '#feedback-widget',
+            element: 'body', // Apuntamos al body para no resaltar nada
             title: 'Envíanos tus ideas',
             text: 'Si tienes alguna sugerencia para mejorar la app, ¡nos encantaría escucharla! Usa este botón para enviar tus comentarios.',
-            position: 'top',
-            spotlightElement: '#feedback-btn'
+            position: 'manual-feedback',
+            noHighlight: true,
         },
         { // PASO 22
             element: 'body',
             title: '¡Has completado el tutorial!',
             text: 'Ya estás listo para usar APad. Presiona "Finalizar" para limpiar el formulario y empezar a tomar tus propias notas.',
             position: 'center',
-            noHighlight: true
+            noHighlight: true,
+            forceOverlay: true,
         },
     ];
 
@@ -226,7 +227,15 @@
         }
         
         const step = steps[stepIndex];
-        
+
+        const overlay = document.getElementById('custom-tutorial-overlay');
+        // Forzamos el fondo del overlay si el paso lo requiere
+        if (step.forceOverlay) {
+            overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.75)';
+        } else {
+            overlay.style.backgroundColor = ''; // Lo resetea para otros pasos
+        }
+
         if (highlightedElement) {
             highlightedElement.classList.remove('tutorial-highlight');
         }
@@ -303,9 +312,10 @@
         const isChecklistOpen = checklistSidebar && checklistSidebar.classList.contains('active');
 
         switch (position) {
-            case 'top':
-                top = targetRect.top - popoverRect.height - 15; // 15px de margen superior
-                left = targetRect.left + (targetRect.width / 2) - (popoverRect.width / 2);
+            case 'manual-feedback':
+                const feedbackBtnRect = document.getElementById('feedback-btn').getBoundingClientRect();
+                top = feedbackBtnRect.top - popoverRect.height - 15; // 15px de margen
+                left = feedbackBtnRect.right - popoverRect.width;
                 break;
             case 'left-center':
                 top = targetRect.top + (targetRect.height / 2) - (popoverRect.height / 2);
