@@ -157,17 +157,48 @@
             title: 'Importar y Exportar',
             text: 'Desde aquí puedes exportar todas tus notas a un archivo o importar notas desde otro dispositivo.',
             position: 'left',
-            spotlightElement: '#historyactionsfooter'
+            spotlightElement: '#historyactionsfooter',
+            // ACCIÓN AÑADIDA: Cierra el panel de historial al presionar 'Siguiente'.
+            action: async () => {
+                const closeBtn = document.querySelector('#closeHistoryBtn');
+                if (closeBtn) {
+                    closeBtn.click();
+                    await waitForTransition(document.getElementById('historySidebar'));
+                }
+            }
         },
+    
+        // --- PASO CORREGIDO ---
         { // PASO 19
             element: '.sticky-header-container',
             title: 'Menú Izquierdo',
             text: 'El historial se ha cerrado. Ahora, presiona "Siguiente" para abrir el menú de la izquierda.',
+            // ACCIÓN MODIFICADA: Ahora abre el menú de checklists.
             action: async () => {
-                document.querySelector('#closeHistoryBtn').click();
-                await waitForTransition(document.getElementById('historySidebar'));
+                const menuBtn = document.querySelector('#btnChecklistMenu');
+                if (menuBtn) {
+                    menuBtn.click();
+                    await waitForTransition(document.getElementById('checklistSidebar'));
+                }
             },
             spotlightElement: '#btnChecklistMenu'
+        },
+    
+        // --- NUEVO PASO ---
+        { // PASO 20
+            element: '#checklistSidebar',
+            title: 'Menú de Checklists',
+            text: 'Este es el menú de checklists y opciones. Te ayuda a asegurar que cumplas con todos los mandatos de excelencia en cada llamada.',
+            position: 'right'
+        },
+    
+        // --- NUEVO PASO ---
+        { // PASO 21
+            element: '#checklistSidebar',
+            title: 'Mandatos de Excelencia',
+            text: 'Esta es la primera sección. Asegúrate de completar todos los puntos relevantes antes de finalizar la interacción.',
+            position: 'right',
+            spotlightElement: '.checklist-section:first-child .checklist-section-title'
         },
     ];
 
