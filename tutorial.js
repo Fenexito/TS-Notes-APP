@@ -130,21 +130,44 @@
             element: '.sticky-header-container',
             title: 'Nota Guardada',
             text: '¡Perfecto! La nota se ha "guardado". Ahora, presiona "Siguiente" para abrir el historial.',
-            action: async () => { // CORREGIDO: Acción asíncrona para esperar la animación
+            action: async () => {
                 const historyBtn = document.querySelector('#btnHistory');
                 if (historyBtn) {
                     historyBtn.click();
-                    // Esperamos a que el sidebar termine su transición
                     await waitForTransition(document.getElementById('historySidebar'));
                 }
             },
             spotlightElement: '#btnHistory'
         },
-        { // PASO 16 (NUEVO)
+        { // PASO 16
             element: '#historySidebar',
             title: 'Panel de Historial',
-            text: 'Este es el panel de historial. Haz clic en "Finalizar" para terminar el tour.',
+            text: 'Este es el panel de historial. Presiona "Siguiente" para continuar.',
             position: 'left'
+        },
+        { // PASO 17 (NUEVO)
+            element: '#historySidebar',
+            title: 'Barra de Búsqueda',
+            text: 'Puedes usar esta barra para buscar rápidamente entre tus notas guardadas.',
+            position: 'left',
+            spotlightElement: '#historySearchInput'
+        },
+        { // PASO 18 (NUEVO)
+            element: '#historySidebar',
+            title: 'Acciones de Nota',
+            text: 'Estos botones te permiten ver, editar o eliminar la nota. Al presionar "Siguiente", cerraremos este panel.',
+            position: 'left',
+            spotlightElement: '.note-history-list .note-item:first-child .note-actions',
+            action: async () => { // ACCIÓN AÑADIDA
+                document.querySelector('#closeHistoryBtn').click();
+                await waitForTransition(document.getElementById('historySidebar'));
+            }
+        },
+        { // PASO 19 (NUEVO)
+            element: '.sticky-header-container',
+            title: 'Menú Izquierdo',
+            text: 'Ahora, presiona "Siguiente" para abrir el menú de la izquierda.',
+            spotlightElement: '#btnChecklistMenu'
         }
     ];
 
@@ -238,7 +261,7 @@
                 top = targetRect.top + (targetRect.height / 2) - (popoverRect.height / 2);
                 left = targetRect.left - popoverRect.width - 15;
                 break;
-            case 'left': // CORREGIDO: Posicionamiento a la izquierda del menú
+            case 'left':
                 top = targetRect.top + 20;
                 left = targetRect.left - popover.offsetWidth - 20;
                 break;
