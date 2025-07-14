@@ -152,14 +152,15 @@
             text: 'Desde aquí puedes exportar todas tus notas a un archivo o importar notas desde otro dispositivo.',
             position: 'left',
             spotlightElement: '#historyactionsfooter'
+            action: async () => {
+                document.querySelector('#closeHistoryBtn').click();
+                await waitForTransition(document.getElementById('historySidebar'));
         },
         { // PASO 19
             element: '.sticky-header-container',
             title: 'Menú Izquierdo',
             text: 'El historial se ha cerrado. Ahora, presiona "Siguiente" para abrir el menú de la izquierda.',
             action: async () => {
-                document.querySelector('#closeHistoryBtn').click();
-                await waitForTransition(document.getElementById('historySidebar'));
                 document.querySelector('#btnChecklistMenu').click();
             },
             spotlightElement: '#btnChecklistMenu'
