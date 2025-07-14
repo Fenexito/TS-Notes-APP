@@ -33,7 +33,7 @@
         downloadAfterInput: '580Mbps', uploadAfterInput: '490Mbps',
         tvsSelect: 'YES', tvsKeyInput: 'JSH182HF',
         extraStepsSelect: 'Use go/send to share PIN reset instructions',
-        resolvedSelect: 'Yes | EOC', transferCheckbox: true, transferSelect: 'TRANSFER TO FFH CARE',
+        resolvedSelect: 'Yes | EOC', transferCheckbox: false, transferSelect: 'TRANSFER TO FFH CARE',
         csrOrderInput: '99999999', ticketInput: '000000001111111',
         skillToggle: false
     };
