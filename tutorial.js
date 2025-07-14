@@ -258,8 +258,13 @@
         popover.classList.remove('hidden');
         popoverTitle.textContent = step.title;
         popoverText.textContent = step.text;
-
-        popover.style.zIndex = '99999';
+        
+        if (!step.noHighlight) {
+            targetElement.classList.add('tutorial-highlight');
+            highlightedElement = targetElement;
+        } else {
+            highlightedElement = null; // Nos aseguramos de que no haya un elemento resaltado
+        }
 
         if (step.spotlightElement) {
             const spotElement = document.querySelector(step.spotlightElement);
@@ -282,9 +287,6 @@
     function endTour() {
         overlay.classList.add('hidden');
         popover.classList.add('hidden');
-
-        popover.style.zIndex = ''; // Reseteamos el z-index
-
         if (highlightedElement) highlightedElement.classList.remove('tutorial-highlight');
         if (spotlightedElement) spotlightedElement.classList.remove('tutorial-spotlight');
         localStorage.setItem('tutorialCompleted', 'true');
