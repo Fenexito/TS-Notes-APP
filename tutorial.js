@@ -169,48 +169,6 @@
             },
             spotlightElement: '#btnChecklistMenu'
         },
-        { // PASO 20
-            element: '#btnChecklistMenu',
-            title: 'Abrir Menú',
-            text: 'Haz clic en "Siguiente" para abrir el menú de checklist.',
-            action: async () => {
-                document.querySelector('#btnChecklistMenu').click();
-                await waitForTransition(document.getElementById('checklistSidebar'));
-            }
-        },
-        { // PASO 21
-            element: '#checklistSidebar',
-            title: 'Menú de Checklist',
-            text: 'Este menú contiene checklists útiles para tus llamadas. Presiona "Siguiente" para continuar.',
-            position: 'right'
-        },
-        { // PASO 22
-            element: '#feedback-btn',
-            title: 'Enviar Comentarios',
-            text: 'Si tienes alguna idea, puedes enviarla desde este botón. Al presionar "Siguiente", cerraremos el menú de la izquierda.',
-            action: async () => {
-                document.querySelector('#closeChecklistBtn').click();
-                await waitForTransition(document.getElementById('checklistSidebar'));
-            }
-        },
-        { // PASO 23
-            element: '#feedback-btn',
-            title: 'Abrir Feedback',
-            text: 'Al presionar "Siguiente", abriremos el modal de feedback.',
-            action: () => document.querySelector('#feedback-btn').click()
-        },
-        { // PASO 24
-            element: '#feedbackModalOverlay .modal-content',
-            title: 'Modal de Feedback',
-            text: 'Desde aquí puedes enviar tus comentarios. Al presionar "Siguiente", lo cerraremos.',
-            action: () => document.querySelector('#closeFeedbackModalBtn').click()
-        },
-        { // PASO 25
-            element: 'body',
-            title: '¡Todo Listo!',
-            text: 'Has completado el tour y estás listo para empezar a tomar notas. ¡Éxito!',
-            position: 'center'
-        }
     ];
 
     // --- Funciones Principales del Tour ---
