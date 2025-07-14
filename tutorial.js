@@ -152,44 +152,48 @@
             text: 'Desde aquí puedes exportar todas tus notas a un archivo o importar notas desde otro dispositivo.',
             position: 'left',
             spotlightElement: '#historyactionsfooter'
-            action: async () => {
-                document.querySelector('#closeHistoryBtn').click();
-                await waitForTransition(document.getElementById('historySidebar'));
         },
         { // PASO 19
             element: '.sticky-header-container',
             title: 'Menú Izquierdo',
             text: 'El historial se ha cerrado. Ahora, presiona "Siguiente" para abrir el menú de la izquierda.',
             action: async () => {
-                document.querySelector('#btnChecklistMenu').click();
+                document.querySelector('#closeHistoryBtn').click();
+                await waitForTransition(document.getElementById('historySidebar'));
             },
             spotlightElement: '#btnChecklistMenu'
         },
         { // PASO 20
+            element: '#btnChecklistMenu',
+            title: 'Abrir Menú',
+            text: 'Haz clic en "Siguiente" para abrir el menú de checklist.',
+            action: () => document.querySelector('#btnChecklistMenu').click()
+        },
+        { // PASO 21
             element: '#checklistSidebar',
             title: 'Menú de Checklist',
             text: 'Este menú contiene checklists útiles para tus llamadas. Presiona "Siguiente" para continuar.',
             position: 'right'
         },
-        { // PASO 21
+        { // PASO 22
             element: '#feedback-btn',
             title: 'Enviar Comentarios',
             text: 'Si tienes alguna idea, puedes enviarla desde este botón. Al presionar "Siguiente", cerraremos el menú de la izquierda.',
             action: () => document.querySelector('#closeChecklistBtn').click()
         },
-        { // PASO 22
+        { // PASO 23
             element: '#feedback-btn',
             title: 'Abrir Feedback',
             text: 'Al presionar "Siguiente", abriremos el modal de feedback.',
             action: () => document.querySelector('#feedback-btn').click()
         },
-        { // PASO 23
+        { // PASO 24
             element: '#feedbackModalOverlay .modal-content',
             title: 'Modal de Feedback',
             text: 'Desde aquí puedes enviar tus comentarios. Al presionar "Siguiente", lo cerraremos.',
             action: () => document.querySelector('#closeFeedbackModalBtn').click()
         },
-        { // PASO 24
+        { // PASO 25
             element: 'body',
             title: '¡Todo Listo!',
             text: 'Has completado el tour y estás listo para empezar a tomar notas. ¡Éxito!',
@@ -271,12 +275,11 @@
     function positionPopover(targetElement, position = 'bottom-center') {
         const targetRect = targetElement.getBoundingClientRect();
         
-        // Forzar al popover a ser medible antes de getBoundingClientRect
         popover.style.visibility = 'hidden';
         popover.classList.add('active');
         const popoverRect = popover.getBoundingClientRect();
-        popover.style.visibility = ''; // Restaurar visibilidad
-        popover.classList.remove('active'); // Mantenerlo oculto hasta el final
+        popover.style.visibility = '';
+        popover.classList.remove('active');
 
         let top, left;
 
@@ -309,9 +312,9 @@
         }
 
         if (isHistoryOpen) {
-            left -= (historySidebar.offsetWidth / 2);
+            left = historySidebar.getBoundingClientRect().left - popover.offsetWidth - 20;
         } else if (isChecklistOpen) {
-            left += (checklistSidebar.offsetWidth / 2);
+            left = checklistSidebar.getBoundingClientRect().right + 20;
         }
 
         if (left < 10) left = 10;
@@ -322,7 +325,6 @@
         popover.style.top = `${top}px`;
         popover.style.left = `${left}px`;
         
-        // Finalmente, hacer visible el popover
         popover.classList.add('active');
     }
     
