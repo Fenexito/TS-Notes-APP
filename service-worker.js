@@ -4,21 +4,31 @@
 // IMPORTANT!: Change this name (e.g., 'apad-v1.0.1') every time you make changes
 // to your HTML, CSS, JS, or any other assets you want to be updated
 // for users. This forces the browser to install the new Service Worker.
-const CACHE_NAME = 'v0.9.5'; // <-- THIS IS THE VERSION THAT WILL BE DISPLAYED
+const CACHE_NAME = 'v0.9.8'; // <-- THIS IS THE VERSION THAT WILL BE DISPLAYED
 
 // List of URLs for the files you want the Service Worker to cache.
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/script.js',
-  '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
-  '/screenshots/desktop-screenshot-1.png',
-  '/screenshots/desktop-screenshot-2.png',
-  '/screenshots/mobile-screenshot-1.png',
-  'https://unpkg.com/dexie@latest/dist/dexie.js'
+    '/',
+    '/index.html',
+    '/style.css',
+    '/manifest.json',
+    '/icons/icon-192x192.png',
+    '/icons/icon-512x512.png',
+    'https://unpkg.com/dexie@latest/dist/dexie.js',
+    '/js/main.js',
+    '/js/app-initializer.js',
+    '/js/config.js',
+    '/js/database.js',
+    '/js/dom-elements.js',
+    '/js/event-listeners.js',
+    '/js/history-manager.js',
+    '/js/modal-manager.js',
+    '/js/note-builder.js',
+    '/js/pwa.js',
+    '/js/ui-helpers.js',
+    '/js/ui-manager.js',
+    '/js/checklist-manager.js',
+    '/js/tutorial.js' // Ruta corregida
 ];
 
 // 'install' event: We cache all essential files.

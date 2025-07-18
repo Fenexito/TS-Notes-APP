@@ -49,6 +49,12 @@ body {
     flex-direction: column;
 }
 
+.sticky-header-container.is-fixed .header-dynamic-info {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
 .header-top-row {
     display: flex;
     justify-content: space-between;
@@ -98,7 +104,7 @@ body {
 
 .header-dynamic-info {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     width: 100%;
     padding: 6px;
@@ -130,6 +136,11 @@ body {
 .header-field-display span {
     font-weight: bold;
     margin-left: 3px;
+}
+
+.dynamic-char-counter {
+    margin-left: auto;
+    padding-right: 10px;
 }
 
 .copy-button-sticky {
@@ -289,6 +300,8 @@ button:active {
     border: 1px solid #ccc;
     border-radius: 4px;
     height: 30px;
+    background-color: #fff;
+    cursor: text;
 }
 
 .edit-button {
@@ -548,7 +561,6 @@ input:checked + .slider:before {
     flex-basis: 100%;
 }
 
-/* NUEVO: Estilos para la fila de enlaces */
 .input-row.links-row {
     display: flex;
     justify-content: space-around;
@@ -562,16 +574,16 @@ input:checked + .slider:before {
 }
 
 .input-row.links-row .input-group {
-    flex-basis: calc(50% - 10px); /* Dos columnas */
+    flex-basis: calc(50% - 10px);
     text-align: center;
-    margin-bottom: 0; /* Eliminar margen inferior predeterminado */
+    margin-bottom: 0;
 }
 
 .input-row.links-row p {
     margin: 0;
     font-size: 0.8em;
     color: #333;
-    white-space: nowrap; /* Evita que el texto se rompa en varias líneas */
+    white-space: nowrap;
 }
 
 .input-row.links-row a {
@@ -764,10 +776,14 @@ textarea {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
+    z-index: 1100;
+    display: none;
     justify-content: center;
     align-items: center;
-    z-index: 1100;
+}
+
+.modal-overlay.is-visible {
+    display: flex;
 }
 
 .modal-content {
@@ -783,7 +799,6 @@ textarea {
     overflow: hidden;
 }
 
-/* NUEVO: Estilos específicos para el modal de bienvenida */
 #welcomeModalOverlay .modal-content {
     max-width: 400px;
     margin-top: 6px;
@@ -837,6 +852,7 @@ textarea {
     display: flex;
     align-items: center;
     gap: 6px;
+    flex-grow: 1;
 }
 
 .modal-char-counter-display {
@@ -1039,6 +1055,10 @@ textarea {
     display: none;
 }
 
+.sidebar-overlay.is-visible {
+    display: block;
+}
+
 .sidebar-header {
     display: flex;
     justify-content: space-between;
@@ -1100,23 +1120,36 @@ textarea {
 }
 
 .date-group-header {
+    font-size: 0.8em;
+    margin-top: 1px;
+    margin-bottom: 1px;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: space-between; /* ¡Esta propiedad es la clave para la alineación a la derecha! */
-    /* Otros estilos existentes para el encabezado de tu grupo de fecha */
-    padding: 10px 15px; /* Ejemplo de padding para el encabezado */
-    background-color: #f0f0f0; /* Ejemplo de color de fondo */
-    border-bottom: 1px solid #ddd; /* Ejemplo de borde inferior */
+    background-color: #E0E0E0;
+    padding: 3px 8px;
     cursor: pointer;
+    border: 1px solid #BBB;
+    border-radius: 5px;
+    margin: 4px 0;
+}
+
+.date-group-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1em;
+}
+.date-group-header:hover {
+    background-color: #D3D3D3;
 }
 
 .note-count {
-    margin-left: 30px; /* Espacio entre el texto de la fecha y el contador */
-    font-size: 0.9em; /* Un poco más pequeño que el texto de la fecha */
-    color: #666; /* Un color más suave */
+    margin-left: 30px;
+    font-size: 0.9em;
+    color: #666;
     padding: 2px 8px;
-    min-width: 25px; /* Asegura un ancho mínimo para números de 1 o 2 dígitos */
-    text-align: center; /* Centra el número dentro del span */
+    min-width: 25px;
+    text-align: center;
 }
 
 .checklist-content {
@@ -1152,7 +1185,7 @@ textarea {
     transition: transform 0.3s ease;
     margin-left: 8px;
 }
-.checklist-section-title.collapsed::after {
+.checklist-section.collapsed .checklist-section-title::after {
     transform: rotate(-90deg);
 }
 .checklist-section-title:first-of-type {
@@ -1300,38 +1333,20 @@ textarea {
     gap: 8px;
 }
 
-.date-group-header {
-    font-size: 0.8em;
-    margin-top: 1px;
-    margin-bottom: 1px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #E0E0E0;
-    padding: 3px 8px;
-    cursor: pointer;
-    border: 1px solid #BBB;
-    border-radius: 5px;
-    margin: 4px 0;
-}
-.date-group-header h3 {
-    margin: 0;
-    color: #333;
-    font-size: 1em;
-}
-.date-group-header:hover {
-    background-color: #D3D3D3;
-}
-
 .date-group-content {
+    list-style: none;
     padding-left: 0;
-    max-height: 199px;
     margin-top: 2px;
     margin-bottom: 2px;
     max-height: 2000px; 
     overflow: hidden;
     transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
     opacity: 1;
+}
+
+.date-group-content.collapsed {
+    max-height: 0;
+    opacity: 0;
 }
 
 .note-item {
@@ -1344,35 +1359,19 @@ textarea {
     flex-direction: column;
     gap: 4px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
     position: relative;
 }
 
 .note-item.selected {
-    border-color: #3498db;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
-}
-
-.note-item.highlight-red {
     border-color: #e74c3c;
     box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.4);
     background-color: #fffafa;
 }
 
-.note-item.note-follow-up-highlight {
-    background-color: #ffdada;
-    border-color: #ff8888;
-}
-
-.note-item.note-tech-booked-highlight {
-    background-color: #ffeeda;
-    border-color: #ffc988;
-}
-
-.note-item.note-bosr-highlight {
-    background-color: #daeaff;
-    border-color: #888aff;
-}
+.note-item.highlight-purple { background-color: #f3e8ff; border-left: 3px solid #9d4edd; }
+.note-item.highlight-red { background-color: #ffe8e8; border-left: 3px solid #e5383b; }
+.note-item.highlight-blue { background-color: #e8f7ff; border-left: 3px solid #0077b6; }
 
 .note-item-header {
     display: flex;
@@ -1404,6 +1403,7 @@ textarea {
 .note-main-details {
     display: flex;
     flex-direction: column;
+    gap: 2px;
     font-size: 0.75em;
     margin-top: 16px; 
 }
@@ -1415,24 +1415,24 @@ textarea {
     line-height: 1.1;
 }
 
-.note-meta-label {
+.detail-row span {
     font-weight: 600;
     color: #555;
-    min-width: 35px;
+    min-width: 65px;
     text-align: right;
+    margin-right: 5px;
 }
 
-.note-ban, .note-cid, .note-name, .note-cbr, .note-ticket {
+.detail-row strong {
     word-break: break-all;
-    padding-left: 10px;
+    font-weight: normal;
+    color: #333;
 }
 
-.note-additional-details {
-    font-size: 0.75em;
-    line-height: 1.2;
-    word-wrap: break-word;
-    border-top: 1px dashed #eee;
-    padding-top: 5px;
+.detail-separator {
+    height: 1px;
+    background-color: #eee;
+    margin: 4px 0;
 }
 
 .note-modified-indicator {
@@ -1458,6 +1458,15 @@ textarea {
     font-size: 0.6em;
     min-width: 45px;
     height: auto;
+    gap: 4px;
+}
+
+.history-action-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke-width: 2.5;
+    fill: none;
+    stroke: currentColor;
 }
 
 .history-action-btn.view-btn { background-color: #3498db; }
@@ -1587,24 +1596,24 @@ textarea {
         flex-basis: calc(50% - 3px);
     }
     .header-top-row {
-      flex-direction: row;          /* Fuerza a que los elementos (título y botones) estén en una fila */
-      flex-wrap: nowrap;            /* Evita que el bloque de botones baje a la siguiente línea */
-      justify-content: space-between; /* Pone el título a la izquierda y los botones a la derecha */
-      align-items: center;          /* Centra verticalmente ambos bloques */
+      flex-direction: row;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      align-items: center;
     }
     .ts-notes-title {
       margin-bottom: 0;
     }
     .top-actions {
-      width: auto;                           /* El contenedor se ajusta al tamaño de los botones */
-      display: grid;                         /* Usa CSS Grid para la cuadrícula */
-      grid-template-columns: repeat(2, 1fr); /* Crea 2 columnas de igual tamaño */
-      gap: 5px;                              /* Mantiene el espacio entre botones */
-      flex-shrink: 0;                        /* Evita que este bloque se encoja si el título es largo */
+      width: auto;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 5px;
+      flex-shrink: 0;
     }
     .top-actions button {
-      height: 24px;        /* Reduce la altura fija del botón (originalmente era de 30px) */
-      padding: 4px 6px;    /* Ajusta el relleno interno para que el texto no se vea apretado */
+      height: 24px;
+      padding: 4px 6px;
     }
     .top-actions button svg {
       width: 11px;
@@ -1657,9 +1666,7 @@ textarea {
         left: auto;
         transform: translateX(100%);
     }
-    .history-sidebar.open {
-        transform: translateX(0);
-    }
+    .history-sidebar.open,
     .checklist-sidebar.open {
         transform: translateX(0);
     }
@@ -1718,12 +1725,10 @@ textarea {
 
 /* =============== ESTILOS PARA EL TUTORIAL PERSONALIZADO =============== */
 
-/* La clase 'hidden' simplemente oculta los elementos */
 .hidden {
     display: none !important;
 }
 
-/* El overlay oscuro de fondo */
 #custom-tutorial-overlay {
     position: fixed;
     top: 0;
@@ -1734,7 +1739,6 @@ textarea {
     z-index: 10000 !important;
 }
 
-/* El elemento que será resaltado por el tour */
 .tutorial-highlight {
     position: relative;
     z-index: 10100 !important;
@@ -1742,9 +1746,8 @@ textarea {
     border-radius: 4px;
 }
 
-/* El popover o cuadro de diálogo del tutorial */
 #custom-tutorial-popover {
-    position: absolute; /* Se posicionará con JavaScript */
+    position: absolute;
     background: #ffffff;
     color: #000000;
     padding: 15px;
@@ -1786,15 +1789,10 @@ textarea {
     background: #30007a;
 }
 
-
-/* --- NUEVA SECCIÓN: EFECTO SPOTLIGHT --- */
-
-/* El elemento con spotlight se pone encima del overlay oscuro */
 .tutorial-spotlight {
     position: relative;
     z-index: 10002;
-    border-radius: 5px; /* Coincide con el radio del botón */
-    /* Animación de pulso brillante */
+    border-radius: 5px;
     animation: pulse-glow 2s infinite;
 }
 
@@ -1808,4 +1806,123 @@ textarea {
     100% {
         box-shadow: 0 0 0 0 rgba(255, 0, 0, 1);
     }
+}
+
+/* ==========================================================================
+   13. ESTILOS PARA EL OVERLAY FLOTANTE (AÑADIDO)
+   ========================================================================== */
+
+/* Botón flotante que abre el panel */
+#info-overlay-trigger {
+    position: fixed;
+    top: 36.4%;
+    right: 0;
+    width: 45px; /* MODIFICADO */
+    height: 45px; /* MODIFICADO */
+    background-color: #6f42c1; /* MODIFICADO: Color morado */
+    color: white;
+    border: none;
+    border-radius: 8px 0 0 8px; /* Bordes redondeados a la izquierda */
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    z-index: 1050; /* Debe estar por encima del contenido normal */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+#info-overlay-trigger:hover {
+    background-color: #5a32a3; /* MODIFICADO: Color morado más oscuro */
+}
+
+#info-overlay-trigger svg {
+    width: 22px; /* MODIFICADO: SVG más grande */
+    height: 22px; /* MODIFICADO: SVG más grande */
+}
+
+/* Fondo oscuro para cerrar el panel al hacer clic fuera */
+#info-overlay-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1040; /* Debajo del panel pero encima del resto */
+    display: none; /* Oculto por defecto */
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* El panel lateral que contiene la información */
+#info-overlay-panel {
+    position: fixed;
+    top: 25%; /* Ajustado para mejor alineación */
+    right: 0;
+    width: 220px; /* MODIFICADO: Ancho reducido */
+    max-width: 90%;
+    height: auto;
+    max-height: 60vh;
+    background-color: #f8f9fa;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+    z-index: 1045;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(150%);
+    transition: transform 0.35s ease-in-out;
+    border-radius: 8px 0 0 8px;
+}
+
+/* Estilos para el encabezado del panel */
+.info-overlay-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    background-color: #e9ecef;
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 8px 0 0 0;
+}
+
+.info-overlay-header h3 {
+    margin: 0;
+    font-size: 1.1em;
+    color: #343a40;
+}
+
+/* Botón de cierre dentro del panel */
+#info-overlay-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    height: 24px;
+    width: 24px;
+    color: #6c757d;
+}
+#info-overlay-close:hover {
+    color: #212529;
+}
+
+/* Contenido del panel */
+.info-overlay-content {
+    padding: 7px 12px;
+    overflow-y: auto; /* Permite scroll si el contenido es largo */
+    flex-grow: 1;
+    color: #495057;
+    font-size: 0.9em;
+}
+
+/* --- CLASE PARA MOSTRAR EL PANEL --- */
+
+/* Cuando el contenedor tiene la clase 'is-open', mostramos el fondo */
+#info-overlay-container.is-open #info-overlay-backdrop {
+    display: block;
+    opacity: 1;
+}
+
+/* Y deslizamos el panel para que sea visible */
+#info-overlay-container.is-open #info-overlay-panel {
+    transform: translateX(0);
 }

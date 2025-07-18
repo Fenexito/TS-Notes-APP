@@ -16,7 +16,6 @@
 </head>
 <body>
     <div class="container">
-
         <div class="sticky-header-container">
             <div class="header-top-row">
                 <div class="title-container">
@@ -67,8 +66,12 @@
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v2"/></svg>
                     </button>
                 </div>
+                <div class="dynamic-field-item dynamic-char-counter">
+                    <span class="header-field-display"><span id="headerCharCount-value" class="char-counter">0</span></span>
+                </div>
             </div>
         </div>
+
         <div id="agentinfo" class="agent-info">
             <label for="agentName">AGENT:</label>
             <div class="input-with-edit-button">
@@ -255,7 +258,7 @@
                                 <textarea id="additionalinfoText" name="additionalinfoText" rows="4" autocomplete="off"></textarea>
                             </div>
                         </div>
-                        <div class="input-row" id="affectedTextRow" style="display: none;">
+                        <div class="input-row hidden-field" id="affectedTextRow">
                             <div class="input-group full-width">
                                 <label for="affectedText" id="affectedLabel">AFFECTED</label>
                                 <textarea id="affectedText" name="affectedText" autocomplete="off"></textarea>
@@ -296,7 +299,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="input-row three-columns-layout" id="optikTvLegacySpecificFields" style="display: none;">
+                        <div class="input-row three-columns-layout hidden-field" id="optikTvLegacySpecificFields">
                             <div class="input-group">
                                 <label for="xVuStatusSelect" id="xVuStatusLabel">xVu STATUS</label>
                                 <select id="xVuStatusSelect" name="xVuStatus" disabled></select>
@@ -398,7 +401,7 @@
                                     <option value="Not needed for this interaction">Not needed for this interaction</option>
                                 </select>
                             </div>
-                            <div class="input-group" id="tvsKeyFieldContainer" style="display: none;">
+                            <div class="input-group hidden-field" id="tvsKeyFieldContainer">
                                 <label for="tvsKeyInput">TVS KEY</label>
                                 <input type="text" id="tvsKeyInput" name="tvsKeyInput" autocomplete="off">
                             </div>
@@ -453,15 +456,15 @@
                             </div>
                         </div>
                         <div class="input-row three-columns-layout">
-                            <div class="input-group" id="aocFieldContainer" style="display: none;">
+                            <div class="input-group hidden-field" id="aocFieldContainer">
                                 <label for="aocInput">AOC</label>
                                 <input type="text" id="aocInput" name="aocInput" readonly autocomplete="off">
                             </div>
-                            <div class="input-group" id="dispatchDateInputContainer" style="display: none;">
+                            <div class="input-group hidden-field" id="dispatchDateInputContainer">
                                 <label for="dispatchDateInput" id="dispatchDateLabel">DISPATCH DATE</label>
                                 <input type="date" id="dispatchDateInput" name="dispatchDateInput" autocomplete="off">
                             </div>
-                            <div class="input-group" id="dispatchTimeSlotSelectContainer" style="display: none;">
+                            <div class="input-group hidden-field" id="dispatchTimeSlotSelectContainer">
                                 <label for="dispatchTimeSlotSelect" id="dispatchTimeLabel">DISPATCH TIME</label>
                                 <select id="dispatchTimeSlotSelect" name="dispatchTimeSlotSelect">
                                     <option value="">Select an option</option>
@@ -469,7 +472,7 @@
                             </div>
                         </div>
                         <div class="input-row two-columns-dynamic-cbr2-ticket">
-                            <div class="input-group" id="cbr2FieldContainer" style="display: none;">
+                            <div class="input-group hidden-field" id="cbr2FieldContainer">
                                 <label for="cbr2Input" id="cbr2Label">CBR2</label>
                                 <input type="text" id="cbr2Input" name="cbr2Input" autocomplete="off">
                             </div>
@@ -489,7 +492,7 @@
         </form>
     </div>
 
-    <div id="welcomeModalOverlay" class="modal-overlay" style="display:none;">
+    <div id="welcomeModalOverlay" class="modal-overlay">
         <div class="modal-content small-modal">
             <div class="modal-header">
                 <h3>Welcome to APad</h3>
@@ -509,7 +512,7 @@
         </div>
     </div>
     
-    <div id="noteModalOverlay" class="modal-overlay" style="display:none">
+    <div id="noteModalOverlay" class="modal-overlay">
         <div class="modal-content large-modal">
             <div class="modal-header">
                 <h2>
@@ -558,7 +561,7 @@
         </div>
     </div>
 
-    <div id="separateNoteModalOverlay" class="modal-overlay" style="display:none">
+    <div id="separateNoteModalOverlay" class="modal-overlay">
         <div class="modal-content large-modal">
             <div class="modal-header">
                 <h2>Split Note</h2>
@@ -589,7 +592,7 @@
         </div>
     </div>
 
-    <div id="customConfirmModal" class="modal-overlay" style="display:none">
+    <div id="customConfirmModal" class="modal-overlay">
         <div class="modal-content small-modal">
             <div class="modal-header">
                 <h3>Warning</h3>
@@ -604,7 +607,7 @@
         </div>
     </div>
     
-    <div id="feedbackModalOverlay" class="modal-overlay" style="display:none">
+    <div id="feedbackModalOverlay" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Send Feedback</h3>
@@ -801,9 +804,45 @@
             <button id="tutorial-done-btn">Finalizar</button>
         </div>
     </div>
+
+    <!-- ========================================================================== -->
+    <!-- INICIO: CÓDIGO DEL OVERLAY FLOTANTE                                      -->
+    <!-- ========================================================================== -->
+    <div id="info-overlay-container">
+        <!-- Botón para abrir el panel -->
+        <button type="button" id="info-overlay-trigger">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        </button>
+
+        <!-- Fondo para cerrar al hacer clic fuera -->
+        <div id="info-overlay-backdrop"></div>
+
+        <!-- Panel con la información -->
+        <div id="info-overlay-panel">
+            <div class="info-overlay-header">
+                <h3>Información Adicional</h3>
+                <button type="button" id="info-overlay-close">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="info-overlay-content">
+                <!-- El contenido dinámico se insertará aquí con JS -->
+                <p>Aquí se mostrará la información relevante.</p>
+                <p>Puedes actualizar este contenido dinámicamente.</p>
+            </div>
+        </div>
+    </div>
+    <!-- ========================================================================== -->
+    <!-- FIN: CÓDIGO DEL OVERLAY FLOTANTE                                         -->
+    <!-- ========================================================================== -->
     
+    <!-- Scripts Externos -->
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
-    <script src="script.js"></script>
-    <script src="tutorial.js"></script>
+    
+    <!-- Punto de Entrada de la Aplicación Modularizada -->
+    <script type="module" src="js/main.js"></script>
+    
+    <!-- La siguiente línea es la que se ha ELIMINADO -->
+    <!-- <script type="module" src="js/tutorial.js"></script> -->
 </body>
 </html>
