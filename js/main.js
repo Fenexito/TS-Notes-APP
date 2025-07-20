@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 initializePwa();
             } catch (initError) {
                 console.error("Error during app initialization phase:", initError);
-                document.body.innerHTML = `<div style="color:red; padding: 20px; font-family: sans-serif;">
+                document.body.innerHTML = `<div class="app-critical-error">
                     <h1>Application Error</h1>
                     <p>Failed to initialize the application components. Please check the console for details.</p>
                 </div>`;
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (error) {
         console.error("A critical error occurred during the authentication process:", error);
-        document.body.innerHTML = `<div style="color:red; padding: 20px; font-family: sans-serif;">
+        document.body.innerHTML = `<div class="app-critical-error">
             <h1>Application Error</h1>
             <p>Failed to initialize the application. Please check the console for details.</p>
         </div>`;
