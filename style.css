@@ -16,6 +16,8 @@
     --bg-auth-input: #333;
     --bg-auth-btn-disabled: #555;
     --bg-tutorial: #ffffff;
+    --bg-info-overlay: #f8f9fa;
+    --bg-info-overlay-header: #e9ecef;
 
     --text-primary: #2c3e50;
     --text-secondary: #444;
@@ -27,6 +29,8 @@
     --text-auth-primary: #fff;
     --text-auth-secondary: #ccc;
     --text-tutorial: #000000;
+    --text-info-overlay: #495057;
+    --text-info-overlay-header: #343a40;
 
     --border-primary: #dcdcdc;
     --border-secondary: #ccc;
@@ -35,6 +39,7 @@
     --border-auth: #444;
     --border-auth-input: #555;
     --border-tutorial: #555;
+    --border-info-overlay: #dee2e6;
 
     --accent-primary: #3498db;
     --accent-primary-hover: #2980b9;
@@ -81,6 +86,8 @@ body.dark-theme {
     --bg-accent-light: #2a3b49;
     --bg-disabled: #3a3a3a;
     --bg-tutorial: #2c2c2c;
+    --bg-info-overlay: #2a2a2a;
+    --bg-info-overlay-header: #343a40;
 
     --text-primary: #e0e0e0;
     --text-secondary: #cccccc;
@@ -90,12 +97,15 @@ body.dark-theme {
     --text-link: #58a6ff;
     --text-link-hover: #80bfff;
     --text-tutorial: #e0e0e0;
+    --text-info-overlay: #adb5bd;
+    --text-info-overlay-header: #f8f9fa;
 
     --border-primary: #444444;
     --border-secondary: #555555;
     --border-tertiary: #3a3a3a;
     --border-accent: #405d79;
     --border-tutorial: #666;
+    --border-info-overlay: #495057;
     
     --shadow-primary: rgba(0, 0, 0, 0.3);
     --shadow-secondary: rgba(0, 0, 0, 0.25);
@@ -1400,7 +1410,7 @@ body.dark-theme .checklist-item:not(.status-no) label {
 }
 
 /* ==========================================================================
-   11. FOOTER Y OTROS
+   11. FOOTER Y WIDGETS FLOTANTES (CORREGIDOS)
    ========================================================================== */
 
 .app-footer {
@@ -1417,11 +1427,54 @@ body.dark-theme .checklist-item:not(.status-no) label {
     z-index: 1005; 
 }
 
+#feedback-widget {
+    position: fixed;
+    bottom: 40px;
+    right: 20px;
+    z-index: 1001;
+}
+
 #feedback-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
     background-color: var(--accent-purple);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 #feedback-btn:hover {
     background-color: var(--accent-purple-hover);
+}
+#feedback-btn svg {
+    width: 22px;
+    height: 22px;
+}
+
+.feedback-tooltip {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    margin-bottom: 10px;
+    background-color: #333;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    font-size: 0.8em;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    pointer-events: none;
+}
+
+#feedback-widget:hover .feedback-tooltip {
+    opacity: 1;
+    visibility: visible;
 }
 
 /* ==========================================================================
@@ -1496,12 +1549,19 @@ input:checked + .theme-slider:before {
     width: 100vw;
     height: 100vh;
     background: rgb(255 255 255 / 5%);
-    z-index: 9000; /* REBAJADO para no interferir con el auth */
+    z-index: 10000; /* Z-INDEX ORIGINAL RESTAURADO */
 }
+
+/* REGLA DE CORRECCIÓN: Oculta el tutorial si el modal de bienvenida está activo */
+#welcomeModalOverlay.is-visible ~ #custom-tutorial-overlay,
+#welcomeModalOverlay.is-visible ~ #custom-tutorial-popover {
+    display: none !important;
+}
+
 
 .tutorial-highlight {
     position: relative;
-    z-index: 9001; /* REBAJADO */
+    z-index: 10100; /* Z-INDEX ORIGINAL RESTAURADO */
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
     border-radius: 4px;
 }
@@ -1512,7 +1572,7 @@ input:checked + .theme-slider:before {
     color: var(--text-tutorial);
     padding: 15px;
     border-radius: 8px;
-    z-index: 9002; /* REBAJADO */
+    z-index: 10200; /* Z-INDEX ORIGINAL RESTAURADO */
     max-width: 350px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.5);
     border: 1px solid var(--border-tutorial);
@@ -1550,7 +1610,116 @@ input:checked + .theme-slider:before {
 }
 
 /* ==========================================================================
-   14. MEDIA QUERIES (RESPONSIVIDAD)
+   14. ESTILOS PARA EL OVERLAY FLOTANTE (CORREGIDOS)
+   ========================================================================== */
+#info-overlay-trigger {
+    position: fixed;
+    top: 36.4%;
+    right: 0;
+    width: 45px;
+    height: 45px;
+    background-color: var(--accent-purple);
+    color: white;
+    border: none;
+    border-radius: 8px 0 0 8px;
+    box-shadow: -2px 2px 10px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+#info-overlay-trigger:hover {
+    background-color: var(--accent-purple-hover);
+}
+
+#info-overlay-trigger svg {
+    width: 22px;
+    height: 22px;
+}
+
+#info-overlay-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1040;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+#info-overlay-panel {
+    position: fixed;
+    top: 25%;
+    right: 0;
+    width: 220px;
+    max-width: 90%;
+    height: auto;
+    max-height: 60vh;
+    background-color: var(--bg-info-overlay);
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+    z-index: 1045;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(150%);
+    transition: transform 0.35s ease-in-out, background-color 0.3s ease;
+    border-radius: 8px 0 0 8px;
+}
+
+.info-overlay-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    background-color: var(--bg-info-overlay-header);
+    border-bottom: 1px solid var(--border-info-overlay);
+    border-radius: 8px 0 0 0;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.info-overlay-header h3 {
+    margin: 0;
+    font-size: 1.1em;
+    color: var(--text-info-overlay-header);
+}
+
+#info-overlay-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    height: 24px;
+    width: 24px;
+    color: var(--accent-secondary);
+}
+#info-overlay-close:hover {
+    color: var(--text-primary);
+}
+
+.info-overlay-content {
+    padding: 7px 12px;
+    overflow-y: auto;
+    flex-grow: 1;
+    color: var(--text-info-overlay);
+    font-size: 0.9em;
+}
+
+#info-overlay-container.is-open #info-overlay-backdrop {
+    display: block;
+    opacity: 1;
+}
+
+#info-overlay-container.is-open #info-overlay-panel {
+    transform: translateX(0);
+}
+
+/* ==========================================================================
+   15. MEDIA QUERIES (RESPONSIVIDAD)
    ========================================================================== */
 
 @media (max-width: 600px) {
@@ -1643,7 +1812,7 @@ input:checked + .theme-slider:before {
 }
 
 /* ==========================================================================
-   15. ESTILOS PARA EL OVERLAY DE AUTENTICACIÓN
+   16. ESTILOS PARA EL OVERLAY DE AUTENTICACIÓN
    ========================================================================== */
 
 #auth-overlay-container { 
@@ -1747,7 +1916,7 @@ input:checked + .theme-slider:before {
 }
 
 /* ==========================================================================
-   16. ESTILOS DE UTILIDAD Y DINÁMICOS
+   17. ESTILOS DE UTILIDAD Y DINÁMICOS
    ========================================================================== */
 
 /* Para mensajes de error críticos en la aplicación */
