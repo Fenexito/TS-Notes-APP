@@ -68,6 +68,7 @@
     --status-na-bg: #ffcc80;
     --status-text: #111;
     --status-text-inverted: #fff;
+    --status-link-text: #004085;
 }
 
 body.dark-theme {
@@ -106,6 +107,7 @@ body.dark-theme {
     --status-na-bg: #694f22;
     --status-text: #e0e0e0;
     --status-text-inverted: #f0f0f0;
+    --status-link-text: #90caf9;
 }
 
 *,
@@ -1280,7 +1282,7 @@ textarea {
     padding: 5px;
     border-radius: 5px;
     margin-bottom: 8px;
-    transition: background-color 0.3s ease, border 0.3s ease;
+    transition: background-color 0.3s ease, border 0.3s ease, color 0.3s ease;
     border: 1px solid transparent;
 }
 
@@ -1288,10 +1290,22 @@ textarea {
     border: 1px solid #d32f2f;
 }
 
-.checklist-item.status-pending { background-color: var(--status-pending-bg); color: var(--status-text); }
-.checklist-item.status-yes { background-color: var(--status-yes-bg); color: var(--status-text); }
-.checklist-item.status-no { background-color: var(--status-no-bg); color: var(--status-text-inverted); }
-.checklist-item.status-na { background-color: var(--status-na-bg); color: var(--status-text); }
+.checklist-item.status-pending { 
+    background-color: var(--status-pending-bg); 
+    color: var(--status-text); 
+}
+.checklist-item.status-yes { 
+    background-color: var(--status-yes-bg); 
+    color: var(--status-text); 
+}
+.checklist-item.status-no { 
+    background-color: var(--status-no-bg); 
+    color: var(--status-text-inverted); 
+}
+.checklist-item.status-na { 
+    background-color: var(--status-na-bg); 
+    color: var(--status-text); 
+}
 
 /* Se asegura que el texto dentro del item con status 'no' sea legible */
 .checklist-item.status-no label,
@@ -1313,25 +1327,15 @@ body.dark-theme .checklist-item:not(.status-no) label {
 
 .checklist-item label strong {
     font-weight: 700;
-    color: #004085;
+    color: var(--status-link-text);
 }
-body.dark-theme .checklist-item label strong {
-    color: #90caf9;
-}
-
 
 .checklist-item label a {
-    color: #007bff;
+    color: var(--text-link);
     text-decoration: underline;
 }
 .checklist-item label a:hover {
-    color: #0056b3;
-}
-body.dark-theme .checklist-item label a {
-    color: #58a6ff;
-}
-body.dark-theme .checklist-item label a:hover {
-    color: #80bfff;
+    color: var(--text-link-hover);
 }
 
 
@@ -1492,12 +1496,12 @@ input:checked + .theme-slider:before {
     width: 100vw;
     height: 100vh;
     background: rgb(255 255 255 / 5%);
-    z-index: 10000 !important;
+    z-index: 9000; /* REBAJADO para no interferir con el auth */
 }
 
 .tutorial-highlight {
     position: relative;
-    z-index: 10100 !important;
+    z-index: 9001; /* REBAJADO */
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
     border-radius: 4px;
 }
@@ -1508,7 +1512,7 @@ input:checked + .theme-slider:before {
     color: var(--text-tutorial);
     padding: 15px;
     border-radius: 8px;
-    z-index: 10200 !important;
+    z-index: 9002; /* REBAJADO */
     max-width: 350px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.5);
     border: 1px solid var(--border-tutorial);
