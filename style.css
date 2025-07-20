@@ -1267,6 +1267,11 @@ textarea {
 }
 
 /* --- Estilos Checklist --- */
+.checklist-content {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
 .checklist-item {
     display: flex;
     flex-direction: column;
