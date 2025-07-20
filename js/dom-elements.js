@@ -149,9 +149,13 @@ export const dom = {
 
     // Welcome Modal
     welcomeModalOverlay: get('welcomeModalOverlay'),
+    welcomeIntroText: get('welcome-intro-text'),
+    welcomeIntroP: get('welcome-intro-p'),
     welcomeAppVersionDisplay: get('welcomeAppVersionDisplay'),
     welcomeAgentNameInput: get('welcomeAgentNameInput'),
+    welcomeNamePrompt: get('welcome-name-prompt'),
     startTakingNotesBtn: get('startTakingNotesBtn'),
+    welcomeCreatorMessage: get('welcome-creator-message'),
 
     // Sticky Header
     stickyHeaderContainer: query('.sticky-header-container'),

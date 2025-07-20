@@ -15,8 +15,7 @@ const urlsToCache = [
     '/icons/icon-192x192.png',
     '/icons/icon-512x512.png',
     'https://unpkg.com/dexie@latest/dist/dexie.js',
-    'https://accounts.google.com/gsi/client', // <-- MODIFICACIÓN: Añadir el script de Google
-    '/js/auth.js',
+    '/js/auth.js', // <-- MODIFICACIÓN: Añadir el nuevo archivo de autenticación
     '/js/main.js',
     '/js/app-initializer.js',
     '/js/config.js',

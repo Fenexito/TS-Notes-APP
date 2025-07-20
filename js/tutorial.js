@@ -242,7 +242,7 @@ const steps = [
 
 // --- Funciones del Tour ---
 
-function startTour() {
+export function startTour() {
     loadSampleDataIntoForm(sampleNoteData);
     document.querySelectorAll('.form-section').forEach(sec => sec.classList.add('collapsed'));
     currentStep = 0;
@@ -458,53 +458,6 @@ function setupTutorialListeners() {
     doneBtn.addEventListener('click', endTour);
 }
 
-function checkAndShowWelcomeModal() {
-    const { welcomeModalOverlay, startTakingNotesBtn, welcomeAgentNameInput } = dom;
-
-    if (localStorage.getItem('tutorialCompleted') === 'true') {
-        const welcomeTitle = welcomeModalOverlay.querySelector('h3');
-        const welcomeText = welcomeModalOverlay.querySelector('p');
-        const inputGroup = welcomeModalOverlay.querySelector('.input-group');
-
-        if(welcomeTitle) welcomeTitle.textContent = 'Welcome Back!';
-        if(welcomeText) welcomeText.textContent = 'You are all set. Lets get to work!';
-        if(inputGroup) inputGroup.classList.add('hidden-field');
-        if(startTakingNotesBtn) startTakingNotesBtn.textContent = 'Continue';
-
-        welcomeModalOverlay.style.display = 'flex';
-        
-        const continueHandler = () => {
-            welcomeModalOverlay.style.display = 'none';
-        };
-
-        const newBtn = startTakingNotesBtn.cloneNode(true);
-        startTakingNotesBtn.parentNode.replaceChild(newBtn, startTakingNotesBtn);
-        newBtn.addEventListener('click', continueHandler, { once: true });
-        return;
-    }
-    
-    welcomeModalOverlay.style.display = 'flex';
-    
-    const startHandler = () => {
-        if (welcomeAgentNameInput.value.trim() !== '') {
-            dom.agentNameInput.value = welcomeAgentNameInput.value.trim();
-            welcomeModalOverlay.style.display = 'none';
-            startTour();
-        }
-    };
-
-    const newBtn = startTakingNotesBtn.cloneNode(true);
-    startTakingNotesBtn.parentNode.replaceChild(newBtn, startTakingNotesBtn);
-    newBtn.addEventListener('click', startHandler);
-
-    welcomeAgentNameInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            newBtn.click();
-        }
-    });
-}
-
 /**
  * Main function to initialize the tutorial logic.
  * This is exported and called from app-initializer.js.
@@ -521,7 +474,6 @@ export function initializeTutorial() {
         doneBtn: document.getElementById('tutorial-done-btn'),
     };
     setupTutorialListeners();
-    checkAndShowWelcomeModal();
 
     // Add resize listener to reposition the popover
     window.addEventListener('resize', () => {

@@ -1,15 +1,14 @@
 /**
  * @file history-manager.js
- * @summary Manages all functionality related to the note history sidebar,
- * including loading, displaying, filtering, editing, deleting, importing, and exporting notes.
+ * @summary Manages all functionality related to note history, agent data,
+ * and the welcome modal, including displaying session expiration.
  */
 
 import { dom, get } from './dom-elements.js';
-import { state, fieldConfig, AGENT_NAME_KEY, RESOLUTION_COPY_CHAR_LIMIT } from './config.js';
+import { state, fieldConfig, AGENT_NAME_KEY, APP_VERSION_KEY, RESOLUTION_COPY_CHAR_LIMIT } from './config.js';
 import { db, saveAgentNameToDB, loadAgentNameFromDB, saveNoteToDB, loadAllNotesFromDB, deleteNoteFromDB, importNotesToDB } from './database.js';
 import { showToast, customConfirm, copyToClipboard, applyInitialRequiredHighlight } from './ui-helpers.js';
 import { generateFinalNote, noteBuilder } from './note-builder.js';
-// MODIFICADO: Se importan las funciones para controlar el overlay
 import { viewNoteInModal, closeModal, unhighlightAllNotes, showSidebarAndHighlightNote, hideSidebar, updateLatestNoteOverlay, openInfoOverlay, closeInfoOverlay } from './modal-manager.js';
 import { setAgentNameEditable, setAgentNameReadonly, clearAllFormFields, checkCurrentFormHasData, updateThirdRowLayout, populateIssueSelect, updateAffectedFieldVisibilityAndLabel, _populatePhysicalCheckListLabelsAndOptions, _updatePhysicalCheckListEnablement, updateOptikTvLegacySpecificFields, _populateAwaAlertsOptions, updateAwaAlerts2SelectState, updateAwaStepsSelectState, updateTvsKeyFieldState, updateTransferFieldState, updateTechFieldsVisibilityAndState } from './ui-manager.js';
 
@@ -17,7 +16,6 @@ import { setAgentNameEditable, setAgentNameReadonly, clearAllFormFields, checkCu
 
 export async function handleResolutionCopy(sourceData = null) {
     let data = sourceData;
-    // Fallback si es llamado sin datos, mientras una nota del historial está siendo vista.
     if (!data && state.currentlyViewedNoteData) {
         data = state.currentlyViewedNoteData.formData;
     }
@@ -25,8 +23,8 @@ export async function handleResolutionCopy(sourceData = null) {
     const cxIssueVal = noteBuilder._getFieldValue('cxIssueText', data);
     const tsStepsVal = noteBuilder._getFieldValue('troubleshootingProcessText', data);
     if (!cxIssueVal && !tsStepsVal) {
-         showToast('No resolution information to copy.', 'warning');
-         return;
+        showToast('No resolution information to copy.', 'warning');
+        return;
     }
     let combinedResolutionText = '';
     if (cxIssueVal) combinedResolutionText += `CX ISSUE: ${cxIssueVal}`;
@@ -55,23 +53,18 @@ export async function handleCopilotCopy(sourceNoteText) {
         return;
     }
     const noteLines = sourceNoteText.split('\n');
-    const filteredNote = noteLines.filter(line => 
-        !line.startsWith('PFTS |') && !line.startsWith('SKILL:') && !line.startsWith('BAN:') && 
-        !line.startsWith('CID:') && !line.startsWith('NAME:') && !line.startsWith('CBR:') && 
-        !line.startsWith('CALLER:') && !line.startsWith('VERIFIED BY:') && !line.startsWith('ADDRESS:') && 
+    const filteredNote = noteLines.filter(line =>
+        !line.startsWith('PFTS |') && !line.startsWith('SKILL:') && !line.startsWith('BAN:') &&
+        !line.startsWith('CID:') && !line.startsWith('NAME:') && !line.startsWith('CBR:') &&
+        !line.startsWith('CALLER:') && !line.startsWith('VERIFIED BY:') && !line.startsWith('ADDRESS:') &&
         !line.startsWith('XID:')
     ).join('\n');
     await copyToClipboard(filteredNote);
 };
 
-/**
- * Retrieves the most recent note from the database.
- * @returns {Promise<object|null>} The latest note object, or null if none exist.
- */
 export async function getLatestNote() {
     try {
         const allNotes = await loadAllNotesFromDB();
-        // The notes are sorted by timestamp descending in the DB function
         return allNotes.length > 0 ? allNotes[0] : null;
     } catch (error) {
         console.error("Error fetching latest note:", error);
@@ -141,14 +134,13 @@ export async function saveCurrentNote() {
     const formData = {};
     const formElements = dom.callNoteForm.elements;
 
-    // --- REVISED FORM DATA GATHERING LOGIC ---
     for (const element of Array.from(formElements)) {
         const id = element.id;
         const name = element.name;
         const type = element.type;
         const value = element.value;
 
-        if (!id && !name) continue; // Skip elements without identifiers
+        if (!id && !name) continue;
 
         switch (type) {
             case 'radio':
@@ -157,18 +149,15 @@ export async function saveCurrentNote() {
                 }
                 break;
             case 'checkbox':
-                // Ensure we use the ID for checkboxes as they are unique identifiers
                 if (id) {
                     formData[id] = element.checked;
                 }
                 break;
             case 'select-multiple':
-                // Handle multi-select if any
                 formData[id || name] = Array.from(element.selectedOptions).map(opt => opt.value);
                 break;
             default:
-                // For text, select-one, textarea, date, etc.
-                if (id) { // Prefer ID for uniqueness
+                if (id) {
                     formData[id] = value;
                 } else if (name) {
                     formData[name] = value;
@@ -177,10 +166,8 @@ export async function saveCurrentNote() {
         }
     }
     
-    // Explicitly set skill, as it's a checkbox that drives logic
     formData.skill = dom.skillToggle.checked ? 'SHS' : 'FFH';
     
-    // Also gather checklist data
     dom.checklistSidebar.querySelectorAll('.checklist-item input[type="radio"]:checked').forEach(radio => {
         formData[radio.name] = radio.value;
     });
@@ -196,11 +183,9 @@ export async function saveCurrentNote() {
 
         showToast(state.currentEditingNoteId ? 'History note updated.' : 'Note saved to history.', 'success');
         
-        // --- NUEVA LÓGICA PARA EL OVERLAY ---
         updateLatestNoteOverlay(savedNote);
         openInfoOverlay(); 
         setTimeout(closeInfoOverlay, 25000);
-        // --- FIN DE LA NUEVA LÓGICA ---
 
         state.currentEditingNoteId = null;
         state.isEditingNoteFlag = false;
@@ -412,7 +397,6 @@ export async function editNote(formData, originalNoteId) {
     state.currentlyViewedNoteData = null;
     clearAllFormFields(true); 
 
-    // STEP 1: Set master skill toggle and populate dropdowns with the correct OPTIONS first.
     if (dom.skillToggle) {
         dom.skillToggle.checked = (formData.skill === 'SHS');
     }
@@ -423,17 +407,14 @@ export async function editNote(formData, originalNoteId) {
     _populateAwaAlertsOptions(formData.skill === 'SHS' ? 'SHS' : 'FFH', formData.awaAlertsSelect);
     _populatePhysicalCheckListLabelsAndOptions(formData.serviceSelect, '', '', '', '', formData.issueSelect);
 
-    // STEP 2: Populate the entire form with all saved data (values, checked states).
     Object.keys(formData).forEach(key => {
         const value = formData[key];
         const element = get(key) || dom[key];
 
         if (element) {
-            // Defer setting state for these specific checkboxes to their dedicated UI functions
             if (key === 'enablePhysicalCheck2' || key === 'enablePhysicalCheck3' || key === 'enablePhysicalCheck4' || key === 'enableAwaAlerts2' || key === 'transferCheckbox') {
                 return;
             }
-
             if (element.type === 'checkbox') {
                 element.checked = !!value;
             } else if (element.type !== 'radio') {
@@ -449,7 +430,6 @@ export async function editNote(formData, originalNoteId) {
         }
     });
 
-    // STEP 3: With the form fully populated, now run all UI synchronization functions.
     const skillString = dom.skillToggle.checked ? 'SHS' : 'FFH';
     if (dom.skillTextIndicator) dom.skillTextIndicator.textContent = skillString;
     if (dom.serviceSelect) dom.serviceSelect.disabled = dom.skillToggle.checked;
@@ -464,7 +444,6 @@ export async function editNote(formData, originalNoteId) {
     updateTvsKeyFieldState(formData.tvsSelect, formData.tvsKeyInput);
     updateTechFieldsVisibilityAndState(formData.resolvedSelect, formData.cbr2Input, formData.aocInput, formData.dispatchDateInput, formData.dispatchTimeSlotSelect);
     
-    // Sync special checkbox-dependent UI, passing the saved state to them
     _updatePhysicalCheckListEnablement(formData.serviceSelect, formData.enablePhysicalCheck2, formData.enablePhysicalCheck3, formData.enablePhysicalCheck4);
     updateAwaAlerts2SelectState(formData.enableAwaAlerts2, formData.awaAlerts2Select);
     updateAwaStepsSelectState(formData.awaStepsSelect);
@@ -609,37 +588,64 @@ export async function saveAgentName() {
     generateFinalNote();
 }
 
-export async function handleWelcomeModal() {
-    const agentNameSetting = await loadAgentNameFromDB();
-    const { welcomeModalOverlay, welcomeAgentNameInput, startTakingNotesBtn, agentNameInput } = dom;
+/**
+ * Manages the display and logic of the welcome modal.
+ * This function now returns a Promise that resolves with a boolean indicating
+ * if the user is new (true) or returning (false).
+ */
+export function handleWelcomeModal() {
+    return new Promise(async (resolve) => {
+        const agentNameRecord = await loadAgentNameFromDB();
+        const agentName = agentNameRecord ? agentNameRecord.value : null;
 
-    // If name exists, we're done. No modal needed.
-    if (agentNameSetting?.value) {
-        agentNameInput.value = agentNameSetting.value;
-        setAgentNameReadonly();
-        welcomeModalOverlay.classList.remove('is-visible');
-        return; 
-    }
+        if (!agentName) {
+            // --- First visit logic: Show the modal ---
+            const appVersion = `version: ${localStorage.getItem(APP_VERSION_KEY) || 'v?.?.?'}`;
+            const startBtn = dom.startTakingNotesBtn;
 
-    // If no name, show the modal and set it up.
-    welcomeModalOverlay.querySelector('h3').textContent = 'Welcome to APad';
-    welcomeModalOverlay.querySelector('.input-group').classList.remove('hidden-field');
-    welcomeModalOverlay.classList.add('is-visible');
+            if (dom.welcomeAppVersionDisplay) dom.welcomeAppVersionDisplay.textContent = appVersion;
+            if (dom.welcomeIntroText) dom.welcomeIntroText.textContent = 'Welcome to APad!';
+            if (dom.welcomeIntroP) dom.welcomeIntroP.textContent = 'This application helps you take technical support call notes efficiently and organized.';
+            if (dom.welcomeCreatorMessage) dom.welcomeCreatorMessage.textContent = 'Created by: x331671 | Alex Van Houtven | TELUS FFH PURE FIBER Tech Support';
+            if (startBtn) startBtn.textContent = 'Start Taking Notes';
 
-    // To prevent multiple listeners on hot reloads/re-calls, clone the button.
-    const newStartBtn = startTakingNotesBtn.cloneNode(true);
-    startTakingNotesBtn.parentNode.replaceChild(newStartBtn, startTakingNotesBtn);
-    
-    newStartBtn.addEventListener('click', async () => {
-        const newAgentName = welcomeAgentNameInput.value.trim();
-        if (!newAgentName) {
-            showToast('Please enter your name to continue.', 'warning');
-            return; // Exit if name is empty, leaving the modal open for another try.
+            const setupButtonListener = (handler) => {
+                const newBtn = startBtn.cloneNode(true);
+                startBtn.parentNode.replaceChild(newBtn, startBtn);
+                newBtn.addEventListener('click', handler);
+                if (dom.welcomeAgentNameInput) {
+                    dom.welcomeAgentNameInput.onkeydown = (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handler();
+                        }
+                    };
+                }
+            };
+
+            const handleStart = async () => {
+                const nameInput = dom.welcomeAgentNameInput;
+                if (nameInput && nameInput.value.trim()) {
+                    await saveAgentNameToDB(nameInput.value.trim());
+                    dom.agentNameInput.value = nameInput.value.trim();
+                    setAgentNameReadonly();
+                    dom.welcomeModalOverlay.classList.remove('is-visible');
+                    resolve(true); // Resolve as a NEW user
+                } else {
+                    showToast('Please enter your name.', 'warning');
+                    nameInput.focus();
+                }
+            };
+            
+            setupButtonListener(handleStart);
+            dom.welcomeModalOverlay.classList.add('is-visible');
+            dom.welcomeAgentNameInput.focus();
+
+        } else {
+            // --- Returning user logic: Do not show the modal ---
+            dom.agentNameInput.value = agentName;
+            setAgentNameReadonly();
+            resolve(false); // Resolve as a RETURNING user immediately
         }
-        
-        // On success, save the name and close the modal.
-        agentNameInput.value = newAgentName;
-        await saveAgentName();
-        welcomeModalOverlay.classList.remove('is-visible');
     });
 }

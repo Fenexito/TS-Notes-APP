@@ -493,25 +493,28 @@
     </div>
 
     <div id="welcomeModalOverlay" class="modal-overlay">
-        <div class="modal-content small-modal">
+        <div class="modal-content">
             <div class="modal-header">
-                <h3>Welcome to APad</h3>
+                <h3 id="welcome-intro-text">Welcome to APad!</h3>
+                <span id="welcomeAppVersionDisplay" class="app-version-tag"></span>
             </div>
             <div class="modal-body">
-                <p>This application helps you take technical support call notes efficiently and organized.</p>
-                <p><strong>Creator:</strong> x331671 | Alex Van Houtven | FFH PureFiber TS</p>
-                <p><strong>Current Version:</strong> <span id="welcomeAppVersionDisplay">Loading...</span></p>
-                <div class="input-group">
-                    <label for="welcomeAgentNameInput">Enter your name (it will appear in your notes):</label>
-                    <input type="text" id="welcomeAgentNameInput" placeholder="Your agent name" required autocomplete="off">
+                <p id="welcome-intro-p"></p>
+                <div id="welcome-name-prompt">
+                    <p>Please enter your name to get started.</p>
+                    <div class="input-group">
+                        <label for="welcomeAgentNameInput">Your Name</label>
+                        <input type="text" id="welcomeAgentNameInput" placeholder="Enter your name here">
+                    </div>
                 </div>
+                <p id="welcome-creator-message"></p>
             </div>
             <div class="modal-actions-confirm">
-                <button type="button" id="startTakingNotesBtn" class="modal-action-btn copy-btn-style">START</button>
+                <button type="button" id="startTakingNotesBtn" class="modal-action-btn copy-btn-style">Start Taking Notes</button>
             </div>
         </div>
     </div>
-    
+
     <div id="noteModalOverlay" class="modal-overlay">
         <div class="modal-content large-modal">
             <div class="modal-header">
@@ -805,19 +808,13 @@
         </div>
     </div>
 
-    <!-- ========================================================================== -->
-    <!-- INICIO: CÓDIGO DEL OVERLAY FLOTANTE                                      -->
-    <!-- ========================================================================== -->
     <div id="info-overlay-container">
-        <!-- Botón para abrir el panel -->
         <button type="button" id="info-overlay-trigger">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
         </button>
 
-        <!-- Fondo para cerrar al hacer clic fuera -->
         <div id="info-overlay-backdrop"></div>
 
-        <!-- Panel con la información -->
         <div id="info-overlay-panel">
             <div class="info-overlay-header">
                 <h3>Información Adicional</h3>
@@ -826,23 +823,14 @@
                 </button>
             </div>
             <div class="info-overlay-content">
-                <!-- El contenido dinámico se insertará aquí con JS -->
                 <p>Aquí se mostrará la información relevante.</p>
                 <p>Puedes actualizar este contenido dinámicamente.</p>
             </div>
         </div>
     </div>
-    <!-- ========================================================================== -->
-    <!-- FIN: CÓDIGO DEL OVERLAY FLOTANTE                                         -->
-    <!-- ========================================================================== -->
-    
-    <!-- Scripts Externos -->
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
     
-    <!-- Punto de Entrada de la Aplicación Modularizada -->
     <script type="module" src="js/main.js"></script>
     
-    <!-- La siguiente línea es la que se ha ELIMINADO -->
-    <!-- <script type="module" src="js/tutorial.js"></script> -->
-</body>
+    </body>
 </html>

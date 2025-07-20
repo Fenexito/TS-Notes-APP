@@ -8,12 +8,11 @@
 import { dom, get, queryAll } from './dom-elements.js';
 import { initializeEventListeners } from './event-listeners.js';
 import { loadNotes, handleWelcomeModal } from './history-manager.js';
-// La siguiente línea es la que se ha corregido.
 import { populateTimeSlots, applyInitialRequiredHighlight, updateTroubleshootingCharCounter } from './ui-helpers.js';
 import { populateExtraStepsSelect, updateThirdRowLayout, initialResizeTextareas, updateStickyHeaderInfo, handleSkillChange } from './ui-manager.js';
 import { resetChecklist } from './checklist-manager.js';
 import { generateFinalNote } from './note-builder.js';
-import { initializeTutorial } from './tutorial.js';
+import { initializeTutorial, startTour } from './tutorial.js';
 
 /**
  * Orquesta la secuencia de inicialización de la aplicación.
@@ -22,7 +21,6 @@ export async function initializeApp() {
     console.log('initializeApp: Starting initialization...');
 
     // Popula los selects que tienen opciones estáticas.
-    // Esta es una forma de manejar datos que podrían venir de un template en el HTML.
     const transferOptions = [
         'FFH CARE', 'FFH LOYALTY', 'FFH CAM - COLLECTIONS', 'C2F', 'SHS', 'MOB TS', 
         'MOB CARE', 'MOB LOYALTY', 'MOB CAM', 'wHSIA TS', 'SATELLITE TS', 'SMARTHOME CARE', 
@@ -43,8 +41,8 @@ export async function initializeApp() {
     console.log('initializeApp: Calling initializeEventListeners...');
     initializeEventListeners();
 
-    // Maneja la lógica del modal de bienvenida y carga el nombre del agente.
-    await handleWelcomeModal();
+    // Maneja la lógica del modal de bienvenida y determina si el usuario es nuevo.
+    const isNewUser = await handleWelcomeModal();
     initialResizeTextareas();
 
     // Asegura que los campos dinámicos empiecen ocultos.
@@ -91,8 +89,13 @@ export async function initializeApp() {
     // Configura el estado inicial del toggle de "skill".
     handleSkillChange();
 
-    // Inicia el tutorial
+    // Inicializa el tutorial (solo listeners) y lo inicia si es un usuario nuevo.
     initializeTutorial();
+    if (isNewUser) {
+        setTimeout(() => {
+            startTour();
+        }, 250);
+    }
     
     console.log('initializeApp: Initialization complete.');
 }

@@ -2,29 +2,40 @@
  * @file main.js
  * @summary Este es el punto de entrada principal de la aplicación APad.
  * Su única responsabilidad es iniciar la aplicación una vez que el DOM
- * esté completamente cargado. Importa e invoca la lógica de inicialización
- * principal desde otros módulos.
+ * esté completamente cargado.
  */
 
 import { initializeApp } from './app-initializer.js';
 import { initializePwa } from './pwa.js';
 import { initInfoOverlay } from './modal-manager.js';
-import { initializeAuth } from './auth.js'; // <-- MODIFICACIÓN: Importar la nueva función
+import { initializeAuth } from './auth.js';
 
-// Espera a que el contenido del DOM esté completamente cargado y analizado.
-document.addEventListener('DOMContentLoaded', async () => { // <-- MODIFICACIÓN: Se convierte en async
-    // --- MODIFICACIÓN: Ejecutar la autenticación de Google ---
-    const isAuthenticated = await initializeAuth();
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        await initializeAuth();
 
-    if (isAuthenticated) {
-        // Si el usuario está autenticado, inicializar la aplicación normalmente.
-        console.log('Authentication successful. Initializing application...');
-        initializeApp();
-        initInfoOverlay();
-        initializePwa();
-    } else {
-        // Si la autenticación falla, no hacer nada más.
-        // El módulo 'auth.js' ya ha bloqueado la interfaz de usuario.
-        console.error('Authentication failed. Application will not initialize.');
+        console.log('Authentication successful. Scheduling app initialization...');
+
+        setTimeout(async () => {
+            try {
+                console.log('Running scheduled app initialization.');
+                await initializeApp();
+                initInfoOverlay();
+                initializePwa();
+            } catch (initError) {
+                console.error("Error during app initialization phase:", initError);
+                document.body.innerHTML = `<div style="color:red; padding: 20px; font-family: sans-serif;">
+                    <h1>Application Error</h1>
+                    <p>Failed to initialize the application components. Please check the console for details.</p>
+                </div>`;
+            }
+        }, 0);
+
+    } catch (error) {
+        console.error("A critical error occurred during the authentication process:", error);
+        document.body.innerHTML = `<div style="color:red; padding: 20px; font-family: sans-serif;">
+            <h1>Application Error</h1>
+            <p>Failed to initialize the application. Please check the console for details.</p>
+        </div>`;
     }
 });
