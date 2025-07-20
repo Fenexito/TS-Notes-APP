@@ -1267,7 +1267,7 @@ textarea {
 .history-sidebar {
     right: 0;
     transform: translateX(100%);
-    width: 280px;
+    width: 300px; /* MODIFICACIÓN: Ancho aumentado */
 }
 .history-sidebar.open {
     transform: translateX(0);
