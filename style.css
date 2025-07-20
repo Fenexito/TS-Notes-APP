@@ -1542,6 +1542,10 @@ input:checked + .theme-slider:before {
 /* ==========================================================================
    13. ESTILOS PARA EL TUTORIAL (CORREGIDOS)
    ========================================================================== */
+.hidden {
+    display: none !important;
+}
+
 #custom-tutorial-overlay {
     position: fixed;
     top: 0;
@@ -1549,19 +1553,12 @@ input:checked + .theme-slider:before {
     width: 100vw;
     height: 100vh;
     background: rgb(255 255 255 / 5%);
-    z-index: 10000; /* Z-INDEX ORIGINAL RESTAURADO */
+    z-index: 10000;
 }
-
-/* REGLA DE CORRECCIÓN: Oculta el tutorial si el modal de bienvenida está activo */
-#welcomeModalOverlay.is-visible ~ #custom-tutorial-overlay,
-#welcomeModalOverlay.is-visible ~ #custom-tutorial-popover {
-    display: none !important;
-}
-
 
 .tutorial-highlight {
     position: relative;
-    z-index: 10100; /* Z-INDEX ORIGINAL RESTAURADO */
+    z-index: 10100;
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
     border-radius: 4px;
 }
@@ -1572,7 +1569,7 @@ input:checked + .theme-slider:before {
     color: var(--text-tutorial);
     padding: 15px;
     border-radius: 8px;
-    z-index: 10200; /* Z-INDEX ORIGINAL RESTAURADO */
+    z-index: 10200;
     max-width: 350px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.5);
     border: 1px solid var(--border-tutorial);
