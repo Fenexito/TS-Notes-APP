@@ -29,19 +29,17 @@ export function viewNoteInModal(noteObject) {
     
     const isSavedNote = !!noteObject.id;
 
-    // Forcefully control visibility by directly manipulating the style property.
-    // This method overrides conflicting CSS rules.
-    if (isSavedNote) {
-        if (dom.modalEditFromHistoryBtn) dom.modalEditFromHistoryBtn.style.display = 'inline-block';
-        if (dom.modalCopySaveBtn) dom.modalCopySaveBtn.style.display = 'none';
-    } else {
-        if (dom.modalEditFromHistoryBtn) dom.modalEditFromHistoryBtn.style.display = 'none';
-        if (dom.modalCopySaveBtn) dom.modalCopySaveBtn.style.display = 'inline-block';
+    // Toggle button visibility using a class instead of direct style manipulation
+    if (dom.modalEditFromHistoryBtn) {
+        dom.modalEditFromHistoryBtn.classList.toggle('hidden-field', !isSavedNote);
+    }
+    if (dom.modalCopySaveBtn) {
+        dom.modalCopySaveBtn.classList.toggle('hidden-field', isSavedNote);
     }
 
     // Control visibility of the SPLIT button based on character count
     if (dom.modalSeparateBtn) {
-        dom.modalSeparateBtn.style.display = noteLength > 1000 ? 'inline-block' : 'none';
+        dom.modalSeparateBtn.classList.toggle('hidden-field', noteLength <= 1000);
     }
 
     // Show the modal
@@ -255,14 +253,14 @@ export function updateLatestNoteOverlay(noteObject) {
     const data = noteObject.formData;
     const getVal = (key) => data[key] || 'N/A';
 
-    // MODIFICADO: Se quita el margen y la línea <hr>
+    // MODIFICADO: Se usan clases en lugar de estilos en línea
     const content = `
-        <div style="font-size: 0.85em; line-height: 1.5;">
-            <p style="margin: 0 0 2px 0;">BAN: <strong>${getVal('ban')}</strong></p>
-            <p style="margin: 0 0 2px 0;">CID: <strong>${getVal('cid')}</strong></p>
-            <p style="margin: 0 0 2px 0;">NAME: <strong>${getVal('name')}</strong></p>
-            <p style="margin: 0 0 2px 0;">CBR: <strong>${getVal('cbr')}</strong></p>
-            <p style="margin: 0 0 2px 0;">TICKET: <strong>${getVal('ticketInput')}</strong></p>
+        <div class="latest-note-overlay-content">
+            <p>BAN: <strong>${getVal('ban')}</strong></p>
+            <p>CID: <strong>${getVal('cid')}</strong></p>
+            <p>NAME: <strong>${getVal('name')}</strong></p>
+            <p>CBR: <strong>${getVal('cbr')}</strong></p>
+            <p>TICKET: <strong>${getVal('ticketInput')}</strong></p>
         </div>
     `;
 
