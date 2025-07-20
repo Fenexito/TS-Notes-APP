@@ -1273,10 +1273,54 @@ textarea {
     transform: translateX(0);
 }
 
-/* --- Estilos Checklist --- */
+/* --- Estilos Checklist (CORREGIDOS) --- */
 .checklist-content {
     flex-grow: 1;
     overflow-y: auto;
+}
+
+.checklist-section-title {
+    font-size: 0.9em;
+    color: var(--text-primary);
+    margin-top: 15px;
+    margin-bottom: 5px;
+    padding: 8px;
+    border-bottom: 2px solid var(--accent-primary);
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.checklist-section-title:hover {
+    background-color: var(--bg-secondary-hover);
+}
+
+.checklist-title-text {
+    margin-right: auto;
+}
+
+.checklist-section-title::after {
+    content: '▼';
+    font-size: 0.6em;
+    transition: transform 0.3s ease;
+    margin-left: 8px;
+}
+.checklist-section.collapsed .checklist-section-title::after {
+    transform: rotate(-90deg);
+}
+.checklist-section-title:first-of-type {
+    margin-top: 0;
+}
+
+.checklist-items-container {
+    max-height: 1000px;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out;
+}
+.checklist-items-container.collapsed {
+    max-height: 0;
 }
 
 .checklist-item {
