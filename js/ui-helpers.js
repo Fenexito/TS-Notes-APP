@@ -35,8 +35,8 @@ export async function copyToClipboard(textToCopy) {
     try {
         const tempTextArea = document.createElement('textarea');
         tempTextArea.value = textToCopy;
-        tempTextArea.style.position = 'absolute';
-        tempTextArea.style.left = '-9999px';
+        // Se usa una clase CSS en lugar de estilos en línea
+        tempTextArea.className = 'clipboard-helper-textarea';
         document.body.appendChild(tempTextArea);
         tempTextArea.select();
         document.execCommand('copy');
