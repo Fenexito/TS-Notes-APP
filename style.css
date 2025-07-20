@@ -1354,6 +1354,20 @@ body.dark-theme .checklist-item:not(.status-no) label {
 .date-group-header:hover {
     background-color: var(--border-primary);
 }
+.date-group-header h3 {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 1em;
+}
+
+.note-count {
+    margin-left: 30px;
+    font-size: 0.9em;
+    color: var(--text-tertiary);
+    padding: 2px 8px;
+    min-width: 25px;
+    text-align: center;
+}
 
 .date-group-content {
     list-style: none;
@@ -1383,6 +1397,109 @@ body.dark-theme .checklist-item:not(.status-no) label {
     box-shadow: 0 1px 3px var(--shadow-secondary);
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
     position: relative;
+}
+
+.note-item.selected {
+    border-color: var(--accent-danger);
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.4);
+    background-color: rgba(231, 76, 60, 0.1);
+}
+
+.note-item-header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    height: 16px;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+}
+
+.note-history-char-count {
+    font-size: 0.7em;
+    font-weight: bold;
+    color: var(--text-tertiary);
+}
+
+.note-skill-label {
+    font-size: 0.7em;
+    font-weight: bold;
+    color: var(--text-secondary);
+}
+
+.note-main-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.75em;
+    margin-top: 16px; 
+}
+
+.detail-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    line-height: 1.1;
+}
+
+.detail-row span {
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 65px;
+    text-align: right;
+    margin-right: 5px;
+}
+
+.detail-row strong {
+    word-break: break-all;
+    font-weight: normal;
+    color: var(--text-primary);
+}
+
+.detail-separator {
+    height: 1px;
+    background-color: var(--border-tertiary);
+    margin: 4px 0;
+}
+
+.note-actions {
+    display: flex;
+    gap: 5px;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.history-action-btn {
+    padding: 4px 6px;
+    font-size: 0.6em;
+    min-width: 45px;
+    height: auto;
+    gap: 4px;
+}
+
+.history-action-btn svg {
+    width: 12px;
+    height: 12px;
+    stroke-width: 2.5;
+    fill: none;
+    stroke: currentColor;
+}
+
+.history-action-btn.view-btn { background-color: var(--accent-primary); }
+.history-action-btn.view-btn:hover { background-color: var(--accent-primary-hover); }
+.history-action-btn.edit-btn { background-color: var(--accent-warning); }
+.history-action-btn.edit-btn:hover { background-color: var(--accent-warning-hover); }
+.history-action-btn.delete-btn { background-color: var(--accent-danger); }
+.history-action-btn.delete-btn:hover { background-color: var(--accent-danger-hover); }
+
+.no-notes-message {
+    text-align: center;
+    color: var(--text-tertiary);
+    font-style: italic;
+    padding: 12px;
+    font-size: 0.85em;
 }
 
 .history-actions-footer {
@@ -1427,6 +1544,7 @@ body.dark-theme .checklist-item:not(.status-no) label {
 .history-footer-btn.import-btn:hover {
     background-color: var(--accent-purple-hover);
 }
+
 
 /* ==========================================================================
    11. FOOTER Y WIDGETS FLOTANTES (CORREGIDOS)
