@@ -1854,7 +1854,7 @@ input:checked + .theme-slider:before {
     border: 1px solid var(--border-tutorial);
 }
 
-#spotlight-overlay {
+#tutorial-spotlight {
     display: none;
     position: fixed;
     top: 0;
