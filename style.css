@@ -1411,25 +1411,34 @@ body.dark-theme .checklist-item:not(.status-no) label {
 
 .month-group-header {
     font-size: 0.9em;
-    font-weight: bold;
-    margin-top: 10px;
+    color: var(--text-primary);
+    margin-top: 15px;
+    margin-bottom: 5px;
+    padding: 8px;
+    border-bottom: 2px solid var(--accent-primary);
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.2s;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: var(--bg-tertiary);
-    padding: 5px 8px;
-    cursor: pointer;
-    border: 1px solid var(--border-primary);
-    border-radius: 5px;
 }
 .month-group-header:hover {
     background-color: var(--bg-secondary-hover);
 }
 .month-group-header h3 {
     margin: 0;
-    color: var(--text-primary);
     font-size: 1em;
+    margin-right: auto;
 }
+.month-group-header .icon-chevron-down,
+.month-group-header .icon-chevron-up {
+    transition: transform 0.3s ease;
+}
+.month-group-content.collapsed + .month-group-header .icon-chevron-down {
+    transform: rotate(-90deg);
+}
+
 
 .month-group-content {
     padding-left: 10px;
