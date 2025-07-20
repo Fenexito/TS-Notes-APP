@@ -9,7 +9,8 @@ import { state, fieldConfig, AGENT_NAME_KEY, APP_VERSION_KEY, RESOLUTION_COPY_CH
 import { db, saveAgentNameToDB, loadAgentNameFromDB, saveNoteToDB, loadAllNotesFromDB, deleteNoteFromDB, importNotesToDB } from './database.js';
 import { showToast, customConfirm, copyToClipboard, applyInitialRequiredHighlight } from './ui-helpers.js';
 import { generateFinalNote, noteBuilder } from './note-builder.js';
-import { viewNoteInModal, closeModal, unhighlightAllNotes, showSidebarAndHighlightNote, hideSidebar, updateLatestNoteOverlay, openInfoOverlay, closeInfoOverlay } from './modal-manager.js';
+// MODIFICADO: Se importa handleSeparateNote para el nuevo botón SPLIT
+import { viewNoteInModal, closeModal, unhighlightAllNotes, showSidebarAndHighlightNote, hideSidebar, updateLatestNoteOverlay, openInfoOverlay, closeInfoOverlay, handleSeparateNote } from './modal-manager.js';
 import { setAgentNameEditable, setAgentNameReadonly, clearAllFormFields, checkCurrentFormHasData, updateThirdRowLayout, populateIssueSelect, updateAffectedFieldVisibilityAndLabel, _populatePhysicalCheckListLabelsAndOptions, _updatePhysicalCheckListEnablement, updateOptikTvLegacySpecificFields, _populateAwaAlertsOptions, updateAwaAlerts2SelectState, updateAwaStepsSelectState, updateTvsKeyFieldState, updateTransferFieldState, updateTechFieldsVisibilityAndState } from './ui-manager.js';
 
 // --- Funciones de Copiado Especializadas ---
@@ -307,6 +308,22 @@ function createNoteItemHTML(note) {
         resolutionDetailsHTML += `<div class="detail-row"><span>EMT TICKET:</span><strong>${cbr2Input}</strong></div>`;
     }
 
+    // MODIFICACIÓN: Lógica para el botón condicional COPY/SPLIT
+    let conditionalButtonHTML = '';
+    if (noteLength > 1000) {
+        conditionalButtonHTML = `
+            <button type="button" class="history-action-btn split-btn" data-note-id="${note.id}">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2h6a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2h-6"/><path d="M6 2h6v20H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/></svg>
+                SPLIT
+            </button>`;
+    } else {
+        conditionalButtonHTML = `
+            <button type="button" class="history-action-btn copy-btn" data-note-id="${note.id}">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v2"/></svg>
+                COPY
+            </button>`;
+    }
+
     return `
         <li class="note-item ${highlightClass}" data-note-id="${note.id}" data-search-terms="${[ban, cid, name, cbr, ticket, serviceSelect, issueSelect, resolvedSelect, note.finalNoteText].join(' ').toLowerCase()}">
             <div class="note-item-header">
@@ -330,6 +347,7 @@ function createNoteItemHTML(note) {
             </div>
             <div class="note-actions">
                 <button type="button" class="history-action-btn view-btn" data-note-id="${note.id}"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>VIEW</button>
+                ${conditionalButtonHTML}
                 <button type="button" class="history-action-btn edit-btn" data-note-id="${note.id}"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>EDIT</button>
                 <button type="button" class="history-action-btn delete-btn" data-note-id="${note.id}"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>DELETE</button>
             </div>
@@ -378,6 +396,13 @@ export function addEventListenersToHistoryItems() {
                 showToast('Deletion canceled.', 'info');
                 showSidebarAndHighlightNote(noteId);
             }
+        // MODIFICACIÓN: Se añaden los listeners para los nuevos botones
+        } else if (target.closest('.copy-btn')) {
+            copyToClipboard(selectedNote.finalNoteText);
+        } else if (target.closest('.split-btn')) {
+            hideSidebar();
+            state.currentlyViewedNoteData = selectedNote;
+            handleSeparateNote();
         }
     });
 }
