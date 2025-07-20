@@ -1441,6 +1441,9 @@ body.dark-theme .checklist-item:not(.status-no) label {
     font-weight: bold;
     color: var(--text-tertiary);
 }
+.note-history-char-count.red-text { color: #e74c3c; }
+.note-history-char-count.orange-text { color: #f39c12; }
+.note-history-char-count.bold-text { font-weight: bold; }
 
 .note-skill-label {
     font-size: 0.7em;
@@ -1481,6 +1484,16 @@ body.dark-theme .checklist-item:not(.status-no) label {
     height: 1px;
     background-color: var(--border-tertiary);
     margin: 4px 0;
+}
+
+.note-modified-indicator {
+    display: flex;
+    align-items: center;
+    color: var(--accent-danger);
+}
+.note-modified-indicator svg {
+    width: 11px;
+    height: 11px;
 }
 
 .note-actions {
@@ -1563,6 +1576,10 @@ body.dark-theme .checklist-item:not(.status-no) label {
 }
 .history-footer-btn.import-btn:hover {
     background-color: var(--accent-purple-hover);
+}
+
+.hidden-file-input {
+    display: none;
 }
 
 /* ==========================================================================
