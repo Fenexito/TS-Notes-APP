@@ -184,7 +184,14 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    border-bottom: 1px solid transparent; /* Borde inicial transparente */
+}
+
+/* MODIFICACIÓN: Estilo más notorio para el header cuando está fijo */
+.sticky-header-container.is-fixed {
+    box-shadow: 0 4px 12px var(--shadow-primary);
+    border-bottom: 1px solid var(--border-primary);
 }
 
 .sticky-header-container.is-fixed .header-dynamic-info {
@@ -1531,6 +1538,12 @@ body.dark-theme .checklist-item:not(.status-no) label {
 .history-action-btn.edit-btn:hover { background-color: var(--accent-warning-hover); }
 .history-action-btn.delete-btn { background-color: var(--accent-danger); }
 .history-action-btn.delete-btn:hover { background-color: var(--accent-danger-hover); }
+/* MODIFICACIÓN: Estilos para los nuevos botones COPY y SPLIT */
+.history-action-btn.copy-btn { background-color: var(--accent-success); }
+.history-action-btn.copy-btn:hover { background-color: var(--accent-success-hover); }
+.history-action-btn.split-btn { background-color: var(--accent-primary); }
+.history-action-btn.split-btn:hover { background-color: var(--accent-primary-hover); }
+
 
 .no-notes-message {
     text-align: center;
