@@ -1444,7 +1444,6 @@ body.dark-theme .checklist-item:not(.status-no) label {
     padding-left: 10px;
     border-left: 2px solid var(--border-tertiary);
     max-height: 4000px; /* Suficientemente grande para contener los días */
-    overflow: hidden;
     transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out;
     opacity: 1;
 }
