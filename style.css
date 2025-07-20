@@ -1163,6 +1163,13 @@ textarea {
     font-size: 1em;
 }
 
+/* Contenedor para los botones de acción del encabezado del sidebar */
+.sidebar-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
 .close-sidebar-btn {
     background: none;
     border: none;
@@ -1338,11 +1345,13 @@ textarea {
 .theme-switch-label {
     color: var(--text-primary);
     cursor: pointer;
+    display: flex; /* Para centrar el SVG */
+    align-items: center;
 }
-.theme-switch-label svg {
+.theme-switch-label .feather-sun {
     stroke: var(--accent-warning);
 }
-body.dark-theme .theme-switch-label svg {
+.theme-switch-label .feather-moon {
     stroke: var(--accent-primary);
 }
 .theme-switch {
@@ -1386,8 +1395,6 @@ input:checked + .theme-slider:before {
     transform: translateX(14px);
 }
 
-/* ... (resto de los estilos como media queries, etc., que no cambian) ... */
-
 /* ==========================================================================
    13. MEDIA QUERIES (RESPONSIVIDAD)
    ========================================================================== */
@@ -1416,7 +1423,7 @@ input:checked + .theme-slider:before {
     .top-actions {
       width: auto;
       display: grid;
-      grid-template-columns: repeat(3, auto); /* Cambiado para 3 columnas */
+      grid-template-columns: repeat(2, auto);
       gap: 5px;
       flex-shrink: 0;
     }
