@@ -61,13 +61,13 @@ function renderAuthContainer(title, formHtml) {
                 text-align: center; 
                 transition: opacity 0.3s ease-in;
             }
-            .auth-container { display: flex; flex-direction: column; align-items: center; padding: 40px; border-radius: 12px; background-color: #2a2a2a; box-shadow: 0 6px 20px rgba(0,0,0,0.5); border: 1px solid #444; width: 320px; box-sizing: border-box; }
+            .auth-container { display: flex; flex-direction: column; align-items: center; padding: 40px; border-radius: 12px; background-color: #2a2a2a; box-shadow: 0 6px 20px rgba(0,0,0,0.5); border: 1px solid #444; width: 400px; box-sizing: border-box; }
             .auth-container h1 { color: #fff; margin-top: 0; font-size: 1.8em; }
             .auth-container p { color: #ccc; margin-bottom: 25px; }
             .auth-container .input-field { width: 100%; box-sizing: border-box; padding: 12px; margin-bottom: 20px; border-radius: 6px; border: 1px solid #555; background-color: #333; color: #fff; font-size: 1em; text-align: center; }
             .auth-container .submit-btn { width: 100%; padding: 12px; border: none; border-radius: 6px; background-color: #007bff; color: white; font-size: 1em; cursor: pointer; }
             .auth-container .submit-btn:disabled { background-color: #555; cursor: not-allowed; }
-            .auth-container .auth-message { margin-top: 20px; font-size: 0.9em; min-height: 20px; }
+            .auth-container .auth-message { margin-top: 20px; font-size: 1em; min-height: 20px; }
             .auth-container .code-input-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
             .auth-container .code-input { width: 40px; height: 50px; font-size: 1.5em; text-align: center; border-radius: 6px; border: 1px solid #555; background-color: #333; color: #fff; caret-color: #007bff; }
             .auth-container .code-input:focus { outline: none; border-color: #007bff; box-shadow: 0 0 5px #007bff; }
