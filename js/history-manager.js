@@ -9,7 +9,6 @@ import { state, fieldConfig, AGENT_NAME_KEY, APP_VERSION_KEY, RESOLUTION_COPY_CH
 import { db, saveAgentNameToDB, loadAgentNameFromDB, saveNoteToDB, loadAllNotesFromDB, deleteNoteFromDB, importNotesToDB } from './database.js';
 import { showToast, customConfirm, copyToClipboard, applyInitialRequiredHighlight } from './ui-helpers.js';
 import { generateFinalNote, noteBuilder } from './note-builder.js';
-// MODIFICADO: Se importa handleSeparateNote para el nuevo botón SPLIT
 import { viewNoteInModal, closeModal, unhighlightAllNotes, showSidebarAndHighlightNote, hideSidebar, updateLatestNoteOverlay, openInfoOverlay, closeInfoOverlay, handleSeparateNote } from './modal-manager.js';
 import { setAgentNameEditable, setAgentNameReadonly, clearAllFormFields, checkCurrentFormHasData, updateThirdRowLayout, populateIssueSelect, updateAffectedFieldVisibilityAndLabel, _populatePhysicalCheckListLabelsAndOptions, _updatePhysicalCheckListEnablement, updateOptikTvLegacySpecificFields, _populateAwaAlertsOptions, updateAwaAlerts2SelectState, updateAwaStepsSelectState, updateTvsKeyFieldState, updateTransferFieldState, updateTechFieldsVisibilityAndState } from './ui-manager.js';
 
@@ -223,26 +222,75 @@ export async function loadNotes() {
     dom.noNotesMessage.classList.toggle('hidden-field', notes.length > 0);
     if (notes.length === 0) return;
 
-    const notesByDate = notes.reduce((acc, note) => {
+    // --- NUEVA LÓGICA DE AGRUPACIÓN ---
+    const now = new Date();
+    now.setHours(now.getHours() - 6);
+    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    const notesByMonth = notes.reduce((acc, note) => {
         const utcDate = new Date(note.timestamp);
         utcDate.setHours(utcDate.getHours() - 6);
+        const monthKey = `${utcDate.getFullYear()}-${String(utcDate.getMonth() + 1).padStart(2, '0')}`;
         const dateKey = utcDate.toISOString().slice(0, 10);
 
-        if (!acc[dateKey]) acc[dateKey] = [];
-        acc[dateKey].push(note);
+        if (!acc[monthKey]) acc[monthKey] = {};
+        if (!acc[monthKey][dateKey]) acc[monthKey][dateKey] = [];
+        acc[monthKey][dateKey].push(note);
         return acc;
     }, {});
 
-    Object.keys(notesByDate).sort((a, b) => new Date(b) - new Date(a)).forEach(dateKey => {
-        const notesForDay = notesByDate[dateKey];
-        const groupEl = createDateGroupElement(dateKey, notesForDay);
-        dom.noteHistoryList.appendChild(groupEl);
+    const sortedMonths = Object.keys(notesByMonth).sort().reverse();
+
+    sortedMonths.forEach(monthKey => {
+        const daysInMonth = notesByMonth[monthKey];
+        if (monthKey === currentMonthKey) {
+            // Para el mes actual, renderizar días directamente
+            Object.keys(daysInMonth).sort((a, b) => new Date(b) - new Date(a)).forEach(dateKey => {
+                const notesForDay = daysInMonth[dateKey];
+                const groupEl = createDateGroupElement(dateKey, notesForDay, false); // No colapsado por defecto
+                dom.noteHistoryList.appendChild(groupEl);
+            });
+        } else {
+            // Para meses pasados, renderizar un grupo de mes colapsable
+            const monthGroupEl = createMonthGroupElement(monthKey, daysInMonth);
+            dom.noteHistoryList.appendChild(monthGroupEl);
+        }
     });
 
     filterNotes(dom.historySearchInput.value);
 }
 
-function createDateGroupElement(dateKey, notes) {
+function createMonthGroupElement(monthKey, daysInMonth) {
+    const [year, month] = monthKey.split('-');
+    const monthDate = new Date(year, parseInt(month, 10) - 1, 1);
+    const monthName = monthDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+    const totalNotesInMonth = Object.values(daysInMonth).reduce((sum, dayNotes) => sum + dayNotes.length, 0);
+
+    const monthGroup = document.createElement('div');
+    monthGroup.className = 'month-group';
+
+    let dayGroupsHTML = '';
+    Object.keys(daysInMonth).sort((a, b) => new Date(b) - new Date(a)).forEach(dateKey => {
+        const notesForDay = daysInMonth[dateKey];
+        const dayGroupElement = createDateGroupElement(dateKey, notesForDay, true); // Colapsado por defecto
+        dayGroupsHTML += dayGroupElement.outerHTML;
+    });
+
+    monthGroup.innerHTML = `
+        <div class="month-group-header">
+            <h3>${monthName}</h3>
+            <span class="note-count">${totalNotesInMonth}</span>
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-chevron-down"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-chevron-up hidden-field"><polyline points="18 15 12 9 6 15"></polyline></svg>
+        </div>
+        <div class="month-group-content collapsed">
+            ${dayGroupsHTML}
+        </div>
+    `;
+    return monthGroup;
+}
+
+function createDateGroupElement(dateKey, notes, isCollapsedByDefault = false) {
     const group = document.createElement('div');
     group.className = 'date-group';
     
@@ -251,6 +299,8 @@ function createDateGroupElement(dateKey, notes) {
     const todayKey = todayDate.toISOString().slice(0, 10);
     
     const isToday = dateKey === todayKey;
+    const isDefaultCollapsed = isCollapsedByDefault || !isToday;
+
     const dateForFormatting = new Date(dateKey + 'T06:00:00Z');
     const displayDate = isToday ? 'Today' : dateForFormatting.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
 
@@ -258,10 +308,10 @@ function createDateGroupElement(dateKey, notes) {
         <div class="date-group-header">
             <h3>${displayDate}</h3>
             <span class="note-count">${notes.length}</span>
-            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-chevron-down ${isToday ? '' : 'hidden-field'}"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-chevron-up ${isToday ? 'hidden-field' : ''}"><polyline points="18 15 12 9 6 15"></polyline></svg>
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-chevron-down ${isDefaultCollapsed ? '' : 'hidden-field'}"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-chevron-up ${isDefaultCollapsed ? 'hidden-field' : ''}"><polyline points="18 15 12 9 6 15"></polyline></svg>
         </div>
-        <ul class="date-group-content ${isToday ? '' : 'collapsed'}">
+        <ul class="date-group-content ${isDefaultCollapsed ? 'collapsed' : ''}">
             ${notes.map(createNoteItemHTML).join('')}
         </ul>
     `;
@@ -308,7 +358,6 @@ function createNoteItemHTML(note) {
         resolutionDetailsHTML += `<div class="detail-row"><span>EMT TICKET:</span><strong>${cbr2Input}</strong></div>`;
     }
 
-    // MODIFICACIÓN: Lógica para el botón condicional COPY/SPLIT
     let conditionalButtonHTML = '';
     if (noteLength > 1000) {
         conditionalButtonHTML = `
@@ -358,13 +407,12 @@ function createNoteItemHTML(note) {
 export function addEventListenersToHistoryItems() {
     dom.noteHistoryList.addEventListener('click', async (event) => {
         const target = event.target;
-        const noteItem = target.closest('.note-item');
         
-        const dateGroupHeader = target.closest('.date-group-header');
-        if (dateGroupHeader) {
-            const content = dateGroupHeader.nextElementSibling;
-            const iconDown = dateGroupHeader.querySelector('.icon-chevron-down');
-            const iconUp = dateGroupHeader.querySelector('.icon-chevron-up');
+        const header = target.closest('.date-group-header, .month-group-header');
+        if (header) {
+            const content = header.nextElementSibling;
+            const iconDown = header.querySelector('.icon-chevron-down');
+            const iconUp = header.querySelector('.icon-chevron-up');
             
             content.classList.toggle('collapsed');
             iconDown.classList.toggle('hidden-field');
@@ -372,6 +420,7 @@ export function addEventListenersToHistoryItems() {
             return;
         }
 
+        const noteItem = target.closest('.note-item');
         if (!noteItem) return;
         
         const noteId = noteItem.dataset.noteId;
@@ -396,7 +445,6 @@ export function addEventListenersToHistoryItems() {
                 showToast('Deletion canceled.', 'info');
                 showSidebarAndHighlightNote(noteId);
             }
-        // MODIFICACIÓN: Se añaden los listeners para los nuevos botones
         } else if (target.closest('.copy-btn')) {
             copyToClipboard(selectedNote.finalNoteText);
         } else if (target.closest('.split-btn')) {
@@ -490,15 +538,25 @@ export function filterNotes(searchText) {
         if (isVisible) {
             anyNoteVisible = true;
             if (lowerCaseSearchText !== '') {
-                const group = item.closest('.date-group');
-                if (group) {
-                    const content = group.querySelector('.date-group-content');
-                    const iconDown = group.querySelector('.icon-chevron-down');
-                    const iconUp = group.querySelector('.icon-chevron-up');
-                    if (content.classList.contains('collapsed')) {
+                const dayGroup = item.closest('.date-group');
+                const monthGroup = item.closest('.month-group');
+
+                if (dayGroup) {
+                    const content = dayGroup.querySelector('.date-group-content');
+                    if (content && content.classList.contains('collapsed')) {
                         content.classList.remove('collapsed');
-                        iconDown.classList.add('hidden-field');
-                        iconUp.classList.remove('hidden-field');
+                        const header = dayGroup.querySelector('.date-group-header');
+                        header.querySelector('.icon-chevron-down').classList.add('hidden-field');
+                        header.querySelector('.icon-chevron-up').classList.remove('hidden-field');
+                    }
+                }
+                if (monthGroup) {
+                    const content = monthGroup.querySelector('.month-group-content');
+                    if (content && content.classList.contains('collapsed')) {
+                        content.classList.remove('collapsed');
+                        const header = monthGroup.querySelector('.month-group-header');
+                        header.querySelector('.icon-chevron-down').classList.add('hidden-field');
+                        header.querySelector('.icon-chevron-up').classList.remove('hidden-field');
                     }
                 }
             }
@@ -506,6 +564,16 @@ export function filterNotes(searchText) {
     });
 
     dom.noteHistoryList.querySelectorAll('.date-group').forEach(group => {
+        const hasVisibleNotes = !!group.querySelector('.note-item:not(.hidden-field)');
+        group.classList.toggle('hidden-field', !hasVisibleNotes);
+        const countSpan = group.querySelector('.note-count');
+        if(countSpan) {
+            const visibleCount = group.querySelectorAll('.note-item:not(.hidden-field)').length;
+            countSpan.textContent = visibleCount;
+        }
+    });
+
+    dom.noteHistoryList.querySelectorAll('.month-group').forEach(group => {
         const hasVisibleNotes = !!group.querySelector('.note-item:not(.hidden-field)');
         group.classList.toggle('hidden-field', !hasVisibleNotes);
         const countSpan = group.querySelector('.note-count');
