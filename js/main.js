@@ -9,10 +9,15 @@ import { initializeApp } from './app-initializer.js';
 import { initializePwa } from './pwa.js';
 import { initInfoOverlay } from './modal-manager.js';
 import { initializeAuth } from './auth.js';
+import { initializeTheme } from './theme-manager.js'; // <-- 1. IMPORTAR
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         await initializeAuth();
+        
+        // 2. INICIALIZAR EL TEMA JUSTO DESPUÉS DE LA AUTENTICACIÓN
+        // Esto asegura que el tema se aplique antes de que el usuario vea la app.
+        initializeTheme();
 
         console.log('Authentication successful. Scheduling app initialization...');
 
