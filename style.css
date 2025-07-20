@@ -1409,6 +1409,42 @@ body.dark-theme .checklist-item:not(.status-no) label {
     overflow-y: auto;
 }
 
+.month-group-header {
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--bg-tertiary);
+    padding: 5px 8px;
+    cursor: pointer;
+    border: 1px solid var(--border-primary);
+    border-radius: 5px;
+}
+.month-group-header:hover {
+    background-color: var(--bg-secondary-hover);
+}
+.month-group-header h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1em;
+}
+
+.month-group-content {
+    padding-left: 10px;
+    border-left: 2px solid var(--border-tertiary);
+    max-height: 4000px; /* Suficientemente grande para contener los días */
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out;
+    opacity: 1;
+}
+.month-group-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+}
+
+
 .date-group-header {
     font-size: 0.8em;
     margin-top: 1px;
