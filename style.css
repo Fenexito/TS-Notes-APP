@@ -1166,7 +1166,7 @@ textarea {
 
 
 /* ==========================================================================
-   10. ESTILOS PARA MENÚS LATERALES
+   10. ESTILOS PARA MENÚS LATERALES (CORREGIDOS)
    ========================================================================== */
 
 .sidebar-overlay {
@@ -1199,7 +1199,6 @@ textarea {
     font-size: 1em;
 }
 
-/* Contenedor para los botones de acción del encabezado del sidebar */
 .sidebar-header-actions {
     display: flex;
     align-items: center;
@@ -1251,40 +1250,7 @@ textarea {
     transform: translateX(0);
 }
 
-.date-group-header {
-    font-size: 0.8em;
-    margin-top: 1px;
-    margin-bottom: 1px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: var(--bg-secondary-hover);
-    padding: 3px 8px;
-    cursor: pointer;
-    border: 1px solid var(--border-primary);
-    border-radius: 5px;
-    margin: 4px 0;
-}
-
-.date-group-header h3 {
-    margin: 0;
-    color: var(--text-secondary);
-    font-size: 1em;
-}
-.date-group-header:hover {
-    background-color: var(--border-primary);
-}
-
-.note-count {
-    margin-left: 30px;
-    font-size: 0.9em;
-    color: var(--text-tertiary);
-    padding: 2px 8px;
-    min-width: 25px;
-    text-align: center;
-}
-
-/* Estilos de Checklist (CORREGIDOS) */
+/* --- Estilos Checklist --- */
 .checklist-item {
     display: flex;
     flex-direction: column;
@@ -1317,7 +1283,6 @@ textarea {
     color: var(--status-text); 
 }
 
-/* Se asegura que el texto dentro del item con status 'no' sea legible */
 .checklist-item.status-no label,
 .checklist-item.status-no label strong,
 .checklist-item.status-no label a {
@@ -1334,7 +1299,6 @@ body.dark-theme .checklist-item:not(.status-no) label {
     color: var(--status-text);
 }
 
-
 .checklist-item label strong {
     font-weight: 700;
     color: var(--status-link-text);
@@ -1348,6 +1312,22 @@ body.dark-theme .checklist-item:not(.status-no) label {
     color: var(--text-link-hover);
 }
 
+/* --- Estilos Historial (CORREGIDOS) --- */
+#historySearchInput {
+    width: 100%;
+    padding: 5px 7px;
+    border: 1px solid var(--border-secondary);
+    border-radius: 5px;
+    font-size: 0.8em;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+#historySearchInput:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    outline: none;
+}
 
 .note-history-list {
     list-style: none;
@@ -1355,9 +1335,40 @@ body.dark-theme .checklist-item:not(.status-no) label {
     margin: 10px 0 0 0;
     flex-grow: 1;
     overflow-y: auto;
+}
+
+.date-group-header {
+    font-size: 0.8em;
+    margin-top: 1px;
+    margin-bottom: 1px;
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--bg-secondary-hover);
+    padding: 3px 8px;
+    cursor: pointer;
+    border: 1px solid var(--border-primary);
+    border-radius: 5px;
+    margin: 4px 0;
+}
+.date-group-header:hover {
+    background-color: var(--border-primary);
+}
+
+.date-group-content {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    max-height: 2000px; 
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    opacity: 1;
+}
+
+.date-group-content.collapsed {
+    max-height: 0;
+    opacity: 0;
 }
 
 .note-item {
@@ -1374,39 +1385,47 @@ body.dark-theme .checklist-item:not(.status-no) label {
     position: relative;
 }
 
-.note-item.selected {
-    border-color: var(--accent-danger);
-    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.4);
-    background-color: rgba(231, 76, 60, 0.1);
+.history-actions-footer {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-tertiary);
+    display: flex;
+    gap: 8px;
+    justify-content: space-around;
 }
 
-.detail-row span {
-    font-weight: 600;
-    color: var(--text-secondary);
-    min-width: 65px;
-    text-align: right;
-    margin-right: 5px;
+.history-footer-btn {
+    flex-grow: 1;
+    padding: 8px 10px;
+    border-radius: 5px;
+    font-size: 0.7em;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
-.detail-row strong {
-    word-break: break-all;
-    font-weight: normal;
-    color: var(--text-primary);
+.history-footer-btn:hover {
+    transform: translateY(-1px);
 }
 
-.history-action-btn.view-btn { background-color: var(--accent-primary); }
-.history-action-btn.view-btn:hover { background-color: var(--accent-primary-hover); }
-.history-action-btn.edit-btn { background-color: var(--accent-warning); }
-.history-action-btn.edit-btn:hover { background-color: var(--accent-warning-hover); }
-.history-action-btn.delete-btn { background-color: var(--accent-danger); }
-.history-action-btn.delete-btn:hover { background-color: var(--accent-danger-hover); }
+.history-footer-btn.export-btn {
+    background-color: var(--accent-success);
+}
+.history-footer-btn.export-btn:hover {
+    background-color: var(--accent-success-hover);
+}
 
-.no-notes-message {
-    text-align: center;
-    color: var(--text-tertiary);
-    font-style: italic;
-    padding: 12px;
-    font-size: 0.85em;
+.history-footer-btn.import-btn {
+    background-color: var(--accent-purple);
+}
+.history-footer-btn.import-btn:hover {
+    background-color: var(--accent-purple-hover);
 }
 
 /* ==========================================================================
