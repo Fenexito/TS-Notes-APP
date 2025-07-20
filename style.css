@@ -1854,6 +1854,17 @@ input:checked + .theme-slider:before {
     border: 1px solid var(--border-tutorial);
 }
 
+#spotlight-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 9998;
+}
+
 #tutorial-popover-title {
     font-size: 1.2em;
     font-weight: bold;
