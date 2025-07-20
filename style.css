@@ -15,6 +15,7 @@
     --bg-auth-container: #2a2a2a;
     --bg-auth-input: #333;
     --bg-auth-btn-disabled: #555;
+    --bg-tutorial: #ffffff;
 
     --text-primary: #2c3e50;
     --text-secondary: #444;
@@ -25,6 +26,7 @@
     --text-link-hover: #0056b3;
     --text-auth-primary: #fff;
     --text-auth-secondary: #ccc;
+    --text-tutorial: #000000;
 
     --border-primary: #dcdcdc;
     --border-secondary: #ccc;
@@ -32,6 +34,7 @@
     --border-accent: #cce5ff;
     --border-auth: #444;
     --border-auth-input: #555;
+    --border-tutorial: #555;
 
     --accent-primary: #3498db;
     --accent-primary-hover: #2980b9;
@@ -45,6 +48,8 @@
     --accent-warning-hover: #e67e22;
     --accent-purple: #6f42c1;
     --accent-purple-hover: #5a32a3;
+    --accent-tutorial-btn: #6b2ee1;
+    --accent-tutorial-btn-hover: #30007a;
 
     --shadow-primary: rgba(0, 0, 0, 0.08);
     --shadow-secondary: rgba(0, 0, 0, 0.05);
@@ -55,6 +60,14 @@
     --toast-success: rgba(39, 174, 96, 0.9);
     --toast-error: rgba(231, 76, 60, 0.9);
     --toast-info: rgba(52, 152, 219, 0.9);
+    
+    /* Variables de estado para Checklist */
+    --status-pending-bg: #ffcdd2;
+    --status-yes-bg: #c8e6c9;
+    --status-no-bg: #ef5350;
+    --status-na-bg: #ffcc80;
+    --status-text: #111;
+    --status-text-inverted: #fff;
 }
 
 body.dark-theme {
@@ -66,6 +79,7 @@ body.dark-theme {
     --bg-tertiary: #252525;
     --bg-accent-light: #2a3b49;
     --bg-disabled: #3a3a3a;
+    --bg-tutorial: #2c2c2c;
 
     --text-primary: #e0e0e0;
     --text-secondary: #cccccc;
@@ -74,14 +88,24 @@ body.dark-theme {
     --text-inverted: #121212;
     --text-link: #58a6ff;
     --text-link-hover: #80bfff;
+    --text-tutorial: #e0e0e0;
 
     --border-primary: #444444;
     --border-secondary: #555555;
     --border-tertiary: #3a3a3a;
     --border-accent: #405d79;
+    --border-tutorial: #666;
     
     --shadow-primary: rgba(0, 0, 0, 0.3);
     --shadow-secondary: rgba(0, 0, 0, 0.25);
+    
+    /* Variables de estado para Checklist (Modo Oscuro) */
+    --status-pending-bg: #5c2328;
+    --status-yes-bg: #224e24;
+    --status-no-bg: #7d2a29;
+    --status-na-bg: #694f22;
+    --status-text: #e0e0e0;
+    --status-text-inverted: #f0f0f0;
 }
 
 *,
@@ -1248,6 +1272,69 @@ textarea {
     text-align: center;
 }
 
+/* Estilos de Checklist (CORREGIDOS) */
+.checklist-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 5px;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    transition: background-color 0.3s ease, border 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.checklist-item.checklist-item-required {
+    border: 1px solid #d32f2f;
+}
+
+.checklist-item.status-pending { background-color: var(--status-pending-bg); color: var(--status-text); }
+.checklist-item.status-yes { background-color: var(--status-yes-bg); color: var(--status-text); }
+.checklist-item.status-no { background-color: var(--status-no-bg); color: var(--status-text-inverted); }
+.checklist-item.status-na { background-color: var(--status-na-bg); color: var(--status-text); }
+
+/* Se asegura que el texto dentro del item con status 'no' sea legible */
+.checklist-item.status-no label,
+.checklist-item.status-no label strong,
+.checklist-item.status-no label a {
+    color: var(--status-text-inverted);
+}
+
+.checklist-item label {
+    font-size: 0.8em;
+    color: var(--text-secondary);
+    width: 100%;
+    line-height: 1.4;
+}
+body.dark-theme .checklist-item:not(.status-no) label {
+    color: var(--status-text);
+}
+
+
+.checklist-item label strong {
+    font-weight: 700;
+    color: #004085;
+}
+body.dark-theme .checklist-item label strong {
+    color: #90caf9;
+}
+
+
+.checklist-item label a {
+    color: #007bff;
+    text-decoration: underline;
+}
+.checklist-item label a:hover {
+    color: #0056b3;
+}
+body.dark-theme .checklist-item label a {
+    color: #58a6ff;
+}
+body.dark-theme .checklist-item label a:hover {
+    color: #80bfff;
+}
+
+
 .note-history-list {
     list-style: none;
     padding: 0;
@@ -1334,7 +1421,7 @@ textarea {
 }
 
 /* ==========================================================================
-   12. INTERRUPTOR DE TEMA (NUEVO)
+   12. INTERRUPTOR DE TEMA
    ========================================================================== */
 
 .theme-switch-container {
@@ -1396,7 +1483,70 @@ input:checked + .theme-slider:before {
 }
 
 /* ==========================================================================
-   13. MEDIA QUERIES (RESPONSIVIDAD)
+   13. ESTILOS PARA EL TUTORIAL (CORREGIDOS)
+   ========================================================================== */
+#custom-tutorial-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgb(255 255 255 / 5%);
+    z-index: 10000 !important;
+}
+
+.tutorial-highlight {
+    position: relative;
+    z-index: 10100 !important;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
+    border-radius: 4px;
+}
+
+#custom-tutorial-popover {
+    position: absolute;
+    background: var(--bg-tutorial);
+    color: var(--text-tutorial);
+    padding: 15px;
+    border-radius: 8px;
+    z-index: 10200 !important;
+    max-width: 350px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    border: 1px solid var(--border-tutorial);
+}
+
+#tutorial-popover-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-tutorial);
+    padding-bottom: 10px;
+}
+
+#tutorial-popover-text {
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.tutorial-popover-actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.tutorial-popover-actions button {
+    background: var(--accent-tutorial-btn);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.tutorial-popover-actions button:hover {
+    background: var(--accent-tutorial-btn-hover);
+}
+
+/* ==========================================================================
+   14. MEDIA QUERIES (RESPONSIVIDAD)
    ========================================================================== */
 
 @media (max-width: 600px) {
@@ -1489,7 +1639,7 @@ input:checked + .theme-slider:before {
 }
 
 /* ==========================================================================
-   14. ESTILOS PARA EL OVERLAY DE AUTENTICACIÓN
+   15. ESTILOS PARA EL OVERLAY DE AUTENTICACIÓN
    ========================================================================== */
 
 #auth-overlay-container { 
@@ -1593,7 +1743,7 @@ input:checked + .theme-slider:before {
 }
 
 /* ==========================================================================
-   15. ESTILOS DE UTILIDAD Y DINÁMICOS
+   16. ESTILOS DE UTILIDAD Y DINÁMICOS
    ========================================================================== */
 
 /* Para mensajes de error críticos en la aplicación */
