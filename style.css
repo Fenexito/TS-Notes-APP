@@ -68,9 +68,9 @@
     
     /* Variables de estado para Checklist */
     --status-pending-bg: #ffcdd2;
-    --status-yes-bg: #c8e6c9;
+    --status-yes-bg: #4da950;
     --status-no-bg: #ef5350;
-    --status-na-bg: #ffcc80;
+    --status-na-bg: #fbc36e;
     --status-text: #111;
     --status-text-inverted: #fff;
     --status-link-text: #004085;
