@@ -6,7 +6,7 @@
 // --- LISTA DE CORREOS AUTORIZADOS ---
 const authorizedEmails = [
     'alex.vanhoutven.g38@gmail.com',
-    'menfil.tovar@telusinternational.com',
+    'menfil.tovarvanhoutven@telus.com',
     'otro.colega@example.com'
 ];
 
