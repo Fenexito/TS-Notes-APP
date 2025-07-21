@@ -1901,7 +1901,7 @@ input:checked + .theme-slider:before {
    ========================================================================== */
 #info-overlay-trigger {
     position: fixed;
-    top: 36.4%;
+    top: 29%;
     right: 0;
     width: 45px;
     height: 45px;
