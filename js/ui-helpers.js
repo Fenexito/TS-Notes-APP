@@ -4,8 +4,7 @@
  */
 
 import { dom } from './dom-elements.js';
-import { state, fieldConfig, CHARACTER_LIMIT, TS_CHAR_RED_THRESHOLD, TS_CHAR_ORANGE_THRESHOLD } from './config.js';
-import { noteBuilder } from './note-builder.js';
+import { state, CHARACTER_LIMIT, TS_CHAR_RED_THRESHOLD, TS_CHAR_ORANGE_THRESHOLD } from './config.js';
 
 export function showToast(message, type = 'info', duration = 3000) {
     if (!dom.toastContainer) {
@@ -117,34 +116,5 @@ export function populateTimeSlots(type, selectedTime = '') {
     });
     if (selectedTime && Array.from(dom.dispatchTimeSlotSelect.options).some(option => option.value === selectedTime)) {
         dom.dispatchTimeSlotSelect.value = selectedTime;
-    }
-}
-
-export function applyInitialRequiredHighlight() {
-    if (!dom.callNoteForm) return;
-
-    for (const fieldId in fieldConfig) {
-        const config = fieldConfig[fieldId];
-        const element = dom[fieldId] || document.getElementById(fieldId);
-        if (!element) continue;
-
-        const container = element.closest('.input-group, .radio-group');
-        const isHidden = (container && (container.classList.contains('hidden-field'))) || element.disabled;
-
-        if (config.required && !isHidden) {
-            let isMissing = false;
-            if (element.type === 'radio') {
-                const groupContainer = element.closest('.radio-group');
-                const isChecked = Array.from(document.querySelectorAll(`input[name="${element.name}"]`)).some(r => r.checked);
-                isMissing = !isChecked;
-                groupContainer?.classList.toggle('required-initial-border', isMissing);
-            } else {
-                isMissing = (noteBuilder._getFieldValue(fieldId) === '');
-                element.classList.toggle('required-initial-border', isMissing);
-            }
-        } else {
-            element.classList.remove('required-initial-border');
-            if (container) container.classList.remove('required-initial-border');
-        }
     }
 }
