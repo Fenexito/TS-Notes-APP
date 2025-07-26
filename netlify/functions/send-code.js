@@ -58,7 +58,7 @@ exports.handler = async function(event) {
                         <p style="font-size: 14px; color: #888888;">This code expires in 10 minutes.</p>
                     </div>
                   </body>
-                </html>
+                </html>`
         };
 
         // 6. Realizar la llamada a la API con fetch.
