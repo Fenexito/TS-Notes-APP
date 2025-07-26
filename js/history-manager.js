@@ -7,10 +7,10 @@
 import { dom, get } from './dom-elements.js';
 import { state, fieldConfig, AGENT_NAME_KEY, APP_VERSION_KEY, RESOLUTION_COPY_CHAR_LIMIT } from './config.js';
 import { db, saveAgentNameToDB, loadAgentNameFromDB, saveNoteToDB, loadAllNotesFromDB, deleteNoteFromDB, importNotesToDB } from './database.js';
-import { showToast, customConfirm, copyToClipboard, applyInitialRequiredHighlight } from './ui-helpers.js';
+import { showToast, customConfirm, copyToClipboard } from './ui-helpers.js';
 import { generateFinalNote, noteBuilder } from './note-builder.js';
 import { viewNoteInModal, closeModal, unhighlightAllNotes, showSidebarAndHighlightNote, hideSidebar, updateLatestNoteOverlay, openInfoOverlay, closeInfoOverlay, handleSeparateNote } from './modal-manager.js';
-import { setAgentNameEditable, setAgentNameReadonly, clearAllFormFields, checkCurrentFormHasData, updateThirdRowLayout, populateIssueSelect, updateAffectedFieldVisibilityAndLabel, _populatePhysicalCheckListLabelsAndOptions, _updatePhysicalCheckListEnablement, updateOptikTvLegacySpecificFields, _populateAwaAlertsOptions, updateAwaAlerts2SelectState, updateAwaStepsSelectState, updateTvsKeyFieldState, updateTransferFieldState, updateTechFieldsVisibilityAndState } from './ui-manager.js';
+import { setAgentNameEditable, setAgentNameReadonly, clearAllFormFields, checkCurrentFormHasData, updateThirdRowLayout, populateIssueSelect, updateAffectedFieldVisibilityAndLabel, _populatePhysicalCheckListLabelsAndOptions, _updatePhysicalCheckListEnablement, updateOptikTvLegacySpecificFields, _populateAwaAlertsOptions, updateAwaAlerts2SelectState, updateAwaStepsSelectState, updateTvsKeyFieldState, updateTransferFieldState, updateTechFieldsVisibilityAndState, applyInitialRequiredHighlight } from './ui-manager.js';
 
 // --- Funciones de Copiado Especializadas ---
 
