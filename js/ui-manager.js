@@ -6,7 +6,7 @@
 import { dom, get } from './dom-elements.js';
 import * as config from './config.js';
 import { generateFinalNote, noteBuilder } from './note-builder.js';
-import { applyInitialRequiredHighlight, populateTimeSlots, showToast } from './ui-helpers.js';
+import { populateTimeSlots, showToast } from './ui-helpers.js';
 import { resetChecklist } from './checklist-manager.js';
 
 export function updateStickyHeaderInfo() {
@@ -110,9 +110,8 @@ export function updateAffectedFieldVisibilityAndLabel(service, affectedTextValue
 
     dom.affectedLabel.textContent = affectedLabelText;
 
-    // MODIFICADO: Lógica de visibilidad más robusta para evitar conflictos.
     if (isVisible) {
-        dom.affectedTextGroup.style.display = 'flex'; // Forcing a display type
+        dom.affectedTextGroup.style.display = 'flex';
         dom.serviceAffectedRow.classList.add('has-affected');
         dom.affectedText.setAttribute('required', 'required');
     } else {
@@ -619,4 +618,33 @@ export function initialResizeTextareas() {
         }
         el.style.height = targetHeight + 'px';
     });
+}
+
+export function applyInitialRequiredHighlight() {
+    if (!dom.callNoteForm) return;
+
+    for (const fieldId in config.fieldConfig) {
+        const fieldConf = config.fieldConfig[fieldId];
+        const element = dom[fieldId] || document.getElementById(fieldId);
+        if (!element) continue;
+
+        const container = element.closest('.input-group, .radio-group');
+        const isHidden = (container && (container.classList.contains('hidden-field') || container.style.display === 'none')) || element.disabled;
+
+        if (fieldConf.required && !isHidden) {
+            let isMissing = false;
+            if (element.type === 'radio') {
+                const groupContainer = element.closest('.radio-group');
+                const isChecked = Array.from(document.querySelectorAll(`input[name="${element.name}"]`)).some(r => r.checked);
+                isMissing = !isChecked;
+                groupContainer?.classList.toggle('required-initial-border', isMissing);
+            } else {
+                isMissing = (noteBuilder._getFieldValue(fieldId) === '');
+                element.classList.toggle('required-initial-border', isMissing);
+            }
+        } else {
+            element.classList.remove('required-initial-border');
+            if (container) container.classList.remove('required-initial-border');
+        }
+    }
 }
