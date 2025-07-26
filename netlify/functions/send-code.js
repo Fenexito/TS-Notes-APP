@@ -55,12 +55,15 @@ export async function handler(event) {
         sendSmtpEmail.to = [ { "email": email } ];
 
         // Enviar el correo
+        console.log('Attempting to send email via Brevo...');
         await apiInstance.sendTransacEmail(sendSmtpEmail);
+        console.log('Email sent successfully.');
 
         return createResponse(200, { code });
 
     } catch (error) {
-        console.error('Error in send-code function:', error.message);
+        // MODIFICACIÓN CRÍTICA: Registrar el objeto de error completo para un diagnóstico detallado.
+        console.error('Error in send-code function. Full error object:', JSON.stringify(error, null, 2));
         return createResponse(500, { error: 'Failed to send verification code.' });
     }
 }
