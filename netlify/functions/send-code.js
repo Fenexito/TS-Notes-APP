@@ -1,5 +1,6 @@
-// Importa el cliente de Brevo. Netlify lo instalará gracias al package.json.
-import SibApiV3Sdk from '@getbrevo/brevo';
+// MODIFICACIÓN CRÍTICA: Usar 'require' en lugar de 'import'
+// Esto asegura la compatibilidad con la librería de Brevo en el entorno de Netlify.
+const SibApiV3Sdk = require('@getbrevo/brevo');
 
 // Una función de ayuda para crear respuestas consistentes.
 const createResponse = (statusCode, body) => ({
@@ -8,7 +9,7 @@ const createResponse = (statusCode, body) => ({
 });
 
 // La función principal que Netlify ejecutará.
-export async function handler(event) {
+exports.handler = async function(event) {
     // Solo permitir solicitudes POST.
     if (event.httpMethod !== 'POST') {
         return createResponse(405, { error: 'Method Not Allowed' });
@@ -29,10 +30,12 @@ export async function handler(event) {
 
         const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // MODIFICACIÓN CRÍTICA: Corregir la inicialización del cliente de Brevo
-        // Se utiliza el método setApiKey, que es la forma correcta según la documentación.
+        // Configurar el cliente de Brevo (ahora funcionará correctamente)
+        let defaultClient = SibApiV3Sdk.ApiClient.instance;
+        let apiKeyAuth = defaultClient.authentications['api-key'];
+        apiKeyAuth.apiKey = apiKey;
+
         const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
-        apiInstance.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, apiKey);
         
         let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail(); 
 
