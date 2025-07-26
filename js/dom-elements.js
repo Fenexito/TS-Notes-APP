@@ -71,6 +71,7 @@ export const dom = {
     tvsKeyInput: get('tvsKeyInput'),
     tvsKeyFieldContainer: get('tvsKeyFieldContainer'),
     extraStepsSelect: get('extraStepsSelect'),
+    extraStepsSelect2: get('extraStepsSelect2'),
     resolvedSelect: get('resolvedSelect'),
     transferCheckbox: get('transferCheckbox'),
     transferSelect: get('transferSelect'),
