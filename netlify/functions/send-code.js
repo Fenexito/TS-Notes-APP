@@ -5,8 +5,9 @@
  * genera un código, y utiliza la API de Brevo para enviar un correo transaccional.
  */
 
-// Usamos 'require' para importar la librería de Brevo, que es lo correcto para las Netlify Functions.
-const Brevo = require('@getbrevo/brevo');
+// CORRECCIÓN: Usamos desestructuración para importar explícitamente los componentes necesarios.
+// Esto es más robusto y evita problemas con la forma en que el módulo es exportado.
+const { ApiClient, TransactionalEmailsApi, SendSmtpEmail } = require('@getbrevo/brevo');
 
 // Una función de ayuda para crear respuestas HTTP consistentes en formato JSON.
 const createResponse = (statusCode, body) => ({
@@ -44,14 +45,14 @@ exports.handler = async function(event) {
         const code = Math.floor(100000 + Math.random() * 900000).toString();
 
         // 5. Configurar el cliente de la API de Brevo.
-        // Esta es la parte corregida: usamos el objeto 'Brevo' que importamos.
-        const defaultClient = Brevo.ApiClient.instance;
+        // Esta es la parte corregida: usamos los componentes que importamos directamente.
+        const defaultClient = ApiClient.instance;
         const apiKeyAuth = defaultClient.authentications['api-key'];
         apiKeyAuth.apiKey = apiKey;
 
         // 6. Preparar el contenido del correo electrónico.
-        const apiInstance = new Brevo.TransactionalEmailsApi();
-        const sendSmtpEmail = new Brevo.SendSmtpEmail(); 
+        const apiInstance = new TransactionalEmailsApi();
+        const sendSmtpEmail = new SendSmtpEmail(); 
 
         sendSmtpEmail.subject = "Tu Código de Verificación para APad";
         sendSmtpEmail.htmlContent = `
