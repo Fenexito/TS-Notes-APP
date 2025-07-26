@@ -62,8 +62,16 @@ export async function handler(event) {
         return createResponse(200, { code });
 
     } catch (error) {
-        // MODIFICACIÓN CRÍTICA: Registrar el objeto de error completo para un diagnóstico detallado.
-        console.error('Error in send-code function. Full error object:', JSON.stringify(error, null, 2));
-        return createResponse(500, { error: 'Failed to send verification code.' });
+        // MODIFICACIÓN CRÍTICA: Registrar el error de forma más detallada.
+        // El objeto de error de Brevo es complejo, por lo que registramos sus propiedades específicas.
+        console.error('Error in send-code function. Error message:', error.message);
+        if (error.response) {
+            // Si el error tiene una propiedad 'response', es una respuesta de la API de Brevo.
+            console.error('Brevo API response error body:', JSON.stringify(error.response.body, null, 2));
+        } else {
+            // Para otros tipos de errores, intentamos registrar el objeto completo.
+            console.error('Full error object (for inspection):', error);
+        }
+        return createResponse(500, { error: 'Failed to send verification code. Check function logs for details.' });
     }
 }
