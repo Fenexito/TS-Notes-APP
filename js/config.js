@@ -144,8 +144,8 @@ export const equipmentOptions = {
         list2: ['Power NOT connected', 'Power connected / NO LIGHTS', 'Power connected properly / Powered ON', 'Power connected properly / In Stanby', 'Power connected properly / Not Reachable'],
         list3: ['Connected WIRELES', 'Connected WIRED to T3200', 'C onnected WIRED to Extender', 'Connected WIRED to TWH', 'Connected WIRED to NAH', 'Connected WIRED to BW6', 'Connected WIRED to WallJack', 'Connected WIRED to MoCa', 'Connected WIRED to Ethernet Splitter', 'Non Wired / Wireless connection'],
         list4: ['HDMI connected / Input selected properly', 'HDMI connected / wrong Input selected'],
-        list5: ['Critical Errors Found', 'Major Errors Found', 'Minor Errors Found', 'No Error Found'], // xVu Status
-        list6: ['No Packet Loss', 'A Few Packet Loss', 'Some Packet Loss', 'Too Many Packet'] // Packet Loss
+        list5: ['Not Available', 'No Error Found', 'Critical Errors Found', 'Major Errors Found', 'Minor Errors Found'],
+        list6: ['Not Available', 'No Packet Loss', 'A Few Packet Loss', 'Some Packet Loss', 'Too Many Packet']
     },
     'Optik TV (Evo)': {
         list1: ['Telus TV-21T', 'Telus TV-24S'],
