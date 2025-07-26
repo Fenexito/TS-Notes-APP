@@ -19,6 +19,10 @@ export const APP_VERSION_KEY = 'appVersion';
 export const SERVICES_TO_HIDE_PHYSICAL_CHECK = [
     'Telus Email', 'MyTelus', 'TOS', 'Telus Connect App', 'Living Well Companion', 'SHS ADT / Acquisition / Custom Home', 'Other', 'HomePhone / Copper'
 ];
+export const SERVICES_TO_HIDE_AWA_SPEED = [
+    'HomePhone / Fiber', 'HomePhone / Copper', 'Telus Email', 'MyTelus', 'TOS', 'Telus Connect App', 'Living Well Companion', 'Other'
+];
+
 
 // =================================================================================
 // 2. GLOBAL STATE
