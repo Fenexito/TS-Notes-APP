@@ -1,130 +1,174 @@
 /**
- * @file note-builder.js
- * @summary Contains the logic for constructing the final note string from form data.
+ * @file dom-elements.js
+ * @summary Centralizes all DOM element selections.
  */
 
-import { dom } from './dom-elements.js';
-import { fieldConfig, state } from './config.js';
-import { updateCharCounter, updateTroubleshootingCharCounter } from './ui-helpers.js';
-import { updateStickyHeaderInfo } from './ui-manager.js';
-import { setChecklistValue } from './checklist-manager.js';
+export const get = (id) => document.getElementById(id);
+export const query = (selector) => document.querySelector(selector);
+export const queryAll = (selector) => document.querySelectorAll(selector);
 
-const _getFieldValue = (id, sourceData = null) => {
-    if (sourceData) {
-        if (id === 'skillToggle') {
-            return sourceData.skill === 'SHS';
-        }
-        if (sourceData[id] !== undefined) {
-            return sourceData[id];
-        }
-        const radioName = Object.keys(sourceData).find(key => key === id);
-        return radioName ? sourceData[radioName] : '';
-    }
+export const dom = {
+    // Main Form & Header
+    agentNameInput: get('agentName'),
+    editAgentNameBtn: get('editAgentNameBtn'),
+    mainNoteCharCountHeader: get('mainNoteCharCountHeader'),
+    banInput: get('ban'),
+    cidInput: get('cid'),
+    nameInput: get('name'),
+    cbrInput: get('cbr'),
+    callerSelect: get('caller'),
+    xidFieldContainer: get('xidFieldContainer'),
+    xidInput: get('xid'),
+    verifiedBySelect: get('verifiedBy'),
+    addressInput: get('address'),
+    outageRadioGroupElements: queryAll('input[name="outage"]'),
+    errorsInNCRadioGroupElements: queryAll('input[name="errorsInNC"]'),
+    accountSuspendedRadioGroupElements: queryAll('input[name="accountSuspended"]'),
+    serviceOnCsrSelect: get('serviceOnCsr'),
+    serviceSelect: get('serviceSelect'),
+    issueSelect: get('issueSelect'),
+    cxIssueText: get('cxIssueText'),
+    troubleshootingProcessText: get('troubleshootingProcessText'),
+    affectedText: get('affectedText'),
+    affectedTextGroup: get('affectedTextRow'),
+    affectedLabel: get('affectedLabel'),
+    serviceAffectedRow: get('affectedTextRow'),
+    physicalCheckListsContainer: get('physicalCheckListsContainer'),
+    physicalCheckList1Select: get('physicalCheckList1Select'),
+    physicalCheckList2Select: get('physicalCheckList2Select'),
+    physicalCheckList3Select: get('physicalCheckList3Select'),
+    physicalCheckList4Select: get('physicalCheckList4Select'),
+    enablePhysicalCheck2: get('enablePhysicalCheck2'),
+    enablePhysicalCheck3: get('enablePhysicalCheck3'),
+    enablePhysicalCheck4: get('enablePhysicalCheck4'),
+    physicalCheckList1Label: get('physicalCheckList1Label'),
+    physicalCheckList2Label: get('physicalCheckList2Label'),
+    physicalCheckList3Label: get('physicalCheckList3Label'),
+    physicalCheckList4Label: get('physicalCheckList4Label'),
+    optikTvLegacySpecificFieldsContainer: get('optikTvLegacySpecificFields'),
+    xVuStatusSelect: get('xVuStatusSelect'),
+    packetLossSelect: get('packetLossSelect'),
+    awaAlertsSelect: get('awaAlertsSelect'),
+    awaAlerts2Select: get('awaAlerts2Select'),
+    enableAwaAlerts2: get('enableAwaAlerts2'),
+    awaAlertsSelectLabel: query('label[for="awaAlertsSelect"]'),
+    awaAlerts2SelectLabel: query('label[for="awaAlerts2Select"]'),
+    awaStepsSelect: get('awaStepsSelect'),
+    awaStepsSelectLabel: query('label[for="awaStepsSelect"]'),
+    activeDevicesInput: get('activeDevicesInput'),
+    totalDevicesInput: get('totalDevicesInput'),
+    downloadBeforeInput: get('downloadBeforeInput'),
+    uploadBeforeInput: get('uploadBeforeInput'),
+    downloadAfterInput: get('downloadAfterInput'),
+    uploadAfterInput: get('uploadAfterInput'),
+    activeDevicesGroup: get('activeDevicesInput')?.closest('.input-group'),
+    totalDevicesGroup: get('totalDevicesInput')?.closest('.input-group'),
+    downloadBeforeGroup: get('downloadBeforeInput')?.closest('.input-group'),
+    uploadBeforeGroup: get('uploadBeforeInput')?.closest('.input-group'),
+    downloadAfterGroup: get('downloadAfterInput')?.closest('.input-group'),
+    uploadAfterGroup: get('uploadAfterInput')?.closest('.input-group'),
+    tvsSelect: get('tvsSelect'),
+    tvsKeyInput: get('tvsKeyInput'),
+    tvsKeyFieldContainer: get('tvsKeyFieldContainer'),
+    extraStepsSelect: get('extraStepsSelect'),
+    extraStepsSelect2: get('extraStepsSelect2'),
+    resolvedSelect: get('resolvedSelect'),
+    transferCheckbox: get('transferCheckbox'),
+    transferSelect: get('transferSelect'),
+    csrOrderInput: get('csrOrderInput'),
+    ticketInput: get('ticketInput'),
+    cbr2FieldContainer: get('cbr2FieldContainer'),
+    aocFieldContainer: get('aocFieldContainer'),
+    dispatchDateInputContainer: get('dispatchDateInputContainer'),
+    dispatchTimeSlotSelectContainer: get('dispatchTimeSlotSelectContainer'),
+    cbr2Input: get('cbr2Input'),
+    aocInput: get('aocInput'),
+    dispatchDateInput: get('dispatchDateInput'),
+    dispatchTimeSlotSelect: get('dispatchTimeSlotSelect'),
+    cbr2Label: get('cbr2Label'),
+    dispatchDateLabel: get('dispatchDateLabel'),
+    dispatchTimeLabel: get('dispatchTimeLabel'),
+    skillToggle: get('skillToggle'),
+    skillTextIndicator: get('skill-text-indicator'),
+    troubleshootingCharCountSpan: get('troubleshootingCharCount'),
+    toastContainer: get('toast-container'),
+    btnSee: get('btnSee'),
+    btnSave: get('btnSave'),
+    btnReset: get('btnReset'),
+    btnHistory: get('btnHistory'),
+    callNoteForm: get('callNoteForm'),
+    sections: queryAll('.form-section'),
+    appVersionDisplay: get('appVersionDisplay'),
 
-    const element = dom[id] || document.getElementById(id);
-    if (element) {
-        if (element.tagName === 'SELECT' || element.tagName === 'TEXTAREA' || (element.tagName === 'INPUT' && (element.type === 'text' || element.type === 'date' || element.type === 'number'))) {
-            return element.value.trim();
-        } else if (element.type === 'radio') {
-            const radioButtons = document.querySelectorAll(`input[name="${id}"]`);
-            for (const radio of radioButtons) {
-                if (radio.checked) return radio.value;
-            }
-            return '';
-        } else if (element.type === 'checkbox') {
-            return element.checked;
-        }
-    } else {
-        const radioButtonsByName = document.querySelectorAll(`input[name="${id}"]`);
-        if (radioButtonsByName.length > 0) {
-            for (const radio of radioButtonsByName) {
-                if (radio.checked) return radio.value;
-            }
-        }
-    }
-    return '';
-};
-
-
-const _buildSection1Content = (sourceData = null) => {
-    const parts = [];
-    const agentName = _getFieldValue('agentName', sourceData);
-    parts.push(`PFTS | ${agentName || ''}`);
-    // const skillValue = _getFieldValue('skillToggle', sourceData) ? 'SHS' : 'FFH';
-    // if (skillValue) parts.push(`SKILL: ${skillValue}`);
-    const section1FieldOrder = ['ban', 'cid', 'name', 'cbr', 'caller'];
-    section1FieldOrder.forEach(fieldId => {
-        const value = _getFieldValue(fieldId, sourceData);
-        if (value) parts.push(`${fieldConfig[fieldId].label}: ${value}`);
-    });
-    if (_getFieldValue('caller', sourceData) === 'Consultation' && _getFieldValue('xid', sourceData)) {
-        parts.push(`XID: ${_getFieldValue('xid', sourceData)}`);
-    }
-    ['verifiedBy', 'address', ].forEach(fieldId => {
-        const value = _getFieldValue(fieldId, sourceData);
-        if (value) parts.push(`${fieldConfig[fieldId].label}: ${value}`);
-    });
-    return parts;
-};
-
-const _buildSection2InitialContent = (sourceData = null) => {
-    const parts = [];
-    if (_getFieldValue('serviceOnCsr', sourceData)) parts.push(`SERVICE ON CSR: ${_getFieldValue('serviceOnCsr', sourceData)}`);
-    const outageValue = _getFieldValue('outage', sourceData);
-    if (outageValue === 'yes') parts.push('OUTAGE: Active Outage affecting services');
-    else if (outageValue === 'no') parts.push('OUTAGE: No Active Outage');
-    const errorsInNCValue = _getFieldValue('errorsInNC', sourceData);
-    if (errorsInNCValue === 'yes') parts.push('NC: ERROR FOUND in NetCracker');
-    else if (errorsInNCValue === 'no') parts.push('NC: No Errors in NetCracker');
-    const accountSuspendedValue = _getFieldValue('accountSuspended', sourceData);
-    if (accountSuspendedValue === 'yes') parts.push('SUSPENDED: Yes');
-    else if (accountSuspendedValue === 'no') parts.push('SUSPENDED: No');
-    if (_getFieldValue('serviceSelect', sourceData)) parts.push(`SERVICE: ${_getFieldValue('serviceSelect', sourceData)}`);
-    if (_getFieldValue('issueSelect', sourceData)) parts.push(`WORKFLOW: ${_getFieldValue('issueSelect', sourceData)}`);
+    // Modals
+    noteModalOverlay: get('noteModalOverlay'),
+    modalNoteTextarea: get('modalNoteTextarea'),
+    modalCopyBtn: get('modalCopyBtn'),
+    modalCopilotBtn: get('modalCopilotBtn'),
+    modalCopySaveBtn: get('modalCopySaveBtn'),
+    modalSeparateBtn: get('modalSeparateBtn'),
+    modalResolutionBtn: get('modalResolutionBtn'),
+    modalEditFromHistoryBtn: get('modalEditFromHistoryBtn'),
+    modalCloseBtn: get('modalCloseBtn'),
+    modalCloseBtnBottom: get('modalCloseBtnBottom'),
+    modalNoteCharCount: get('modalNoteCharCount'),
+    separateNoteModalOverlay: get('separateNoteModalOverlay'),
+    separateModalCloseBtn: get('separateModalCloseBtn'),
+    separateModalCopySaveBtn: get('separateModalCopySaveBtn'),
+    separateModalResolutionBtn: get('separateModalResolutionBtn'),
+    separateModalCopilotBtn: get('separateModalCopilotBtn'),
+    separateModalCloseBtnBottom: get('separateModalCloseBtnBottom'),
+    customConfirmModal: get('customConfirmModal'),
+    confirmMessage: get('confirmMessage'),
+    confirmYesBtn: get('confirmYesBtn'),
+    confirmNoBtn: get('confirmNoBtn'),
     
-    const affectedTextValue = _getFieldValue('affectedText', sourceData);
-    if (affectedTextValue) {
-        const service = _getFieldValue('serviceSelect', sourceData);
-        let label = 'AFFECTED'; // Default
-        switch (service) {
-            case 'HomePhone / Fiber':
-            case 'HomePhone / Copper':
-                label = 'AFFECTED PHONE NUMBER';
-                break;
-            case 'Telus Email':
-                label = 'TELUS EMAIL';
-                break;
-            case 'MyTelus':
-                label = 'MYTELUS EMAIL';
-                break;
-        }
-        parts.push(`${label}: ${affectedTextValue}`);
-    }
+    // History Sidebar
+    historySidebar: get('historySidebar'),
+    closeHistoryBtn: get('closeHistoryBtn'),
+    noteHistoryList: get('noteHistoryList'),
+    historySidebarOverlay: get('history-sidebar-overlay'),
+    historySearchInput: get('historySearchInput'),
+    noNotesMessage: get('noNotesMessage'),
+    exportBtn: get('exportBtn'),
+    importBtn: get('importBtn'),
+    importFile: get('importFile'),
 
-    if (_getFieldValue('cxIssueText', sourceData)) parts.push(`CX ISSUE: ${_getFieldValue('cxIssueText', sourceData)}`);
+    // Checklist Sidebar
+    btnChecklistMenu: get('btnChecklistMenu'),
+    checklistSidebar: get('checklistSidebar'),
+    closeChecklistBtn: get('closeChecklistBtn'),
+    checklistSidebarOverlay: get('checklist-sidebar-overlay'),
+    btnChecklistYesAll: get('btnChecklistYesAll'),
+    goCheckPhysicalLink: get('goCheckPhysicalLink'),
+    goTsCopilotLink: get('goTsCopilotLink'),
+    
+    // Feedback Modal
+    feedbackBtn: get('feedback-btn'),
+    feedbackModalOverlay: get('feedbackModalOverlay'),
+    closeFeedbackModalBtn: get('closeFeedbackModalBtn'),
 
-    const physicalCheckValues = [];
-    ['physicalCheckList1Select', 'physicalCheckList2Select', 'physicalCheckList3Select', 'physicalCheckList4Select']
-    .forEach(fieldId => {
-        if (_getFieldValue(fieldId, sourceData)) {
-            physicalCheckValues.push(_getFieldValue(fieldId, sourceData));
-        }
-    });
-    if (physicalCheckValues.length > 0) parts.push(`CHECK PHYSICAL: ${physicalCheckValues.join(', ')}`);
+    // Welcome Modal
+    welcomeModalOverlay: get('welcomeModalOverlay'),
+    welcomeIntroText: get('welcome-intro-text'),
+    welcomeIntroP: get('welcome-intro-p'),
+    welcomeAppVersionDisplay: get('welcomeAppVersionDisplay'),
+    welcomeAgentNameInput: get('welcomeAgentNameInput'),
+    welcomeNamePrompt: get('welcome-name-prompt'),
+    startTakingNotesBtn: get('startTakingNotesBtn'),
+    welcomeCreatorMessage: get('welcome-creator-message'),
 
-    const xVuValue = _getFieldValue('xVuStatusSelect', sourceData);
-    const packetLossValue = _getFieldValue('packetLossSelect', sourceData);
-    if (xVuValue || packetLossValue) {
-        parts.push(`XVU STATUS: ${xVuValue}${xVuValue && packetLossValue ? ', ' : ''}${packetLossValue}`);
-    }
-    if (_getFieldValue('additionalinfoText', sourceData)) parts.push(`ADDITIONAL INFO: ${_getFieldValue('additionalinfoText', sourceData)}`);
-    return parts;
+    // Sticky Header
+    stickyHeaderContainer: query('.sticky-header-container'),
+    headerDynamicInfo: get('headerDynamicInfo'),
+    agentInfoSection: query('.agent-info'),
+    headerBanValueSpan: get('headerBan-value'),
+    headerCidValueSpan: get('headerCid-value'),
+    headerNameValueSpan: get('headerName-value'),
+    headerCbrValueSpan: get('headerCbr-value'),
+    headerCharCountValue: get('headerCharCount-value'),
+    stickyCopyButtons: queryAll('.copy-button-sticky'),
+    
+    // Section 1 reference for sticky header logic
+    seccion1: get('seccion1'),
 };
-
-const _buildTroubleshootingProcessContent = (sourceData = null) => {
-    const parts = [];
-    if (_getFieldValue('troubleshootingProcessText', sourceData)) parts.push(`TS STEPS: ${_getFieldValue('troubleshootingProcessText', sourceData)}`);
-    return parts;
-};
-
-const _buildSection3Content 
