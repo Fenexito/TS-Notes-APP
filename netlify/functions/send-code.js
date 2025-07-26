@@ -1,5 +1,4 @@
 // Importa el cliente de Brevo. Netlify lo instalará gracias al package.json.
-// MODIFICACIÓN CRÍTICA: La forma de importar la librería ha sido corregida.
 import * as SibApiV3Sdk from '@getbrevo/brevo';
 
 // Una función de ayuda para crear respuestas consistentes.
@@ -30,11 +29,14 @@ export async function handler(event) {
 
         const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // Configurar el cliente de Brevo
-        let apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
-        let apiClient = apiInstance.apiClient;
-        apiClient.authentications['api-key'].apiKey = apiKey;
+        // MODIFICACIÓN CRÍTICA: Corregir la inicialización del cliente de Brevo
+        // Se obtiene una instancia Singleton del cliente y se configura la autenticación.
+        const defaultClient = SibApiV3Sdk.ApiClient.instance;
+        const apiKeyAuth = defaultClient.authentications['api-key'];
+        apiKeyAuth.apiKey = apiKey;
 
+        const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+        
         let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail(); 
 
         sendSmtpEmail.subject = "Your APad Verification Code";
@@ -62,14 +64,11 @@ export async function handler(event) {
         return createResponse(200, { code });
 
     } catch (error) {
-        // MODIFICACIÓN CRÍTICA: Registrar el error de forma más detallada.
-        // El objeto de error de Brevo es complejo, por lo que registramos sus propiedades específicas.
+        // Registrar el error de forma más detallada.
         console.error('Error in send-code function. Error message:', error.message);
         if (error.response) {
-            // Si el error tiene una propiedad 'response', es una respuesta de la API de Brevo.
             console.error('Brevo API response error body:', JSON.stringify(error.response.body, null, 2));
         } else {
-            // Para otros tipos de errores, intentamos registrar el objeto completo.
             console.error('Full error object (for inspection):', error);
         }
         return createResponse(500, { error: 'Failed to send verification code. Check function logs for details.' });
