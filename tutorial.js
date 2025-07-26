@@ -16,7 +16,7 @@
 
     // --- DATOS DE EJEMPLO PARA EL TUTORIAL ---
     const sampleNoteData = {
-        ban: '9999999', cid: '8888888', name: 'Alexander', cbr: '77777777',
+        ban: '9999999', cid: '8888888', name: 'AGENT', cbr: '77777777',
         caller: 'Owner', verifiedBy: 'Security Questions', address: '1234 Maple RD, BC V1B0X9',
         serviceOnCsr: 'Active', outage: 'no', errorsInNC: 'no', accountSuspended: 'no',
         serviceSelect: 'Optik TV (Legacy)', issueSelect: 'Video Quality Issues',
