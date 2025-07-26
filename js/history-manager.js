@@ -699,7 +699,6 @@ export function handleWelcomeModal() {
             if (dom.welcomeAppVersionDisplay) dom.welcomeAppVersionDisplay.textContent = appVersion;
             if (dom.welcomeIntroText) dom.welcomeIntroText.textContent = 'Welcome to APad!';
             if (dom.welcomeIntroP) dom.welcomeIntroP.textContent = 'This application helps you take technical support call notes efficiently and organized.';
-            if (dom.welcomeCreatorMessage) dom.welcomeCreatorMessage.textContent = 'Created by: x331671 | Alex Van Houtven | TELUS FFH PURE FIBER Tech Support';
             if (startBtn) startBtn.textContent = 'Start Taking Notes';
 
             const setupButtonListener = (handler) => {
