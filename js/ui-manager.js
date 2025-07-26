@@ -109,7 +109,8 @@ export function updateAffectedFieldVisibilityAndLabel(service, affectedTextValue
     }
 
     dom.affectedLabel.textContent = affectedLabelText;
-    dom.affectedTextGroup.classList.toggle('hidden-field', !isVisible);
+    // MODIFICADO: Se revierte al uso de style.display para asegurar la compatibilidad.
+    dom.affectedTextGroup.style.display = isVisible ? '' : 'none';
     dom.serviceAffectedRow.classList.toggle('has-affected', isVisible);
     dom.affectedText.toggleAttribute('required', isVisible);
 
@@ -453,8 +454,6 @@ export function handleSkillChange() {
     }
     
     dom.serviceSelect.dispatchEvent(new Event('change'));
-
-    // The logic to hide speed/device fields is now handled by updateAwaAndSpeedFieldsVisibility
     
     _populateAwaAlertsOptions(isSHS ? 'SHS' : 'FFH', dom.awaAlertsSelect.value);
     updateAwaAlerts2SelectState(dom.enableAwaAlerts2.checked, dom.awaAlerts2Select.value);
@@ -471,7 +470,7 @@ export function updateAwaAndSpeedFieldsVisibility(service) {
 
     const controlledGroups = [
         dom.awaAlertsSelect?.closest('.input-group'),
-        dom.awaAlerts2Select?.closest('.input-group'), // Note: this might be controlled by enableAwaAlerts2 checkbox's group
+        dom.awaAlerts2Select?.closest('.input-group'),
         dom.awaStepsSelect?.closest('.input-group'),
         dom.activeDevicesGroup,
         dom.totalDevicesGroup,
@@ -487,7 +486,6 @@ export function updateAwaAndSpeedFieldsVisibility(service) {
         const wasHidden = group.classList.contains('hidden-field');
         group.classList.toggle('hidden-field', shouldHide);
         
-        // Only reset fields if the visibility state changes to hidden
         if (shouldHide && !wasHidden) {
             group.querySelectorAll('input, select').forEach(input => {
                 if (input.type === 'checkbox' || input.type === 'radio') {
@@ -496,13 +494,11 @@ export function updateAwaAndSpeedFieldsVisibility(service) {
                     input.value = '';
                 }
                 input.removeAttribute('required');
-                 // Trigger change event to update dependent UI
                 input.dispatchEvent(new Event('change', { bubbles: true }));
             });
         }
     });
 
-    // After hiding/showing, re-evaluate the state of dependent fields
     updateAwaAlerts2SelectState(dom.enableAwaAlerts2.checked);
     updateAwaStepsSelectState();
 
@@ -514,7 +510,6 @@ export function clearAllFormFields(isForEdit = false) {
     const form = dom.callNoteForm;
     if (!form) return;
 
-    // Clear values from all form elements
     Array.from(form.elements).forEach(element => {
         if (element.tagName === 'BUTTON' || element.tagName === 'FIELDSET' || (!element.id && !element.name)) return;
         if (element.id === 'agentName' && dom.agentNameInput?.readOnly) return;
@@ -536,7 +531,6 @@ export function clearAllFormFields(isForEdit = false) {
     resetChecklist();
     dom.sections.forEach(section => section.classList.remove('collapsed'));
 
-    // If this is a full reset (not for editing), reset the entire UI state
     if (!isForEdit) {
         if (dom.skillToggle) dom.skillToggle.checked = false;
         config.state.currentEditingNoteId = null;
