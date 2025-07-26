@@ -1,5 +1,6 @@
 // Importa el cliente de Brevo. Netlify lo instalará gracias al package.json.
-import SibApiV3Sdk from '@getbrevo/brevo';
+// MODIFICACIÓN CRÍTICA: La forma de importar la librería ha sido corregida.
+import * as SibApiV3Sdk from '@getbrevo/brevo';
 
 // Una función de ayuda para crear respuestas consistentes.
 const createResponse = (statusCode, body) => ({
@@ -9,10 +10,12 @@ const createResponse = (statusCode, body) => ({
 
 // La función principal que Netlify ejecutará.
 export async function handler(event) {
+    // Solo permitir solicitudes POST.
     if (event.httpMethod !== 'POST') {
         return createResponse(405, { error: 'Method Not Allowed' });
     }
 
+    // Verificar que la API Key esté configurada en Netlify.
     const apiKey = process.env.BREVO_API_KEY;
     if (!apiKey) {
         console.error('FATAL: BREVO_API_KEY environment variable is not set in Netlify.');
@@ -47,7 +50,7 @@ export async function handler(event) {
                 </div>
             </body></html>`;
         
-        // Aquí debes poner el correo que verificaste en Brevo
+        // IMPORTANTE: Reemplaza 'tu-correo-verificado@gmail.com' con el correo que verificaste en Brevo.
         sendSmtpEmail.sender = { "name": "APad Security", "email": "tu-correo-verificado@gmail.com" }; 
         sendSmtpEmail.to = [ { "email": email } ];
 
@@ -57,7 +60,7 @@ export async function handler(event) {
         return createResponse(200, { code });
 
     } catch (error) {
-        console.error('Error in send-code function:', error);
+        console.error('Error in send-code function:', error.message);
         return createResponse(500, { error: 'Failed to send verification code.' });
     }
 }
