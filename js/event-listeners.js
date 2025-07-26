@@ -6,8 +6,8 @@
 import { dom } from './dom-elements.js';
 import { state, numericFields } from './config.js';
 import { saveCurrentNote, loadNotes, exportNotes, importNotes, saveAgentName, editNote, handleResolutionCopy, handleCopilotCopy, filterNotes, addEventListenersToHistoryItems } from './history-manager.js';
-import { clearAllFormFields, checkCurrentFormHasData, updateThirdRowLayout, populateIssueSelect, updateAffectedFieldVisibilityAndLabel, _populatePhysicalCheckListLabelsAndOptions, _updatePhysicalCheckListEnablement, updateOptikTvLegacySpecificFields, updateAwaAlerts2SelectState, updateAwaStepsSelectState, updateTvsKeyFieldState, updateTransferFieldState, updateTechFieldsVisibilityAndState, handleSkillChange, setAgentNameEditable, cleanSection, updateStickyHeaderInfo, updateAwaAndSpeedFieldsVisibility } from './ui-manager.js';
-import { showToast, customConfirm, copyToClipboard, applyInitialRequiredHighlight } from './ui-helpers.js';
+import { clearAllFormFields, checkCurrentFormHasData, updateThirdRowLayout, populateIssueSelect, updateAffectedFieldVisibilityAndLabel, _populatePhysicalCheckListLabelsAndOptions, _updatePhysicalCheckListEnablement, updateOptikTvLegacySpecificFields, updateAwaAlerts2SelectState, updateAwaStepsSelectState, updateTvsKeyFieldState, updateTransferFieldState, updateTechFieldsVisibilityAndState, handleSkillChange, setAgentNameEditable, cleanSection, updateStickyHeaderInfo, updateAwaAndSpeedFieldsVisibility, applyInitialRequiredHighlight } from './ui-manager.js';
+import { showToast, customConfirm, copyToClipboard } from './ui-helpers.js';
 import { generateFinalNote } from './note-builder.js';
 import { viewNoteInModal, closeModal, closeSeparateModal, hideSidebar, handleSeparateNote } from './modal-manager.js';
 import { closeChecklistSidebar, handleChecklistChange } from './checklist-manager.js';
@@ -80,7 +80,6 @@ function addFormAndFieldListeners() {
     dom.issueSelect.addEventListener('change', () => {
         if(dom.skillToggle.checked) {
             _populatePhysicalCheckListLabelsAndOptions(dom.serviceSelect.value);
-            // MODIFICATION: Do not reset checkboxes if we are in an edit session
             if (!state.isEditingNoteFlag) {
                 [dom.enablePhysicalCheck2, dom.enablePhysicalCheck3, dom.enablePhysicalCheck4].forEach(cb => cb.checked = false);
             }
@@ -128,8 +127,6 @@ function addModalAndSidebarListeners() {
     dom.modalCloseBtn.addEventListener('click', () => closeModal());
     dom.modalCloseBtnBottom.addEventListener('click', () => closeModal());
     
-    // Centralized event listeners for modal buttons to avoid clone/replace issues.
-    // These listeners read from the application state when fired.
     dom.modalSeparateBtn.addEventListener('click', handleSeparateNote);
 
     dom.modalResolutionBtn.addEventListener('click', () => {
