@@ -50,8 +50,8 @@ const _buildSection1Content = (sourceData = null) => {
     const parts = [];
     const agentName = _getFieldValue('agentName', sourceData);
     parts.push(`PFTS | ${agentName || ''}`);
-    const skillValue = _getFieldValue('skillToggle', sourceData) ? 'SHS' : 'FFH';
-    if (skillValue) parts.push(`SKILL: ${skillValue}`);
+    // const skillValue = _getFieldValue('skillToggle', sourceData) ? 'SHS' : 'FFH';
+    // if (skillValue) parts.push(`SKILL: ${skillValue}`);
     const section1FieldOrder = ['ban', 'cid', 'name', 'cbr', 'caller'];
     section1FieldOrder.forEach(fieldId => {
         const value = _getFieldValue(fieldId, sourceData);
@@ -84,12 +84,21 @@ const _buildSection2InitialContent = (sourceData = null) => {
     
     const affectedTextValue = _getFieldValue('affectedText', sourceData);
     if (affectedTextValue) {
-         const service = _getFieldValue('serviceSelect', sourceData);
-         let label = 'AFFECTED';
-         if (service === 'HomePhone / Fiber' || service === 'HomePhone / Copper') label = 'AFFECTED PHONE NUMBER';
-         else if (service === 'Telus Email') label = 'TELUS EMAIL';
-         else if (service === 'MyTelus') label = 'MYTELUS EMAIL';
-         parts.push(`${label}: ${affectedTextValue}`);
+        const service = _getFieldValue('serviceSelect', sourceData);
+        let label = 'AFFECTED'; // Default
+        switch (service) {
+            case 'HomePhone / Fiber':
+            case 'HomePhone / Copper':
+                label = 'AFFECTED PHONE NUMBER';
+                break;
+            case 'Telus Email':
+                label = 'TELUS EMAIL';
+                break;
+            case 'MyTelus':
+                label = 'MYTELUS EMAIL';
+                break;
+        }
+        parts.push(`${label}: ${affectedTextValue}`);
     }
 
     if (_getFieldValue('cxIssueText', sourceData)) parts.push(`CX ISSUE: ${_getFieldValue('cxIssueText', sourceData)}`);
