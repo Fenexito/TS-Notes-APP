@@ -88,27 +88,37 @@ export function populateIssueSelect(service, selectedIssue = '') {
 
 export function updateAffectedFieldVisibilityAndLabel(service, affectedTextValue = '') {
     if (!dom.affectedLabel || !dom.affectedText || !dom.affectedTextGroup || !dom.serviceAffectedRow) return;
-    let affectedLabelText = 'AFFECTED';
-    let isVisible = false;
-    if (['HomePhone / Fiber', 'HomePhone / Copper'].includes(service)) {
-        affectedLabelText = 'AFFECTED PHONE NUMBER';
-        isVisible = true;
-    } else if (service === 'Telus Email') {
-        affectedLabelText = 'TELUS EMAIL';
-        isVisible = true;
-    } else if (service === 'MyTelus') {
-        affectedLabelText = 'MYTELUS EMAIL';
-        isVisible = true;
+
+    const servicesToShowField = ['HomePhone / Fiber', 'HomePhone / Copper', 'Telus Email', 'MyTelus'];
+    const isVisible = servicesToShowField.includes(service);
+    let affectedLabelText = 'AFFECTED'; // Default label
+
+    if (isVisible) {
+        switch (service) {
+            case 'HomePhone / Fiber':
+            case 'HomePhone / Copper':
+                affectedLabelText = 'AFFECTED PHONE NUMBER';
+                break;
+            case 'Telus Email':
+                affectedLabelText = 'TELUS EMAIL';
+                break;
+            case 'MyTelus':
+                affectedLabelText = 'MYTELUS EMAIL';
+                break;
+        }
     }
+
     dom.affectedLabel.textContent = affectedLabelText;
     dom.affectedTextGroup.classList.toggle('hidden-field', !isVisible);
     dom.serviceAffectedRow.classList.toggle('has-affected', isVisible);
     dom.affectedText.toggleAttribute('required', isVisible);
+
     if (isVisible && config.state.isEditingNoteFlag) {
         dom.affectedText.value = affectedTextValue;
     } else if (!isVisible && !config.state.isEditingNoteFlag) {
         dom.affectedText.value = '';
     }
+
     applyInitialRequiredHighlight();
     generateFinalNote();
 }
@@ -438,21 +448,63 @@ export function handleSkillChange() {
         dom.serviceSelect.value = '';
     }
     
-    // MODIFICATION: Do not reset checkboxes if we are in an edit session
     if (!config.state.isEditingNoteFlag) {
         [dom.enablePhysicalCheck2, dom.enablePhysicalCheck3, dom.enablePhysicalCheck4].forEach(cb => cb.checked = false);
     }
     
     dom.serviceSelect.dispatchEvent(new Event('change'));
 
-    const speedDeviceFields = [dom.activeDevicesGroup, dom.totalDevicesGroup, dom.downloadBeforeGroup, dom.uploadBeforeGroup, dom.downloadAfterGroup, dom.uploadAfterGroup];
-    speedDeviceFields.forEach(group => {
-        if (group) group.classList.toggle('hidden-field', isSHS);
-    });
-
+    // The logic to hide speed/device fields is now handled by updateAwaAndSpeedFieldsVisibility
+    
     _populateAwaAlertsOptions(isSHS ? 'SHS' : 'FFH', dom.awaAlertsSelect.value);
     updateAwaAlerts2SelectState(dom.enableAwaAlerts2.checked, dom.awaAlerts2Select.value);
     updateAwaStepsSelectState(dom.awaStepsSelect.value);
+
+    applyInitialRequiredHighlight();
+    generateFinalNote();
+}
+
+export function updateAwaAndSpeedFieldsVisibility(service) {
+    const isSHS = dom.skillToggle.checked;
+    const shouldHideForService = config.SERVICES_TO_HIDE_AWA_SPEED.includes(service);
+    const shouldHide = isSHS || shouldHideForService;
+
+    const controlledGroups = [
+        dom.awaAlertsSelect?.closest('.input-group'),
+        dom.awaAlerts2Select?.closest('.input-group'), // Note: this might be controlled by enableAwaAlerts2 checkbox's group
+        dom.awaStepsSelect?.closest('.input-group'),
+        dom.activeDevicesGroup,
+        dom.totalDevicesGroup,
+        dom.downloadBeforeGroup,
+        dom.uploadBeforeGroup,
+        dom.downloadAfterGroup,
+        dom.uploadAfterGroup
+    ];
+
+    controlledGroups.forEach(group => {
+        if (!group) return;
+
+        const wasHidden = group.classList.contains('hidden-field');
+        group.classList.toggle('hidden-field', shouldHide);
+        
+        // Only reset fields if the visibility state changes to hidden
+        if (shouldHide && !wasHidden) {
+            group.querySelectorAll('input, select').forEach(input => {
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    input.checked = false;
+                } else {
+                    input.value = '';
+                }
+                input.removeAttribute('required');
+                 // Trigger change event to update dependent UI
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        }
+    });
+
+    // After hiding/showing, re-evaluate the state of dependent fields
+    updateAwaAlerts2SelectState(dom.enableAwaAlerts2.checked);
+    updateAwaStepsSelectState();
 
     applyInitialRequiredHighlight();
     generateFinalNote();
@@ -491,7 +543,6 @@ export function clearAllFormFields(isForEdit = false) {
         config.state.isEditingNoteFlag = false;
         config.state.currentlyViewedNoteData = null;
         
-        // MODIFICATION: Explicitly call all UI update functions to restore default state
         handleSkillChange();
         updateThirdRowLayout();
         updateTvsKeyFieldState();
