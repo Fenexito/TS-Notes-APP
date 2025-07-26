@@ -17,7 +17,7 @@ export const TS_CHAR_RED_THRESHOLD = 985;
 export const AGENT_NAME_KEY = 'agentNameSaved';
 export const APP_VERSION_KEY = 'appVersion';
 export const SERVICES_TO_HIDE_PHYSICAL_CHECK = [
-    'Telus Email', 'MyTelus', 'TOS', 'Telus Connect App', 'Living Well Companion', 'SHS ADT / Acquisition / Custom Home', 'Other', 'HomePhone / Copper'
+    'Telus Email', 'MyTelus', 'TOS', 'Telus Connect App', 'Living Well Companion', 'Other', 'HomePhone / Copper'
 ];
 export const SERVICES_TO_HIDE_AWA_SPEED = [
     'HomePhone / Fiber', 'HomePhone / Copper', 'Telus Email', 'MyTelus', 'TOS', 'Telus Connect App', 'Living Well Companion', 'Other'
@@ -202,7 +202,6 @@ export const issueOptions = {
     'TOS': ['Unable to Login', 'Not Active', 'Upgrade Subscription'],
     'Telus Connect App': ['Login Issues', 'Missing Equipment', 'Feature Issue'],
     'SHS Legacy': ['Login / Password Issues', 'WebPage Portal Portal Issues', 'APP Issues', 'General Issues', 'Main Panel', 'Secondary Panel', 'Door / Window Sensor', 'Motion Sensor', 'Smoke Detector', 'CO Detector', 'Glass Break Detector', 'Thermostat', 'InDoor Camera', 'OutDoor Camera', 'Doorbell Camera', 'DoorLock', 'Garage Door Controller', 'Smart Automation Devices', 'CMS inquiry', 'Wi-Fi Issues'],
-    'SHS ADT / Acquisition / Custom Home': ['No issues provided for this category'],
     'Living Well Companion': ['Base Not Working', 'Pendant Not Working', 'Emergency Contacts', 'LWC Apple Watch APP', 'Self Install Inquiries', 'CMS ACCOUNT NUMBER'],
     'Other': ['Billing Issues', 'IPD Suspension', 'Ghost Call', 'Where is my Tech?', 'Same Day Appointment Cancell', 'Where is my equipment?']
 };
