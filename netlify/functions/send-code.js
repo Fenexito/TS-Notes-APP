@@ -51,7 +51,7 @@ export async function handler(event) {
             </body></html>`;
         
         // IMPORTANTE: Reemplaza 'tu-correo-verificado@gmail.com' con el correo que verificaste en Brevo.
-        sendSmtpEmail.sender = { "name": "APad Security", "email": "tu-correo-verificado@gmail.com" }; 
+        sendSmtpEmail.sender = { "name": "APad Security", "email": "apadnoteapp@gmail.com" }; 
         sendSmtpEmail.to = [ { "email": email } ];
 
         // Enviar el correo
