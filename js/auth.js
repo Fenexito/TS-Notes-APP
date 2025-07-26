@@ -7,7 +7,7 @@
 const authorizedEmails = [
     'alex.vanhoutven.g38@gmail.com',
     'menfil.tovarvanhoutven@telus.com',
-    'otro.colega@example.com'
+    'menfil.tovar@telusinternational.com'
 ];
 
 const SESSION_KEY = 'userAuthSession';
