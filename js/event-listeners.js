@@ -6,7 +6,7 @@
 import { dom } from './dom-elements.js';
 import { state, numericFields } from './config.js';
 import { saveCurrentNote, loadNotes, exportNotes, importNotes, saveAgentName, editNote, handleResolutionCopy, handleCopilotCopy, filterNotes, addEventListenersToHistoryItems } from './history-manager.js';
-import { clearAllFormFields, checkCurrentFormHasData, updateThirdRowLayout, populateIssueSelect, updateAffectedFieldVisibilityAndLabel, _populatePhysicalCheckListLabelsAndOptions, _updatePhysicalCheckListEnablement, updateOptikTvLegacySpecificFields, updateAwaAlerts2SelectState, updateAwaStepsSelectState, updateTvsKeyFieldState, updateTransferFieldState, updateTechFieldsVisibilityAndState, handleSkillChange, setAgentNameEditable, cleanSection, updateStickyHeaderInfo } from './ui-manager.js';
+import { clearAllFormFields, checkCurrentFormHasData, updateThirdRowLayout, populateIssueSelect, updateAffectedFieldVisibilityAndLabel, _populatePhysicalCheckListLabelsAndOptions, _updatePhysicalCheckListEnablement, updateOptikTvLegacySpecificFields, updateAwaAlerts2SelectState, updateAwaStepsSelectState, updateTvsKeyFieldState, updateTransferFieldState, updateTechFieldsVisibilityAndState, handleSkillChange, setAgentNameEditable, cleanSection, updateStickyHeaderInfo, updateAwaAndSpeedFieldsVisibility } from './ui-manager.js';
 import { showToast, customConfirm, copyToClipboard, applyInitialRequiredHighlight } from './ui-helpers.js';
 import { generateFinalNote } from './note-builder.js';
 import { viewNoteInModal, closeModal, closeSeparateModal, hideSidebar, handleSeparateNote } from './modal-manager.js';
@@ -74,6 +74,7 @@ function addFormAndFieldListeners() {
         _populatePhysicalCheckListLabelsAndOptions(service);
         _updatePhysicalCheckListEnablement(service);
         updateOptikTvLegacySpecificFields(service);
+        updateAwaAndSpeedFieldsVisibility(service);
     });
 
     dom.issueSelect.addEventListener('change', () => {
