@@ -49,16 +49,16 @@ exports.handler = async function(event) {
             htmlContent: `
                 <html>
                   <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
-                    <div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 10px; padding: 40px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-                        <h1 style="color: #333333;">Tu Código de Verificación</h1>
-                        <p style="color: #555555; font-size: 16px;">Usa el siguiente código para completar tu inicio de sesión en APad.</p>
-                        <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; background-color: #eef2f7; padding: 15px 20px; border-radius: 8px; display: inline-block; margin: 20px 0;">
+                    <div style="max-width: 800px; margin: 10px auto; background-color: #ffffff; border-radius: 10px; padding: 30px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                        <h1 style="color: #333333;margin-top: 0px;margin-bottom: 15px;">This is your 6-Digit Verification Code</h1>
+                        <p style="color: #555555; font-size: 16px;">Use this code to complete your APad Authentication.</p>
+                        <div style="font-size: 36px;font-weight: bold;letter-spacing: 20px;background-color: #eef2f7;padding: 15px 20px;border-radius: 8px;display: inline-block;">
                             ${code}
                         </div>
-                        <p style="font-size: 14px; color: #888888;">Este código expirará en 10 minutos.</p>
+                        <p style="font-size: 14px; color: #888888;">This code expires in 10 minutes.</p>
                     </div>
                   </body>
-                </html>`
+                </html>
         };
 
         // 6. Realizar la llamada a la API con fetch.
