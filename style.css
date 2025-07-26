@@ -1862,7 +1862,7 @@ input:checked + .theme-slider:before {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.8);
-    z-index: 9998;
+    z-index: 10200;
 }
 
 #tutorial-popover-title {
