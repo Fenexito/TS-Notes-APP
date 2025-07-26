@@ -8,8 +8,8 @@
 import { dom, get, queryAll } from './dom-elements.js';
 import { initializeEventListeners } from './event-listeners.js';
 import { loadNotes, handleWelcomeModal } from './history-manager.js';
-import { populateTimeSlots, applyInitialRequiredHighlight, updateTroubleshootingCharCounter } from './ui-helpers.js';
-import { populateExtraStepsSelect, updateThirdRowLayout, initialResizeTextareas, updateStickyHeaderInfo, handleSkillChange } from './ui-manager.js';
+import { populateTimeSlots, updateTroubleshootingCharCounter } from './ui-helpers.js';
+import { populateExtraStepsSelect, updateThirdRowLayout, initialResizeTextareas, updateStickyHeaderInfo, handleSkillChange, applyInitialRequiredHighlight } from './ui-manager.js';
 import { resetChecklist } from './checklist-manager.js';
 import { generateFinalNote } from './note-builder.js';
 import { initializeTutorial, startTour } from './tutorial.js';
