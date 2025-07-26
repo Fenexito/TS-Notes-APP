@@ -1,5 +1,5 @@
 // Importa el cliente de Brevo. Netlify lo instalará gracias al package.json.
-import * as SibApiV3Sdk from '@getbrevo/brevo';
+import SibApiV3Sdk from '@getbrevo/brevo';
 
 // Una función de ayuda para crear respuestas consistentes.
 const createResponse = (statusCode, body) => ({
@@ -30,10 +30,9 @@ export async function handler(event) {
         const code = Math.floor(100000 + Math.random() * 900000).toString();
 
         // MODIFICACIÓN CRÍTICA: Corregir la inicialización del cliente de Brevo
-        // Se crea una instancia de la API y se configura la autenticación directamente en ella.
+        // Se utiliza el método setApiKey, que es la forma correcta según la documentación.
         const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
-        const apiKeyAuth = apiInstance.authentications['api-key'];
-        apiKeyAuth.apiKey = apiKey;
+        apiInstance.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, apiKey);
         
         let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail(); 
 
