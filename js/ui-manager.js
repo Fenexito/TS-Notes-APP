@@ -112,12 +112,10 @@ export function updateAffectedFieldVisibilityAndLabel(service, affectedTextValue
 
     // MODIFICADO: Lógica de visibilidad más robusta para evitar conflictos.
     if (isVisible) {
-        dom.affectedTextGroup.classList.remove('hidden-field');
-        dom.affectedTextGroup.style.display = ''; // Revierte al display por defecto (flex, block, etc.)
+        dom.affectedTextGroup.style.display = 'flex'; // Forcing a display type
         dom.serviceAffectedRow.classList.add('has-affected');
         dom.affectedText.setAttribute('required', 'required');
     } else {
-        dom.affectedTextGroup.classList.add('hidden-field');
         dom.affectedTextGroup.style.display = 'none';
         dom.serviceAffectedRow.classList.remove('has-affected');
         dom.affectedText.removeAttribute('required');
@@ -433,13 +431,16 @@ export function updateTechFieldsVisibilityAndState(resolvedValue, cbr2Value = ''
 }
 
 export function populateExtraStepsSelect() {
-    if (!dom.extraStepsSelect) return;
-    dom.extraStepsSelect.innerHTML = '<option value="">Select an option</option>';
-    config.extraStepsOptions.forEach(optionText => {
-        const option = document.createElement('option');
-        option.value = optionText;
-        option.textContent = optionText;
-        dom.extraStepsSelect.appendChild(option);
+    const selects = [dom.extraStepsSelect, dom.extraStepsSelect2];
+    selects.forEach(select => {
+        if (!select) return;
+        select.innerHTML = '<option value="">Select an option</option>';
+        config.extraStepsOptions.forEach(optionText => {
+            const option = document.createElement('option');
+            option.value = optionText;
+            option.textContent = optionText;
+            select.appendChild(option);
+        });
     });
 }
 
