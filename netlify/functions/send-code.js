@@ -30,12 +30,10 @@ export async function handler(event) {
         const code = Math.floor(100000 + Math.random() * 900000).toString();
 
         // MODIFICACIÓN CRÍTICA: Corregir la inicialización del cliente de Brevo
-        // Se obtiene una instancia Singleton del cliente y se configura la autenticación.
-        const defaultClient = SibApiV3Sdk.ApiClient.instance;
-        const apiKeyAuth = defaultClient.authentications['api-key'];
-        apiKeyAuth.apiKey = apiKey;
-
+        // Se crea una instancia de la API y se configura la autenticación directamente en ella.
         const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+        const apiKeyAuth = apiInstance.authentications['api-key'];
+        apiKeyAuth.apiKey = apiKey;
         
         let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail(); 
 
