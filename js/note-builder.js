@@ -169,6 +169,7 @@ const _buildSection3Content = (sourceData = null) => {
         parts.push(tvsNote);
     }
     if (_getFieldValue('extraStepsSelect', sourceData)) parts.push(`EXTRA STEPS: ${_getFieldValue('extraStepsSelect', sourceData)}`);
+    if (_getFieldValue('extraStepsSelect2', sourceData)) parts.push(`EXTRA STEPS 2: ${_getFieldValue('extraStepsSelect2', sourceData)}`);
     return parts;
 };
 
