@@ -34,7 +34,6 @@ export async function copyToClipboard(textToCopy) {
     try {
         const tempTextArea = document.createElement('textarea');
         tempTextArea.value = textToCopy;
-        // Se usa una clase CSS en lugar de estilos en línea
         tempTextArea.className = 'clipboard-helper-textarea';
         document.body.appendChild(tempTextArea);
         tempTextArea.select();
