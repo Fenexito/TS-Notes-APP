@@ -91,6 +91,7 @@ export const fieldConfig = {
     'tvsSelect': { label: 'TVS', required: true, type: 'select' },
     'tvsKeyInput': { label: 'TVS KEY', required: true, type: 'text', conditional: true },
     'extraStepsSelect': { label: 'EXTRA STEPS', required: false, type: 'select' },
+    'extraStepsSelect2': { label: 'EXTRA STEPS 2', required: false, type: 'select' },
     'resolvedSelect': { label: 'RESOLVED', required: true, type: 'select' },
     'transferCheckbox': { label: 'Transfer Checkbox', required: false, type: 'checkbox' },
     'transferSelect': { label: 'TRANSFER', required: true, type: 'select', conditional: true },
@@ -127,7 +128,7 @@ export const shsIssuesToDisableDevice = [
 
 export const equipmentOptions = {
     'HighSpeed / Fiber': {
-        list1: ['G-240G w/RED Fail light ON', 'G-240G w/CAT6 on DATA1', 'G-240G without lights/No Power', 'I-240G w/RED Alarm light ON', 'I-240G w/CAT6 on LAN1', 'I-240G without lights/No Power', 'G-010S SFP', 'XS-250X w/RED Fail light ON', 'XS-250X w/CAT6 on 10G', 'XS-250X without light / No Power'],
+        list1: ['N/A', 'G-240G w/RED Fail light ON', 'G-240G w/CAT6 on DATA1', 'G-240G without lights/No Power', 'I-240G w/RED Alarm light ON', 'I-240G w/CAT6 on LAN1', 'I-240G without lights/No Power', 'G-010S SFP', 'FXA5000', 'XS-250X w/RED Fail light ON', 'XS-250X w/CAT6 on 10G', 'XS-250X without light / No Power'],
         list2: ['T3200 w/Internet & WiFi light GREEN / CAT6 on WAN port', 'T3200 w/Internet YELLOW & Wifi GREEN / CAT6 on WAN port', 'T3200 w/Internet ORANGE & Wifi GREEN / CAT6 on WAN port', 'T3200 w/Internet RED & Wifi GREEN / CAT6 on WAN port', 'T3200 without lights / No Power', 'TWH w/GREEN light + BLUE Wifi light / CAT6 on LAN/WAN', 'TWH w/FLASHING GREEN light + BLUE Wifi light / CAT6 on LAN/WAN', 'TWH w/RED light + BLUE Wifi light / CAT6 on LAN/WAN', 'TWH without light / No Power', 'NAH w/GREEN light / CAT6 on 10G', 'NAH w/FLASHING GREEN light / CAT6 on 10G', 'NAH w/RED light / CAT6 on 10G', 'NAH without light / No Power', 'Cx Using 3rd party Modem'],
         list3: ['BWv1 w/BLUE light / WIRED', 'BWv1 w/FLASHING BLUE light / WIRELESS', 'BWv1 w/RED light / WIRED', 'BWv1 w/RED light / WIRELESS', 'BWv1 without light / No Power', 'BW6 w/GREEN light / CAT6 on 2.5G', 'BW6 w/GREEN light / MoCA connected', 'BW6 w/FLASHING GREEN light / CAT6 on 2.5G', 'BW6 w/RED light / CAT6 on 2.5G', 'BW6 without light / No Power', 'Cx Using 3rd party Booster / Extender'],
         list4: ['2nd BWv1 w/BLUE light / WIRED', '2nd BWv1 w/FLASHING BLUE light / WIRELESS', '2nd BWv1 w/RED light / WIRED', '2nd BWv1 w/RED light / WIRELESS', '2nd BWv1 without light / No Power', '2nd BW6 w/GREEN light / CAT6 on 2.5G', '2nd BW6 w/GREEN light / MoCA connected', '2nd BW6 w/FLASHING GREEN light / CAT6 on 2.5G', '2nd BW6 w/RED light / CAT6 on 2.5G', '2nd BW6 without light / No Power']
@@ -180,7 +181,7 @@ export const physicalCheckLabels = {
     'Other': { list1: 'Customer Equipment', list2: 'No Specific Equipment', list3: '', list4: '' }
 };
 
-export const awaAlertsOptionsFFH = ['No Errors / Alerts Found on AWA', 'AWA not available / nonexistent', 'Unable to get AWA. Modem not managed by HDM', 'Unable to get AWA. ONT Not ranged', 'Unable to get AWA. Cx using third party Gateway', 'Unable to get AWA. No sync on Modem', 'Broadband DOWNSTREAM congestion (cx using more than 80% of the speed plan)', 'Broadband UPSTREAM congestion (cx using more than 80% of the speed plan)', 'Average Wi-Fi speed is slower than the Broadband for many devices connected'];
+export const awaAlertsOptionsFFH = ['N/A', 'No Errors / Alerts Found on AWA', 'AWA not available / nonexistent', 'Unable to get AWA. Modem not managed by HDM', 'Unable to get AWA. ONT Not ranged', 'Unable to get AWA. Cx using third party Gateway', 'Unable to get AWA. No sync on Modem', 'Broadband DOWNSTREAM congestion (cx using more than 80% of the speed plan)', 'Broadband UPSTREAM congestion (cx using more than 80% of the speed plan)', 'Average Wi-Fi speed is slower than the Broadband for many devices connected'];
 export const awaAlerts2OptionsFFH = ['Occasional Slowspeed in ONE device', 'Occasional Slowspeed in some devices', 'Occasional Disconnections in ONE device', 'Occasional Disconnections in some devices', 'Devices operating in legacy WiFi Mode', 'Multiple gateway/modem reboots', 'Password problems', 'Low-memory issues detected in the router', 'High number of devices connected detected', 'The gateways has been disconnecting from the service provider network (PPP down)'];
 export const awaAlertsOptionsSHS = ['No Active Trouble Conditions', 'Dual Path Communication Failure', 'Radio Not Responding', 'AC Power Failure', 'Customer NOT Arming system from app (past 2 weeks)'];
 export const awaAlerts2OptionsSHS = ['No Errors Found', 'Sensor Low Battery', 'Panel Low Battery', 'Device Low Battery', 'Tamper Alert', 'Device Bypassed', 'IDLE'];
