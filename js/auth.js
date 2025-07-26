@@ -1,6 +1,7 @@
 /**
  * @file auth.js
  * @summary Manages user authentication using a 6-digit verification code sent via email.
+ * @description Includes UX improvements: Enter to submit email and auto-verify on code completion.
  */
 
 // --- LISTA DE CORREOS AUTORIZADOS ---
@@ -63,15 +64,23 @@ function renderAuthContainer(title, formHtml) {
 function renderEmailPromptScreen(resolve, errorMessage = null) {
     const formHtml = `
         <p>Enter your authorized email address to receive a verification code.</p>
-        <input type="email" id="email-input" class="input-field" placeholder="your.name@company.com" />
-        <button id="submit-email-btn" class="submit-btn">Send Code</button>
+        <input type="email" id="email-input" class="input-field" placeholder="your.name@telus.com" />
+        <button id="submit-email-btn" class="submit-btn">SEND CODE</button>
         <div class="auth-message" style="color: #ff4d4d;">${errorMessage || ''}</div>
     `;
-    renderAuthContainer('APad Access', formHtml);
+    renderAuthContainer('APad - NoteApp Access', formHtml);
 
     const submitButton = document.getElementById('submit-email-btn');
     const emailInput = document.getElementById('email-input');
     const messageDiv = document.querySelector('.auth-message');
+
+    // NUEVA FUNCIÓN: Activar el botón con la tecla Enter.
+    emailInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Prevenir el comportamiento por defecto del formulario.
+            submitButton.click();
+        }
+    });
 
     submitButton.addEventListener('click', async () => {
         const email = emailInput.value.toLowerCase().trim();
@@ -94,7 +103,7 @@ function renderEmailPromptScreen(resolve, errorMessage = null) {
                     try {
                         const errorJson = await response.json();
                         errorDetails = errorJson.error || errorDetails;
-                    } catch (e) { /* Response might not be JSON, ignore */ }
+                    } catch (e) { /* La respuesta podría no ser JSON, se ignora */ }
                     throw new Error(errorDetails);
                 }
 
@@ -117,7 +126,7 @@ function renderEmailPromptScreen(resolve, errorMessage = null) {
             }
 
         } else {
-            messageDiv.textContent = 'This email address is not authorized.';
+            messageDiv.textContent = 'This email address is not authorized. Please contact APad admin to request access.';
         }
     });
 }
@@ -129,7 +138,7 @@ function renderCodeInputScreen(email, resolve) {
         <div class="code-input-container">
             ${Array.from({ length: 6 }).map((_, i) => `<input type="text" class="code-input" maxlength="1" data-index="${i}" />`).join('')}
         </div>
-        <button id="verify-code-btn" class="submit-btn">Verify</button>
+        <button id="verify-code-btn" class="submit-btn" style="display: none;">Verify</button>
         <div class="auth-message" style="color: #ff4d4d;"></div>
     `;
     renderAuthContainer('Check your Email', formHtml);
@@ -141,10 +150,58 @@ function renderCodeInputScreen(email, resolve) {
 
     codeInputs[0].focus();
 
+    // Lógica de verificación extraída para poder ser llamada desde varios eventos.
+    const handleVerification = async () => {
+        const tempToken = JSON.parse(sessionStorage.getItem(TEMP_TOKEN_KEY));
+        const enteredCode = Array.from(codeInputs).map(input => input.value).join('');
+
+        if (!tempToken || enteredCode.length !== 6) {
+            // No mostrar mensaje si el código no está completo, ya que se autoejecuta.
+            return;
+        }
+
+        if (new Date().getTime() > tempToken.expiresAt) {
+            messageDiv.textContent = 'The verification code has expired.';
+            setTimeout(() => renderEmailPromptScreen(resolve, 'Your previous code expired. Please request a new one.'), 2000);
+            return;
+        }
+
+        if (tempToken.code === enteredCode) {
+            // Deshabilitar inputs para prevenir más entradas.
+            codeInputs.forEach(input => input.disabled = true);
+            messageDiv.style.color = '#28a745'; // Color de éxito
+            messageDiv.textContent = 'Success! Accessing...';
+            
+            const session = { 
+                email: tempToken.email, 
+                expiresAt: new Date().getTime() + (16 * 60 * 60 * 1000) // Sesión de 16 horas
+            };
+            localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+            sessionStorage.removeItem(TEMP_TOKEN_KEY);
+
+            await removeAuthOverlay();
+            resolve(true); 
+        } else {
+            messageDiv.textContent = 'Invalid verification code.';
+            codeInputs.forEach(input => input.value = '');
+            codeInputs[0].focus();
+        }
+    };
+    
+    // El botón ahora solo llama a la función de manejo.
+    verifyButton.addEventListener('click', handleVerification);
+
     codeContainer.addEventListener('input', e => {
         const target = e.target;
-        if (target.value && target.dataset.index < 5) {
-            codeInputs[parseInt(target.dataset.index) + 1].focus();
+        const index = parseInt(target.dataset.index);
+
+        if (target.value && index < 5) {
+            codeInputs[index + 1].focus();
+        }
+
+        // NUEVA FUNCIÓN: Verificar automáticamente al llenar el último campo.
+        if (Array.from(codeInputs).every(input => input.value)) {
+            handleVerification();
         }
     });
 
@@ -156,47 +213,14 @@ function renderCodeInputScreen(email, resolve) {
         }
     });
     
+    // NUEVA FUNCIÓN: Verificar automáticamente al pegar un código completo.
     codeContainer.addEventListener('paste', e => {
         e.preventDefault();
         const pasteData = e.clipboardData.getData('text').trim();
         if (/^\d{6}$/.test(pasteData)) {
             pasteData.split('').forEach((char, i) => codeInputs[i].value = char);
             codeInputs[5].focus();
-        }
-    });
-
-    verifyButton.addEventListener('click', async () => {
-        const tempToken = JSON.parse(sessionStorage.getItem(TEMP_TOKEN_KEY));
-        const enteredCode = Array.from(codeInputs).map(input => input.value).join('');
-
-        if (!tempToken || enteredCode.length !== 6) {
-            messageDiv.textContent = 'Please enter the complete 6-digit code.';
-            return;
-        }
-
-        if (new Date().getTime() > tempToken.expiresAt) {
-            messageDiv.textContent = 'The verification code has expired.';
-            setTimeout(() => renderEmailPromptScreen(resolve, 'Your previous code expired. Please request a new one.'), 2000);
-            return;
-        }
-
-        if (tempToken.code === enteredCode) {
-            verifyButton.disabled = true;
-            verifyButton.textContent = 'Verifying...';
-            
-            const session = { 
-                email: tempToken.email, 
-                expiresAt: new Date().getTime() + (16 * 60 * 60 * 1000) // 16-hour session
-            };
-            localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-            sessionStorage.removeItem(TEMP_TOKEN_KEY);
-
-            await removeAuthOverlay();
-            resolve(true); 
-        } else {
-            messageDiv.textContent = 'Invalid verification code.';
-            codeInputs.forEach(input => input.value = '');
-            codeInputs[0].focus();
+            handleVerification(); // Llamar a la verificación inmediatamente.
         }
     });
 }
