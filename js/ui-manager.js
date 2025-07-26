@@ -109,10 +109,19 @@ export function updateAffectedFieldVisibilityAndLabel(service, affectedTextValue
     }
 
     dom.affectedLabel.textContent = affectedLabelText;
-    // MODIFICADO: Se revierte al uso de style.display para asegurar la compatibilidad.
-    dom.affectedTextGroup.style.display = isVisible ? '' : 'none';
-    dom.serviceAffectedRow.classList.toggle('has-affected', isVisible);
-    dom.affectedText.toggleAttribute('required', isVisible);
+
+    // MODIFICADO: Lógica de visibilidad más robusta para evitar conflictos.
+    if (isVisible) {
+        dom.affectedTextGroup.classList.remove('hidden-field');
+        dom.affectedTextGroup.style.display = ''; // Revierte al display por defecto (flex, block, etc.)
+        dom.serviceAffectedRow.classList.add('has-affected');
+        dom.affectedText.setAttribute('required', 'required');
+    } else {
+        dom.affectedTextGroup.classList.add('hidden-field');
+        dom.affectedTextGroup.style.display = 'none';
+        dom.serviceAffectedRow.classList.remove('has-affected');
+        dom.affectedText.removeAttribute('required');
+    }
 
     if (isVisible && config.state.isEditingNoteFlag) {
         dom.affectedText.value = affectedTextValue;
