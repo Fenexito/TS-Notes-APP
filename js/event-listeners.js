@@ -6,7 +6,7 @@
 import { dom } from './dom-elements.js';
 import { state, numericFields } from './config.js';
 import { saveCurrentNote, loadNotes, exportNotes, importNotes, saveAgentName, editNote, handleResolutionCopy, handleCopilotCopy, filterNotes, addEventListenersToHistoryItems } from './history-manager.js';
-import { clearAllFormFields, checkCurrentFormHasData, updateThirdRowLayout, populateIssueSelect, updateAffectedFieldVisibilityAndLabel, _populatePhysicalCheckListLabelsAndOptions, _updatePhysicalCheckListEnablement, updateOptikTvLegacySpecificFields, updateAwaAlerts2SelectState, updateAwaStepsSelectState, updateTvsKeyFieldState, updateTransferFieldState, updateTechFieldsVisibilityAndState, handleSkillChange, setAgentNameEditable, cleanSection, updateStickyHeaderInfo, updateAwaAndSpeedFieldsVisibility, applyInitialRequiredHighlight } from './ui-manager.js';
+import { clearAllFormFields, checkCurrentFormHasData, updateThirdRowLayout, populateIssueSelect, updateAffectedFieldVisibilityAndLabel, _populatePhysicalCheckListLabelsAndOptions, _updatePhysicalCheckListEnablement, updateOptikTvLegacySpecificFields, updateAwaStepsSelectState, updateTvsKeyFieldState, updateTransferFieldState, updateTechFieldsVisibilityAndState, handleSkillChange, setAgentNameEditable, cleanSection, updateStickyHeaderInfo, updateAwaAndSpeedFieldsVisibility, applyInitialRequiredHighlight, handleMultiSelectOptionClick } from './ui-manager.js';
 import { showToast, customConfirm, copyToClipboard } from './ui-helpers.js';
 import { generateFinalNote } from './note-builder.js';
 import { viewNoteInModal, closeModal, closeSeparateModal, hideSidebar, handleSeparateNote } from './modal-manager.js';
@@ -96,13 +96,7 @@ function addFormAndFieldListeners() {
         updateTransferFieldState(dom.transferCheckbox.checked);
     });
     
-    dom.awaAlertsSelect.addEventListener('change', () => {
-        if (dom.awaAlertsSelect.value !== '') {
-            dom.enableAwaAlerts2.checked = true;
-        }
-        updateAwaAlerts2SelectState(dom.enableAwaAlerts2.checked);
-        updateAwaStepsSelectState();
-    });
+    dom.awaStepsSelect.addEventListener('change', updateAwaStepsSelectState);
 
     [dom.physicalCheckList1Select, dom.physicalCheckList2Select, dom.physicalCheckList3Select].forEach((select, index) => {
         select.addEventListener('change', () => {
@@ -231,6 +225,38 @@ function addModalAndSidebarListeners() {
 
 function addGlobalListeners() {
     document.body.addEventListener('click', (event) => {
+        // --- Multi-Select Logic ---
+        const multiSelectButton = event.target.closest('.custom-select-button');
+        if (multiSelectButton) {
+            const container = multiSelectButton.closest('.custom-select-container');
+            const optionsContainer = container.querySelector('.custom-select-options-container');
+            if (optionsContainer) {
+                const isVisible = optionsContainer.style.display === 'block';
+                document.querySelectorAll('.custom-select-options-container').forEach(c => c.style.display = 'none');
+                if (!isVisible) {
+                    optionsContainer.style.display = 'block';
+                }
+            }
+            return;
+        }
+
+        const optionElement = event.target.closest('.custom-select-option');
+        if (optionElement) {
+            const container = optionElement.closest('.custom-select-container');
+            if (container.id === 'awaAlertsContainer') {
+                handleMultiSelectOptionClick(optionElement, state.awaAlertsSelected, dom.awaAlertsLabel, 'Select AWA alerts...');
+            } else if (container.id === 'extraStepsContainer') {
+                handleMultiSelectOptionClick(optionElement, state.extraStepsSelected, dom.extraStepsLabel, 'Select extra steps...');
+            }
+            return;
+        }
+
+        // Close dropdowns if click is outside
+        if (!event.target.closest('.custom-select-container')) {
+            document.querySelectorAll('.custom-select-options-container').forEach(c => c.style.display = 'none');
+        }
+        // --- End Multi-Select Logic ---
+
         const copyButton = event.target.closest('.copy-button, .copy-button-sticky');
         if (copyButton) {
             const targetInputId = copyButton.dataset.targetId || copyButton.dataset.target;
