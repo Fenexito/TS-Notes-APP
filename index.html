@@ -184,7 +184,7 @@
                                 </div>
                             </div>
                             <div class="input-group radio-group" id="errorsInNCRadioGroup">
-                                <label>NetCracker Error</label>
+                                <label>NetCracker</label>
                                 <div class="radio-options">
                                     <input type="radio" id="errorsInNCYes" name="errorsInNC" value="yes">
                                     <label for="errorsInNCYes">Yes</label>
@@ -230,6 +230,7 @@
                                     <option value="TOS">TOS</option>
                                     <option value="Telus Connect App">Telus Connect App</option>
                                     <option value="SHS Legacy">SHS Legacy</option>
+                                    <option value="SHS ADT / Acquisition / Custom Home">SHS ADT / Acquisition / Custom Home</option>
                                     <option value="Living Well Companion">Living Well Companion</option>
                                     <option value="Other">Other</option>
                                 </select>
@@ -329,21 +330,21 @@
                     </h2>
                     <div class="section-content">
                         <div class="input-row three-columns-layout">
-                            <div class="input-group">
-                                <label for="awaAlertsSelect">AWA ALERTS</label>
-                                <select id="awaAlertsSelect" name="awaAlerts" required>
-                                    <option value="">Select an option</option>
-                                </select>
-                            </div>
-                            <div class="input-group physical-check-item">
-                                <label for="awaAlerts2Select">AWA ALERTS 2</label>
-                                <div class="checkbox-and-select-wrapper">
-                                    <input type="checkbox" id="enableAwaAlerts2" class="physical-check-toggle">
-                                    <select id="awaAlerts2Select" name="awaAlerts2" disabled>
-                                        <option value="">Select an option</option>
-                                    </select>
+                            <div class="input-group custom-select-container" id="awaAlertsContainer">
+                                <label for="awaAlertsButton">AWA ALERTS</label>
+                                <button type="button" id="awaAlertsButton" class="custom-select-button">
+                                    <span id="awaAlertsLabel">Select AWA alerts...</span>
+                                    <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                                <div id="awaAlertsOptionsContainer" class="custom-select-options-container">
+                                    <div id="awaAlertsOptionsList" role="listbox">
+                                        </div>
                                 </div>
                             </div>
+                            <div class="input-group">
+                                </div>
                             <div class="input-group">
                                 <label for="awaStepsSelect">AWA STEPS</label>
                                 <select id="awaStepsSelect" name="awaSteps" disabled>
@@ -396,18 +397,19 @@
                                 <input type="text" id="tvsKeyInput" name="tvsKeyInput" autocomplete="off">
                             </div>
                         </div>
-                        <div class="input-row two-columns-layout" style="gap: 1rem;">
-                            <div class="input-group" style="flex: 1;">
-                                <label for="extraStepsSelect">EXTRA STEPS</label>
-                                <select id="extraStepsSelect" name="extraStepsSelect" class="input-field">
-                                    <option value="">Select an option</option>
-                                </select>
-                            </div>
-                            <div class="input-group" style="flex: 1;">
-                                <label for="extraStepsSelect2">EXTRA STEPS 2</label>
-                                <select id="extraStepsSelect2" name="extraStepsSelect2" class="input-field">
-                                    <option value="">Select an option</option>
-                                </select>
+                        <div class="input-row">
+                            <div class="input-group custom-select-container" id="extraStepsContainer">
+                                <label for="extraStepsButton">EXTRA STEPS</label>
+                                <button type="button" id="extraStepsButton" class="custom-select-button">
+                                    <span id="extraStepsLabel">Select extra steps...</span>
+                                     <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                                <div id="extraStepsOptionsContainer" class="custom-select-options-container">
+                                    <div id="extraStepsOptionsList" role="listbox">
+                                        </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -425,15 +427,14 @@
                                 <select id="resolvedSelect" name="resolvedSelect" required>
                                     <option value="">Select an option</option>
                                     <option value="Yes | EOC">Yes | EOC</option>
-                                    <option value="No | Call Disconnected | VM left">No | Call Disconnected | VM left</option>
-                                    <option value="No | Call Disconnected | Unable to left VM">No | Call Disconnected | Unable to left VM</option>
+                                    <option value="No. Cx hang up">No. Cx hang up</option>
                                     <option value="No | Tech Booked">No | Tech Booked</option>
                                     <option value="No | Follow Up Required">No | Follow Up Required</option>
                                     <option value="No | Follow Up Required | Set SCB with FVA">No | Follow Up Required | Set SCB with FVA</option>
                                     <option value="No | BOSR Created">No | BOSR Created</option>
                                     <option value="No | NC Ticket Created">No | NC Ticket Created</option>
                                     <option value="Cx ask for a Manager | Unable to de escalate. Manager still needed | Escalate to EMT">Cx ask for a Manager | Unable to de escalate. Manager still needed | Escalate to EMT</option>
-                                    <option value="Cx need to be transfered">Cx need to be transferred</option>
+                                    <option value="Cx need to be transfered">Cx need to be transfered</option>
                                 </select>
                             </div>
                             <div class="input-group physical-check-item">
