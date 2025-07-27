@@ -92,7 +92,7 @@ function addFormAndFieldListeners() {
     dom.resolvedSelect.addEventListener('change', () => {
         const resolvedValue = dom.resolvedSelect.value;
         updateTechFieldsVisibilityAndState(resolvedValue);
-        dom.transferCheckbox.checked = (resolvedValue === 'Cx need to be transfered');
+        dom.transferCheckbox.checked = (resolvedValue === 'Cx need to be transferred');
         updateTransferFieldState(dom.transferCheckbox.checked);
     });
     
