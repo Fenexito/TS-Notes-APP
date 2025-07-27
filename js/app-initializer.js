@@ -9,7 +9,7 @@ import { dom, get, queryAll } from './dom-elements.js';
 import { initializeEventListeners } from './event-listeners.js';
 import { loadNotes, handleWelcomeModal } from './history-manager.js';
 import { populateTimeSlots, updateTroubleshootingCharCounter } from './ui-helpers.js';
-import { populateExtraStepsSelect, updateThirdRowLayout, initialResizeTextareas, updateStickyHeaderInfo, handleSkillChange, applyInitialRequiredHighlight } from './ui-manager.js';
+import { populateExtraStepsComponent, updateThirdRowLayout, initialResizeTextareas, updateStickyHeaderInfo, handleSkillChange, applyInitialRequiredHighlight } from './ui-manager.js';
 import { resetChecklist } from './checklist-manager.js';
 import { generateFinalNote } from './note-builder.js';
 import { initializeTutorial, startTour } from './tutorial.js';
@@ -35,7 +35,7 @@ export async function initializeApp() {
     });
     
     // Configura los dropdowns y campos iniciales.
-    populateExtraStepsSelect();
+    populateExtraStepsComponent();
     updateThirdRowLayout();
     
     console.log('initializeApp: Calling initializeEventListeners...');
@@ -65,8 +65,6 @@ export async function initializeApp() {
     if (dom.enablePhysicalCheck3) { dom.enablePhysicalCheck3.checked = false; dom.enablePhysicalCheck3.disabled = true; }
     if (dom.enablePhysicalCheck4) { dom.enablePhysicalCheck4.checked = false; dom.enablePhysicalCheck4.disabled = true; }
     if (dom.physicalCheckListsContainer) dom.physicalCheckListsContainer.classList.add('hidden-field');
-    if (dom.enableAwaAlerts2) dom.enableAwaAlerts2.checked = false;
-    if (dom.awaAlerts2Select) dom.awaAlerts2Select.value = '';
     if (dom.awaStepsSelect) { dom.awaStepsSelect.disabled = true; dom.awaStepsSelect.removeAttribute('required'); }
     if (dom.transferCheckbox) dom.transferCheckbox.checked = false;
 
