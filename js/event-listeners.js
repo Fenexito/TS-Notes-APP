@@ -96,8 +96,6 @@ function addFormAndFieldListeners() {
         updateTransferFieldState(dom.transferCheckbox.checked);
     });
     
-    dom.awaStepsSelect.addEventListener('change', updateAwaStepsSelectState);
-
     [dom.physicalCheckList1Select, dom.physicalCheckList2Select, dom.physicalCheckList3Select].forEach((select, index) => {
         select.addEventListener('change', () => {
             const nextCheckbox = dom[`enablePhysicalCheck${index + 2}`];
