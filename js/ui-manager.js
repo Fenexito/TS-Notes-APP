@@ -9,6 +9,66 @@ import { generateFinalNote, noteBuilder } from './note-builder.js';
 import { populateTimeSlots, showToast } from './ui-helpers.js';
 import { resetChecklist } from './checklist-manager.js';
 
+// --- Multi-Select Component Helper ---
+function _populateMultiSelect(options, listElement, selectedSet, savedValues = []) {
+    if (!listElement) return;
+    listElement.innerHTML = '';
+    selectedSet.clear();
+
+    const valuesToSelect = new Set(savedValues);
+
+    options.forEach(optionText => {
+        const optionElement = document.createElement('div');
+        optionElement.dataset.value = optionText;
+        optionElement.className = 'custom-select-option';
+
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'option-icon';
+        iconSpan.innerHTML = `<svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
+        
+        const textSpan = document.createElement('span');
+        textSpan.textContent = optionText;
+
+        optionElement.appendChild(iconSpan);
+        optionElement.appendChild(textSpan);
+        listElement.appendChild(optionElement);
+
+        if (valuesToSelect.has(optionText)) {
+            optionElement.classList.add('selected');
+            selectedSet.add(optionText);
+        }
+    });
+}
+
+function _updateMultiSelectButtonLabel(buttonLabel, selectedSet, defaultText) {
+    if (!buttonLabel) return;
+    if (selectedSet.size === 0) {
+        buttonLabel.textContent = defaultText;
+        buttonLabel.classList.remove('font-semibold');
+    } else if (selectedSet.size === 1) {
+        buttonLabel.textContent = [...selectedSet][0];
+        buttonLabel.classList.add('font-semibold');
+    } else {
+        buttonLabel.textContent = `${selectedSet.size} items selected`;
+        buttonLabel.classList.add('font-semibold');
+    }
+}
+
+export function handleMultiSelectOptionClick(optionElement, selectedSet, buttonLabel, defaultText) {
+    const value = optionElement.dataset.value;
+    if (selectedSet.has(value)) {
+        selectedSet.delete(value);
+        optionElement.classList.remove('selected');
+    } else {
+        selectedSet.add(value);
+        optionElement.classList.add('selected');
+    }
+    _updateMultiSelectButtonLabel(buttonLabel, selectedSet, defaultText);
+    generateFinalNote();
+}
+// --- End Multi-Select ---
+
+
 export function updateStickyHeaderInfo() {
     if (!dom.headerDynamicInfo || !dom.agentInfoSection || !dom.stickyHeaderContainer) return;
 
@@ -252,54 +312,26 @@ export function updateOptikTvLegacySpecificFields(service, xVuValue = '', packet
     generateFinalNote();
 }
 
-export function _populateAwaAlertsOptions(skill, selectedValue = '') {
-    const { awaAlertsSelect, awaAlertsSelectLabel } = dom;
-    if (!awaAlertsSelect || !awaAlertsSelectLabel) return;
+export function populateAwaAlertsComponent(skill, savedValues = []) {
+    const { awaAlertsOptionsList, awaAlertsLabel, awaAlertsButton } = dom;
+    if (!awaAlertsOptionsList || !awaAlertsLabel || !awaAlertsButton) return;
 
-    const options = skill === 'SHS' ? config.awaAlertsOptionsSHS : config.awaAlertsOptionsFFH;
-    awaAlertsSelectLabel.textContent = skill === 'SHS' ? 'ADC TROUBLE CONDITIONS' : 'AWA ALERTS';
-    awaAlertsSelect.innerHTML = '<option value="">Select an option</option>';
-    options.forEach(opt => {
-        const option = document.createElement('option');
-        option.value = option.textContent = opt;
-        awaAlertsSelect.appendChild(option);
-    });
-    if (selectedValue && options.includes(selectedValue)) {
-        awaAlertsSelect.value = selectedValue;
-    }
-    awaAlertsSelect.disabled = false;
-    awaAlertsSelect.setAttribute('required', 'required');
-}
-
-export function updateAwaAlerts2SelectState(isChecked = null, awa2Value = '') {
-    const { enableAwaAlerts2, awaAlerts2Select, awaAlerts2SelectLabel, skillToggle } = dom;
-    if (!enableAwaAlerts2 || !awaAlerts2Select || !awaAlerts2SelectLabel) return;
+    const options = skill === 'SHS' ? config.allAwaAlertsOptionsSHS : config.allAwaAlertsOptionsFFH;
+    const labelText = skill === 'SHS' ? 'ADC TROUBLE CONDITIONS' : 'AWA ALERTS';
     
-    const isSHS = skillToggle.checked;
-    const options = isSHS ? config.awaAlerts2OptionsSHS : config.awaAlerts2OptionsFFH;
-    awaAlerts2SelectLabel.textContent = isSHS ? 'ADC TROUBLE CONDITIONS 2' : 'AWA ALERTS 2';
-    awaAlerts2Select.innerHTML = '<option value="">Select an option</option>';
-    options.forEach(opt => {
-        const option = document.createElement('option');
-        option.value = option.textContent = opt;
-        awaAlerts2Select.appendChild(option);
-    });
+    const labelElement = awaAlertsButton.parentElement.querySelector('label');
+    if(labelElement) labelElement.textContent = labelText;
 
-    const effectiveChecked = config.state.isEditingNoteFlag ? isChecked : enableAwaAlerts2.checked;
-    enableAwaAlerts2.checked = !!effectiveChecked; // Ensure boolean conversion
-    awaAlerts2Select.disabled = !enableAwaAlerts2.checked;
-    if (enableAwaAlerts2.checked && awa2Value && options.includes(awa2Value)) {
-        awaAlerts2Select.value = awa2Value;
-    } else if (!enableAwaAlerts2.checked) {
-        awaAlerts2Select.value = '';
-    }
+    _populateMultiSelect(options, awaAlertsOptionsList, config.state.awaAlertsSelected, savedValues);
+    _updateMultiSelectButtonLabel(awaAlertsLabel, config.state.awaAlertsSelected, 'Select AWA alerts...');
+    
+    awaAlertsButton.disabled = false;
     applyInitialRequiredHighlight();
-    generateFinalNote();
 }
 
 export function updateAwaStepsSelectState(awaStepsValue = '') {
-    const { awaAlertsSelect, awaStepsSelect, awaStepsSelectLabel, skillToggle } = dom;
-    if (!awaAlertsSelect || !awaStepsSelect || !awaStepsSelectLabel) return;
+    const { awaStepsSelect, awaStepsSelectLabel, skillToggle } = dom;
+    if (!awaStepsSelect || !awaStepsSelectLabel) return;
     
     const isSHS = skillToggle.checked;
     const options = isSHS ? config.awaStepsOptionsSHS : config.awaStepsOptionsFFH;
@@ -311,7 +343,7 @@ export function updateAwaStepsSelectState(awaStepsValue = '') {
         awaStepsSelect.appendChild(option);
     });
 
-    const isAwaMainSelected = noteBuilder._getFieldValue('awaAlertsSelect') !== '';
+    const isAwaMainSelected = config.state.awaAlertsSelected.size > 0;
     awaStepsSelect.disabled = !isAwaMainSelected;
     awaStepsSelect.toggleAttribute('required', isAwaMainSelected);
     if (isAwaMainSelected && awaStepsValue && options.includes(awaStepsValue)) {
@@ -371,13 +403,11 @@ export function updateTechFieldsVisibilityAndState(resolvedValue, cbr2Value = ''
     const showNc = resolvedValue === 'No | NC Ticket Created';
     const showEmt = resolvedValue === 'Cx ask for a Manager | Unable to de escalate. Manager still needed | Escalate to EMT';
 
-    // Toggle visibility based on conditions
     if (cbr2FieldContainer) cbr2FieldContainer.classList.toggle('hidden-field', !(showTech || showBosr || showNc || showEmt));
     if (aocFieldContainer) aocFieldContainer.classList.toggle('hidden-field', !showTech);
     if (dispatchDateInputContainer) dispatchDateInputContainer.classList.toggle('hidden-field', !(showTech || showFollowUp));
     if (dispatchTimeSlotSelectContainer) dispatchTimeSlotSelectContainer.classList.toggle('hidden-field', !(showTech || showFollowUp));
 
-    // Reset all fields first
     [cbr2Input, aocInput, dispatchDateInput, dispatchTimeSlotSelect].forEach(el => {
         if (el) {
             el.removeAttribute('required');
@@ -385,7 +415,6 @@ export function updateTechFieldsVisibilityAndState(resolvedValue, cbr2Value = ''
         }
     });
 
-    // Apply specific logic based on selection
     if (showTech) {
         if (cbr2Input) cbr2Input.setAttribute('required', 'required');
         if (cbr2Label) cbr2Label.textContent = 'CBR2';
@@ -429,18 +458,12 @@ export function updateTechFieldsVisibilityAndState(resolvedValue, cbr2Value = ''
     generateFinalNote();
 }
 
-export function populateExtraStepsSelect() {
-    const selects = [dom.extraStepsSelect, dom.extraStepsSelect2];
-    selects.forEach(select => {
-        if (!select) return;
-        select.innerHTML = '<option value="">Select an option</option>';
-        config.extraStepsOptions.forEach(optionText => {
-            const option = document.createElement('option');
-            option.value = optionText;
-            option.textContent = optionText;
-            select.appendChild(option);
-        });
-    });
+export function populateExtraStepsComponent(savedValues = []) {
+    const { extraStepsOptionsList, extraStepsLabel } = dom;
+    if (!extraStepsOptionsList || !extraStepsLabel) return;
+
+    _populateMultiSelect(config.extraStepsOptions, extraStepsOptionsList, config.state.extraStepsSelected, savedValues);
+    _updateMultiSelectButtonLabel(extraStepsLabel, config.state.extraStepsSelected, 'Select extra steps...');
 }
 
 export function handleSkillChange() {
@@ -464,9 +487,8 @@ export function handleSkillChange() {
     
     dom.serviceSelect.dispatchEvent(new Event('change'));
     
-    _populateAwaAlertsOptions(isSHS ? 'SHS' : 'FFH', dom.awaAlertsSelect.value);
-    updateAwaAlerts2SelectState(dom.enableAwaAlerts2.checked, dom.awaAlerts2Select.value);
-    updateAwaStepsSelectState(dom.awaStepsSelect.value);
+    populateAwaAlertsComponent(isSHS ? 'SHS' : 'FFH');
+    updateAwaStepsSelectState();
 
     applyInitialRequiredHighlight();
     generateFinalNote();
@@ -478,8 +500,7 @@ export function updateAwaAndSpeedFieldsVisibility(service) {
     const shouldHide = isSHS || shouldHideForService;
 
     const controlledGroups = [
-        dom.awaAlertsSelect?.closest('.input-group'),
-        dom.awaAlerts2Select?.closest('.input-group'),
+        dom.awaAlertsContainer,
         dom.awaStepsSelect?.closest('.input-group'),
         dom.activeDevicesGroup,
         dom.totalDevicesGroup,
@@ -496,21 +517,26 @@ export function updateAwaAndSpeedFieldsVisibility(service) {
         group.classList.toggle('hidden-field', shouldHide);
         
         if (shouldHide && !wasHidden) {
-            group.querySelectorAll('input, select').forEach(input => {
-                if (input.type === 'checkbox' || input.type === 'radio') {
-                    input.checked = false;
-                } else {
-                    input.value = '';
-                }
-                input.removeAttribute('required');
-                input.dispatchEvent(new Event('change', { bubbles: true }));
-            });
+            // Clear multi-select
+            if (group.id === 'awaAlertsContainer') {
+                config.state.awaAlertsSelected.clear();
+                _updateMultiSelectButtonLabel(dom.awaAlertsLabel, config.state.awaAlertsSelected, 'Select AWA alerts...');
+                Array.from(dom.awaAlertsOptionsList.children).forEach(opt => opt.classList.remove('selected'));
+            } else { // Clear standard inputs/selects
+                group.querySelectorAll('input, select').forEach(input => {
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        input.checked = false;
+                    } else {
+                        input.value = '';
+                    }
+                    input.removeAttribute('required');
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+            }
         }
     });
 
-    updateAwaAlerts2SelectState(dom.enableAwaAlerts2.checked);
     updateAwaStepsSelectState();
-
     applyInitialRequiredHighlight();
     generateFinalNote();
 }
@@ -519,9 +545,21 @@ export function clearAllFormFields(isForEdit = false) {
     const form = dom.callNoteForm;
     if (!form) return;
 
+    // Clear multi-selects
+    config.state.awaAlertsSelected.clear();
+    if(dom.awaAlertsOptionsList) Array.from(dom.awaAlertsOptionsList.children).forEach(opt => opt.classList.remove('selected'));
+    _updateMultiSelectButtonLabel(dom.awaAlertsLabel, config.state.awaAlertsSelected, 'Select AWA alerts...');
+    
+    config.state.extraStepsSelected.clear();
+    if(dom.extraStepsOptionsList) Array.from(dom.extraStepsOptionsList.children).forEach(opt => opt.classList.remove('selected'));
+    _updateMultiSelectButtonLabel(dom.extraStepsLabel, config.state.extraStepsSelected, 'Select extra steps...');
+
     Array.from(form.elements).forEach(element => {
         if (element.tagName === 'BUTTON' || element.tagName === 'FIELDSET' || (!element.id && !element.name)) return;
         if (element.id === 'agentName' && dom.agentNameInput?.readOnly) return;
+
+        // Skip elements that are part of the multi-select components
+        if (element.closest('.custom-select-container')) return;
 
         element.classList.remove('required-initial-border');
         element.style.border = '';
@@ -561,6 +599,20 @@ export function cleanSection(sectionId) {
     const section = document.getElementById(sectionId);
     if (!section) return;
 
+    // Clear multi-selects within the section
+    section.querySelectorAll('.custom-select-container').forEach(container => {
+        if (container.id === 'awaAlertsContainer') {
+            config.state.awaAlertsSelected.clear();
+            _updateMultiSelectButtonLabel(dom.awaAlertsLabel, config.state.awaAlertsSelected, 'Select AWA alerts...');
+            if(dom.awaAlertsOptionsList) Array.from(dom.awaAlertsOptionsList.children).forEach(opt => opt.classList.remove('selected'));
+        }
+        if (container.id === 'extraStepsContainer') {
+            config.state.extraStepsSelected.clear();
+            _updateMultiSelectButtonLabel(dom.extraStepsLabel, config.state.extraStepsSelected, 'Select extra steps...');
+            if(dom.extraStepsOptionsList) Array.from(dom.extraStepsOptionsList.children).forEach(opt => opt.classList.remove('selected'));
+        }
+    });
+
     section.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]), select, textarea').forEach(input => {
         if (!input.readOnly) input.value = '';
     });
@@ -579,12 +631,17 @@ export function cleanSection(sectionId) {
 }
 
 export function checkCurrentFormHasData() {
+    if (config.state.awaAlertsSelected.size > 0 || config.state.extraStepsSelected.size > 0) {
+        return true;
+    }
+
     const form = dom.callNoteForm;
     if (!form) return false;
 
     return Array.from(form.elements).some(element => {
         if (!element.id && !element.name) return false;
         if (element.id === 'agentName' && dom.agentNameInput?.readOnly) return false;
+        if (element.closest('.custom-select-container')) return false;
 
         const container = element.closest('.input-group, .radio-group');
         const isHidden = (container && (container.classList.contains('hidden-field'))) || element.disabled;
@@ -628,12 +685,17 @@ export function applyInitialRequiredHighlight() {
         const element = dom[fieldId] || document.getElementById(fieldId);
         if (!element) continue;
 
-        const container = element.closest('.input-group, .radio-group');
-        const isHidden = (container && (container.classList.contains('hidden-field') || container.style.display === 'none')) || element.disabled;
+        const isHidden = element.classList.contains('hidden-field') || element.closest('.hidden-field') || element.style.display === 'none' || element.disabled;
 
         if (fieldConf.required && !isHidden) {
             let isMissing = false;
-            if (element.type === 'radio') {
+            if (fieldConf.type === 'multiselect') {
+                const selectedSet = fieldId === 'awaAlertsContainer' ? config.state.awaAlertsSelected : config.state.extraStepsSelected;
+                isMissing = selectedSet.size === 0;
+                const button = element.querySelector('button');
+                if (button) button.classList.toggle('required-initial-border', isMissing);
+
+            } else if (element.type === 'radio') {
                 const groupContainer = element.closest('.radio-group');
                 const isChecked = Array.from(document.querySelectorAll(`input[name="${element.name}"]`)).some(r => r.checked);
                 isMissing = !isChecked;
@@ -643,8 +705,14 @@ export function applyInitialRequiredHighlight() {
                 element.classList.toggle('required-initial-border', isMissing);
             }
         } else {
-            element.classList.remove('required-initial-border');
-            if (container) container.classList.remove('required-initial-border');
+            if (fieldConf.type === 'multiselect') {
+                const button = element.querySelector('button');
+                if (button) button.classList.remove('required-initial-border');
+            } else {
+                 element.classList.remove('required-initial-border');
+                 const container = element.closest('.radio-group');
+                 if (container) container.classList.remove('required-initial-border');
+            }
         }
     }
 }
