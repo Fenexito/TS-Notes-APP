@@ -225,16 +225,35 @@ function addModalAndSidebarListeners() {
 
 function addGlobalListeners() {
     document.body.addEventListener('click', (event) => {
-        // --- Multi-Select Logic ---
+        // --- Multi-Select Logic (MODIFICADO) ---
         const multiSelectButton = event.target.closest('.custom-select-button');
+
+        // Helper function to close all dropdowns and remove overflow visibility class
+        const clearAllDropdownsAndOverflows = () => {
+            document.querySelectorAll('.custom-select-options-container').forEach(c => {
+                c.style.display = 'none';
+            });
+            document.querySelectorAll('.section-content.overflow-visible').forEach(sec => {
+                sec.classList.remove('overflow-visible');
+            });
+        };
+
         if (multiSelectButton) {
             const container = multiSelectButton.closest('.custom-select-container');
             const optionsContainer = container.querySelector('.custom-select-options-container');
             if (optionsContainer) {
                 const isVisible = optionsContainer.style.display === 'block';
-                document.querySelectorAll('.custom-select-options-container').forEach(c => c.style.display = 'none');
+                
+                // Close all dropdowns and clear overflows before proceeding
+                clearAllDropdownsAndOverflows();
+
                 if (!isVisible) {
+                    // If the dropdown was closed, open it and set overflow on its parent section
                     optionsContainer.style.display = 'block';
+                    const parentSectionContent = optionsContainer.closest('.section-content');
+                    if (parentSectionContent) {
+                        parentSectionContent.classList.add('overflow-visible');
+                    }
                 }
             }
             return;
@@ -248,12 +267,12 @@ function addGlobalListeners() {
             } else if (container.id === 'extraStepsContainer') {
                 handleMultiSelectOptionClick(optionElement, state.extraStepsSelected, dom.extraStepsLabel, 'Select extra steps...');
             }
-            return;
+            return; // Keep dropdown open after selection, as per original behavior
         }
 
         // Close dropdowns if click is outside
         if (!event.target.closest('.custom-select-container')) {
-            document.querySelectorAll('.custom-select-options-container').forEach(c => c.style.display = 'none');
+            clearAllDropdownsAndOverflows();
         }
         // --- End Multi-Select Logic ---
 
