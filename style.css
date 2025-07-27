@@ -18,7 +18,7 @@
     --bg-tutorial: #ffffff;
     --bg-info-overlay: #f8f9fa;
     --bg-info-overlay-header: #e9ecef;
-    --bg-multiselect-selected: #e0e7ff; 
+    --bg-multiselect-selected: #1967d2; 
 
     --text-primary: #2c3e50;
     --text-secondary: #444;
@@ -32,7 +32,7 @@
     --text-tutorial: #000000;
     --text-info-overlay: #495057;
     --text-info-overlay-header: #343a40;
-    --text-multiselect-selected: #3730a3; 
+    --text-multiselect-selected: #ffffff; 
 
     --border-primary: #dcdcdc;
     --border-secondary: #ccc;
@@ -2302,11 +2302,10 @@ input:checked + .theme-slider:before {
     min-width: 100%; 
     width: max-content; 
     background-color: var(--bg-primary);
-    border: 1px solid var(--border-secondary);
-    border-radius: 4px;
-    max-height: 200px;
+    border: 1px solid #767676;
+    max-height: 400px;
     overflow-y: auto;
-    margin-top: 2px;
+    margin-top: 41px;
     box-shadow: 0 4px 8px var(--shadow-primary);
 }
 
@@ -2314,7 +2313,7 @@ input:checked + .theme-slider:before {
 .custom-select-options-container.opens-up {
     bottom: 100%;
     margin-top: 0;
-    margin-bottom: 2px;
+    margin-bottom: -16px;
 }
 
 .custom-select-option {
@@ -2341,7 +2340,7 @@ input:checked + .theme-slider:before {
 
 .custom-select-option.selected {
     background-color: var(--bg-multiselect-selected);
-    color: var(--text-primary);
+    color: var(--text-multiselect-selected);
 }
 
 .custom-select-option.selected .option-icon {
