@@ -10,16 +10,28 @@ import { updateStickyHeaderInfo } from './ui-manager.js';
 import { setChecklistValue } from './checklist-manager.js';
 
 const _getFieldValue = (id, sourceData = null) => {
-    if (sourceData) {
-        if (id === 'skillToggle') {
-            return sourceData.skill === 'SHS';
-        }
-        if (sourceData[id] !== undefined) {
-            return sourceData[id];
-        }
-        const radioName = Object.keys(sourceData).find(key => key === id);
-        return radioName ? sourceData[radioName] : '';
-    }
+    if (sourceData) {
+        if (id === 'skillToggle') {
+            return sourceData.skill === 'SHS';
+        }
+        // For multiselect components, the data is stored directly as an array
+        if (id === 'awaAlertsContainer' || id === 'extraStepsContainer') {
+            return sourceData[id] || [];
+        }
+        if (sourceData[id] !== undefined) {
+            return sourceData[id];
+        }
+        const radioName = Object.keys(sourceData).find(key => key === id);
+        return radioName ? sourceData[radioName] : '';
+    }
+
+    // Handle new multi-select components
+    if (id === 'awaAlertsContainer') {
+        return Array.from(state.awaAlertsSelected);
+    }
+    if (id === 'extraStepsContainer') {
+        return Array.from(state.extraStepsSelected);
+    }
 
     const element = dom[id] || document.getElementById(id);
     if (element) {
@@ -50,8 +62,6 @@ const _buildSection1Content = (sourceData = null) => {
     const parts = [];
     const agentName = _getFieldValue('agentName', sourceData);
     parts.push(`PFTS | ${agentName || ''}`);
-    // const skillValue = _getFieldValue('skillToggle', sourceData) ? 'SHS' : 'FFH';
-    // if (skillValue) parts.push(`SKILL: ${skillValue}`);
     const section1FieldOrder = ['ban', 'cid', 'name', 'cbr', 'caller'];
     section1FieldOrder.forEach(fieldId => {
         const value = _getFieldValue(fieldId, sourceData);
@@ -132,11 +142,9 @@ const _buildSection3Content = (sourceData = null) => {
     const currentSkill = _getFieldValue('skillToggle', sourceData) ? 'SHS' : 'FFH';
     const currentAwaAlertsLabel = currentSkill === 'SHS' ? 'ADC TROUBLE CONDITIONS' : 'AWA ALERTS';
 
-    if (_getFieldValue('awaAlertsSelect', sourceData)) {
-        let awaNoteLine = `${currentAwaAlertsLabel}: ${_getFieldValue('awaAlertsSelect', sourceData)}`;
-        if (_getFieldValue('enableAwaAlerts2', sourceData) && _getFieldValue('awaAlerts2Select', sourceData)) {
-            awaNoteLine += `, ${_getFieldValue('awaAlerts2Select', sourceData)}`;
-        }
+    const awaAlertsValues = _getFieldValue('awaAlertsContainer', sourceData);
+    if (awaAlertsValues.length > 0) {
+        let awaNoteLine = `${currentAwaAlertsLabel}: ${awaAlertsValues.join(', ')}`;
         if (_getFieldValue('awaStepsSelect', sourceData)) {
             awaNoteLine += `, ${_getFieldValue('awaStepsSelect', sourceData)}`;
         }
@@ -169,13 +177,9 @@ const _buildSection3Content = (sourceData = null) => {
         parts.push(tvsNote);
     }
     
-    const extraStep1 = _getFieldValue('extraStepsSelect', sourceData);
-    const extraStep2 = _getFieldValue('extraStepsSelect2', sourceData);
-    if (extraStep1 || extraStep2) {
-        const allSteps = [];
-        if (extraStep1) allSteps.push(extraStep1);
-        if (extraStep2) allSteps.push(extraStep2);
-        parts.push(`EXTRA STEPS: ${allSteps.join(', ')}`);
+    const extraStepsValues = _getFieldValue('extraStepsContainer', sourceData);
+    if (extraStepsValues.length > 0) {
+        parts.push(`EXTRA STEPS: ${extraStepsValues.join(', ')}`);
     }
 
     return parts;
@@ -237,7 +241,7 @@ function updateChecklistState() {
     setChecklistValue('checklistProbingQuestions', issueSelected ? 'yes' : 'no');
     setChecklistValue('checklistCorrectWorkflow', issueSelected ? 'yes' : 'no');
     const isFFH = !dom.skillToggle.checked;
-    const awaSelected = _getFieldValue('awaAlertsSelect') !== '';
+    const awaSelected = state.awaAlertsSelected.size > 0;
     setChecklistValue('checklistAdvancedWifi', isFFH && awaSelected ? 'yes' : 'no');
     const tvsYes = _getFieldValue('tvsSelect') === 'YES';
     const tvsKeyFilled = _getFieldValue('tvsKeyInput') !== '';
@@ -249,7 +253,7 @@ function updateChecklistState() {
     const resolvedValueForCallback = _getFieldValue('resolvedSelect');
     setChecklistValue('checklistCallback', resolvedValueForCallback === 'Cx Need a Follow Up. Set SCB on FVA' ? 'yes' : 'na');
     setChecklistValue('checklistAllServices', _getFieldValue('serviceOnCsr') === 'Active' ? 'yes' : 'no');
-    setChecklistValue('checklistGoSend', _getFieldValue('extraStepsSelect') !== '' ? 'yes' : 'no');
+    setChecklistValue('checklistGoSend', state.extraStepsSelected.size > 0);
 }
 
 export const generateFinalNote = () => {
