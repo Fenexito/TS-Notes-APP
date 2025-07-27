@@ -18,7 +18,7 @@
     --bg-tutorial: #ffffff;
     --bg-info-overlay: #f8f9fa;
     --bg-info-overlay-header: #e9ecef;
-    --bg-multiselect-selected: #e0e7ff; /* NUEVO */
+    --bg-multiselect-selected: #e0e7ff; 
 
     --text-primary: #2c3e50;
     --text-secondary: #444;
@@ -32,7 +32,7 @@
     --text-tutorial: #000000;
     --text-info-overlay: #495057;
     --text-info-overlay-header: #343a40;
-    --text-multiselect-selected: #3730a3; /* NUEVO */
+    --text-multiselect-selected: #3730a3; 
 
     --border-primary: #dcdcdc;
     --border-secondary: #ccc;
@@ -98,7 +98,7 @@ body.dark-theme {
     --bg-tutorial: #2c2c2c;
     --bg-info-overlay: #2a2a2a;
     --bg-info-overlay-header: #343a40;
-    --bg-multiselect-selected: #312e81; /* NUEVO */
+    --bg-multiselect-selected: #312e81; 
 
     --text-primary: #e0e0e0;
     --text-secondary: #cccccc;
@@ -110,7 +110,7 @@ body.dark-theme {
     --text-tutorial: #e0e0e0;
     --text-info-overlay: #adb5bd;
     --text-info-overlay-header: #f8f9fa;
-    --text-multiselect-selected: #e0e7ff; /* NUEVO */
+    --text-multiselect-selected: #e0e7ff; 
 
     --border-primary: #444444;
     --border-secondary: #555555;
@@ -192,7 +192,6 @@ body {
     border-bottom: 1px solid transparent; /* Borde inicial transparente */
 }
 
-/* MODIFICACIÓN: Estilo más notorio para el header cuando está fijo */
 .sticky-header-container.is-fixed {
     box-shadow: 0 4px 12px var(--shadow-primary);
     border-bottom: 1px solid var(--border-primary);
@@ -572,8 +571,7 @@ input:checked + .slider:before {
     margin-bottom: 8px;
     border: 1px solid var(--border-primary);
     border-radius: 8px;
-    overflow: visible; /* MODIFICADO: Permite que el dropdown se vea */
-    position: relative; /* Añadido para el contexto de z-index */
+    position: relative;
 }
 
 .section-title {
@@ -644,6 +642,11 @@ input:checked + .slider:before {
     overflow: hidden;
     transition: max-height 0.3s ease-in, padding 0.3s ease-in, opacity 0.3s ease-in;
     opacity: 1;
+}
+
+/* MODIFICADO: Clase auxiliar para permitir que el contenido se desborde */
+.section-content.overflow-visible {
+    overflow: visible;
 }
 
 .form-section.collapsed .section-content {
@@ -1272,7 +1275,7 @@ textarea {
 .history-sidebar {
     right: 0;
     transform: translateX(100%);
-    width: 300px; /* MODIFICACIÓN: Ancho aumentado */
+    width: 300px;
 }
 .history-sidebar.open {
     transform: translateX(0);
@@ -1581,7 +1584,7 @@ body.dark-theme .checklist-item:not(.status-no) label {
 
 .detail-row strong {
     word-break: break-all;
-    font-weight: bold; /* Petición del usuario: poner en negrita */
+    font-weight: bold;
     color: var(--text-primary);
 }
 
@@ -1631,7 +1634,6 @@ body.dark-theme .checklist-item:not(.status-no) label {
 .history-action-btn.edit-btn:hover { background-color: var(--accent-warning-hover); }
 .history-action-btn.delete-btn { background-color: var(--accent-danger); }
 .history-action-btn.delete-btn:hover { background-color: var(--accent-danger-hover); }
-/* MODIFICACIÓN: Estilos para los nuevos botones COPY y SPLIT */
 .history-action-btn.copy-btn { background-color: var(--accent-success); }
 .history-action-btn.copy-btn:hover { background-color: var(--accent-success-hover); }
 .history-action-btn.split-btn { background-color: var(--accent-primary); }
@@ -2267,6 +2269,7 @@ input:checked + .theme-slider:before {
     text-align: left;
     cursor: pointer;
     transition: border-color 0.2s ease, background-color 0.3s ease, color 0.3s ease;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* MODIFICADO: Fuente explícita */
 }
 
 .custom-select-button:disabled {
@@ -2285,19 +2288,19 @@ input:checked + .theme-slider:before {
     white-space: nowrap;
     text-overflow: ellipsis;
     padding-right: 5px;
-    font-weight: 400; /* Estilo normal para el placeholder */
+    font-weight: 400; 
 }
 
 .custom-select-button span.font-semibold {
-    font-weight: 600; /* Estilo negrita para cuando hay selección */
+    font-weight: 600; 
 }
 
 .custom-select-options-container {
     display: none;
     position: absolute;
     z-index: 100;
-    min-width: 100%; /* Mínimo el ancho del botón */
-    width: max-content; /* Se expande según el contenido */
+    min-width: 100%; 
+    width: max-content; 
     background-color: var(--bg-primary);
     border: 1px solid var(--border-secondary);
     border-radius: 4px;
@@ -2310,11 +2313,12 @@ input:checked + .theme-slider:before {
 .custom-select-option {
     display: flex;
     align-items: center;
-    padding: 5px 8px; /* MODIFICADO: Ajuste de espaciado */
+    padding: 5px 8px;
     cursor: pointer;
-    font-size: 0.75em; /* MODIFICADO: Mismo tamaño de fuente que los inputs normales */
+    font-size: 0.75em;
     transition: background-color 0.2s ease;
     user-select: none;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* MODIFICADO: Fuente explícita */
 }
 
 .custom-select-option:hover {
@@ -2324,14 +2328,13 @@ input:checked + .theme-slider:before {
 .custom-select-option .option-icon {
     display: none;
     margin-right: 8px;
-    color: var(--accent-primary); /* MODIFICADO: Color del checkmark */
+    color: var(--accent-primary);
     flex-shrink: 0;
 }
 
 .custom-select-option.selected {
     background-color: var(--bg-multiselect-selected);
-    color: var(--text-primary); /* MODIFICADO: Mismo color de texto que las opciones no seleccionadas */
-    /* MODIFICADO: Se elimina la negrita */
+    color: var(--text-primary);
 }
 
 .custom-select-option.selected .option-icon {
