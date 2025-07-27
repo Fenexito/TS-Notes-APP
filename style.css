@@ -18,6 +18,7 @@
     --bg-tutorial: #ffffff;
     --bg-info-overlay: #f8f9fa;
     --bg-info-overlay-header: #e9ecef;
+    --bg-multiselect-selected: #e0e7ff; /* NUEVO */
 
     --text-primary: #2c3e50;
     --text-secondary: #444;
@@ -31,6 +32,7 @@
     --text-tutorial: #000000;
     --text-info-overlay: #495057;
     --text-info-overlay-header: #343a40;
+    --text-multiselect-selected: #3730a3; /* NUEVO */
 
     --border-primary: #dcdcdc;
     --border-secondary: #ccc;
@@ -96,6 +98,7 @@ body.dark-theme {
     --bg-tutorial: #2c2c2c;
     --bg-info-overlay: #2a2a2a;
     --bg-info-overlay-header: #343a40;
+    --bg-multiselect-selected: #312e81; /* NUEVO */
 
     --text-primary: #e0e0e0;
     --text-secondary: #cccccc;
@@ -107,6 +110,7 @@ body.dark-theme {
     --text-tutorial: #e0e0e0;
     --text-info-overlay: #adb5bd;
     --text-info-overlay-header: #f8f9fa;
+    --text-multiselect-selected: #e0e7ff; /* NUEVO */
 
     --border-primary: #444444;
     --border-secondary: #555555;
@@ -2237,4 +2241,92 @@ input:checked + .theme-slider:before {
     top: 0;
     opacity: 0;
     pointer-events: none;
+}
+
+/* ==========================================================================
+   18. ESTILOS PARA COMPONENTES PERSONALIZADOS (MULTI-SELECT)
+   ========================================================================== */
+
+.custom-select-container {
+    position: relative;
+}
+
+.custom-select-button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 3px 5px;
+    font-size: 0.75em;
+    height: 25px;
+    border: 1px solid var(--border-secondary);
+    border-radius: 4px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+.custom-select-button:disabled {
+    background-color: var(--bg-disabled);
+    cursor: not-allowed;
+    color: var(--text-tertiary);
+}
+
+.custom-select-button.required-initial-border {
+    border: 1px solid #e74c3c !important;
+    box-shadow: 0 0 5px rgba(231, 76, 60, 0.5);
+}
+
+.custom-select-button span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding-right: 5px;
+}
+
+.custom-select-options-container {
+    display: none;
+    position: absolute;
+    z-index: 100;
+    width: 100%;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-secondary);
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 2px;
+    box-shadow: 0 4px 8px var(--shadow-primary);
+}
+
+.custom-select-option {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: background-color 0.2s ease;
+    user-select: none;
+}
+
+.custom-select-option:hover {
+    background-color: var(--bg-secondary-hover);
+}
+
+.custom-select-option .option-icon {
+    display: none;
+    margin-right: 8px;
+    color: var(--text-multiselect-selected);
+    flex-shrink: 0;
+}
+
+.custom-select-option.selected {
+    background-color: var(--bg-multiselect-selected);
+    color: var(--text-multiselect-selected);
+    font-weight: 600;
+}
+
+.custom-select-option.selected .option-icon {
+    display: inline-block;
 }
