@@ -343,14 +343,13 @@ export function updateAwaStepsSelectState(awaStepsValue = '') {
         awaStepsSelect.appendChild(option);
     });
 
-    const isAwaMainSelected = config.state.awaAlertsSelected.size > 0;
-    awaStepsSelect.disabled = !isAwaMainSelected;
-    awaStepsSelect.toggleAttribute('required', isAwaMainSelected);
-    if (isAwaMainSelected && awaStepsValue && options.includes(awaStepsValue)) {
+    awaStepsSelect.disabled = false;
+    awaStepsSelect.setAttribute('required', 'required');
+
+    if (awaStepsValue && options.includes(awaStepsValue)) {
         awaStepsSelect.value = awaStepsValue;
-    } else if (!isAwaMainSelected) {
-        awaStepsSelect.value = '';
     }
+    
     applyInitialRequiredHighlight();
     generateFinalNote();
 }
@@ -521,7 +520,7 @@ export function updateAwaAndSpeedFieldsVisibility(service) {
             if (group.id === 'awaAlertsContainer') {
                 config.state.awaAlertsSelected.clear();
                 _updateMultiSelectButtonLabel(dom.awaAlertsLabel, config.state.awaAlertsSelected, 'Select AWA alerts...');
-                Array.from(dom.awaAlertsOptionsList.children).forEach(opt => opt.classList.remove('selected'));
+                if(dom.awaAlertsOptionsList) Array.from(dom.awaAlertsOptionsList.children).forEach(opt => opt.classList.remove('selected'));
             } else { // Clear standard inputs/selects
                 group.querySelectorAll('input, select').forEach(input => {
                     if (input.type === 'checkbox' || input.type === 'radio') {
