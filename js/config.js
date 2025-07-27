@@ -17,7 +17,7 @@ export const TS_CHAR_RED_THRESHOLD = 985;
 export const AGENT_NAME_KEY = 'agentNameSaved';
 export const APP_VERSION_KEY = 'appVersion';
 export const SERVICES_TO_HIDE_PHYSICAL_CHECK = [
-    'Telus Email', 'MyTelus', 'TOS', 'Telus Connect App', 'Living Well Companion', 'Other', 'HomePhone / Copper'
+    'Telus Email', 'MyTelus', 'TOS', 'Telus Connect App', 'Living Well Companion', 'SHS ADT / Acquisition / Custom Home', 'Other', 'HomePhone / Copper'
 ];
 export const SERVICES_TO_HIDE_AWA_SPEED = [
     'HomePhone / Fiber', 'HomePhone / Copper', 'Telus Email', 'MyTelus', 'TOS', 'Telus Connect App', 'Living Well Companion', 'Other'
@@ -41,6 +41,9 @@ export let state = {
     resolveConfirmPromise: null,
     isAgentNameEditable: false,
     awaitingChecklistCompletionForCopySave: false,
+    // State for new multi-selects
+    awaAlertsSelected: new Set(),
+    extraStepsSelected: new Set(),
 };
 
 
@@ -78,9 +81,7 @@ export const fieldConfig = {
     'packetLossSelect': { label: 'PACKET LOSS', required: true, type: 'select', conditional: true },
     'additionalinfoText': { label: 'ADDITIONAL INFO', required: false, type: 'textarea' },
     'troubleshootingProcessText': { label: 'TS STEPS', required: true, type: 'textarea' },
-    'awaAlertsSelect': { label: 'AWA ALERTS', required: true, type: 'select' },
-    'awaAlerts2Select': { label: 'AWA ALERTS 2', required: false, type: 'select', conditional: true },
-    'enableAwaAlerts2': { label: 'Enable AWA 2', required: false, type: 'checkbox' },
+    'awaAlertsContainer': { label: 'AWA ALERTS', required: true, type: 'multiselect' },
     'awaStepsSelect': { label: 'AWA STEPS', required: false, type: 'select', conditional: true },
     'activeDevicesInput': { label: 'ACTIVE DEVICES', required: false, type: 'text' },
     'totalDevicesInput': { label: 'TOTAL DEVICES', required: false, type: 'text' },
@@ -90,8 +91,7 @@ export const fieldConfig = {
     'uploadAfterInput': { label: 'UP AFTER', required: false, type: 'text' },
     'tvsSelect': { label: 'TVS', required: true, type: 'select' },
     'tvsKeyInput': { label: 'TVS KEY', required: true, type: 'text', conditional: true },
-    'extraStepsSelect': { label: 'EXTRA STEPS', required: false, type: 'select' },
-    'extraStepsSelect2': { label: 'EXTRA STEPS 2', required: false, type: 'select' },
+    'extraStepsContainer': { label: 'EXTRA STEPS', required: false, type: 'multiselect' },
     'resolvedSelect': { label: 'RESOLVED', required: true, type: 'select' },
     'transferCheckbox': { label: 'Transfer Checkbox', required: false, type: 'checkbox' },
     'transferSelect': { label: 'TRANSFER', required: true, type: 'select', conditional: true },
@@ -144,8 +144,8 @@ export const equipmentOptions = {
         list2: ['Power NOT connected', 'Power connected / NO LIGHTS', 'Power connected properly / Powered ON', 'Power connected properly / In Stanby', 'Power connected properly / Not Reachable'],
         list3: ['Connected WIRELES', 'Connected WIRED to T3200', 'C onnected WIRED to Extender', 'Connected WIRED to TWH', 'Connected WIRED to NAH', 'Connected WIRED to BW6', 'Connected WIRED to WallJack', 'Connected WIRED to MoCa', 'Connected WIRED to Ethernet Splitter', 'Non Wired / Wireless connection'],
         list4: ['HDMI connected / Input selected properly', 'HDMI connected / wrong Input selected'],
-        list5: ['Not Available', 'No Error Found', 'Minor Errors Found', 'Major Errors Found', 'Critical Errors Found'],
-        list6: ['Not Available', 'No Packet Loss', 'A Few Packet Loss', 'Some Packet Loss', 'Too Many Packet Loss']
+        list5: ['Not Available', 'No Error Found', 'Critical Errors Found', 'Major Errors Found', 'Minor Errors Found'],
+        list6: ['Not Available', 'No Packet Loss', 'A Few Packet Loss', 'Some Packet Loss', 'Too Many Packet']
     },
     'Optik TV (Evo)': {
         list1: ['Telus TV-21T', 'Telus TV-24S'],
@@ -181,10 +181,14 @@ export const physicalCheckLabels = {
     'Other': { list1: 'Customer Equipment', list2: 'No Specific Equipment', list3: '', list4: '' }
 };
 
-export const awaAlertsOptionsFFH = ['N/A', 'No Errors / Alerts Found on AWA', 'AWA not available / nonexistent', 'Unable to get AWA. Modem not managed by HDM', 'Unable to get AWA. ONT Not ranged', 'Unable to get AWA. Cx using third party Gateway', 'Unable to get AWA. No sync on Modem', 'Broadband DOWNSTREAM congestion (cx using more than 80% of the speed plan)', 'Broadband UPSTREAM congestion (cx using more than 80% of the speed plan)', 'Average Wi-Fi speed is slower than the Broadband for many devices connected'];
-export const awaAlerts2OptionsFFH = ['Occasional Slowspeed in ONE device', 'Occasional Slowspeed in some devices', 'Occasional Disconnections in ONE device', 'Occasional Disconnections in some devices', 'Devices operating in legacy WiFi Mode', 'Multiple gateway/modem reboots', 'Password problems', 'Low-memory issues detected in the router', 'High number of devices connected detected', 'The gateways has been disconnecting from the service provider network (PPP down)'];
-export const awaAlertsOptionsSHS = ['No Active Trouble Conditions', 'Dual Path Communication Failure', 'Radio Not Responding', 'AC Power Failure', 'Customer NOT Arming system from app (past 2 weeks)'];
-export const awaAlerts2OptionsSHS = ['No Errors Found', 'Sensor Low Battery', 'Panel Low Battery', 'Device Low Battery', 'Tamper Alert', 'Device Bypassed', 'IDLE'];
+export const allAwaAlertsOptionsFFH = [
+    'N/A', 'No Errors / Alerts Found on AWA', 'AWA not available / nonexistent', 'Unable to get AWA. Modem not managed by HDM', 'Unable to get AWA. ONT Not ranged', 'Unable to get AWA. Cx using third party Gateway', 'Unable to get AWA. No sync on Modem', 'Broadband DOWNSTREAM congestion (cx using more than 80% of the speed plan)', 'Broadband UPSTREAM congestion (cx using more than 80% of the speed plan)', 'Average Wi-Fi speed is slower than the Broadband for many devices connected',
+    'Occasional Slowspeed in ONE device', 'Occasional Slowspeed in some devices', 'Occasional Disconnections in ONE device', 'Occasional Disconnections in some devices', 'Devices operating in legacy WiFi Mode', 'Multiple gateway/modem reboots', 'Password problems', 'Low-memory issues detected in the router', 'High number of devices connected detected', 'The gateways has been disconnecting from the service provider network (PPP down)'
+];
+export const allAwaAlertsOptionsSHS = [
+    'No Active Trouble Conditions', 'Dual Path Communication Failure', 'Radio Not Responding', 'AC Power Failure', 'Customer NOT Arming system from app (past 2 weeks)',
+    'No Errors Found', 'Sensor Low Battery', 'Panel Low Battery', 'Device Low Battery', 'Tamper Alert', 'Device Bypassed', 'IDLE'
+];
 export const awaStepsOptionsFFH = ['Advice cx about AWA alerts but is not facing the problems so far. (everything working fine on their end). No TS needed/performed about this', 'Advice cx about issues but cx dont want to troubheshoot this now', 'Inform cx about the problem. Offer WiFi Plus and cx refuses for now, but he will think about the feature', 'Inform cx about the problem. Cx already paying for Wifi Plus. No actions taken', 'Advice cx about issues. Most likely this alerts are causing the problem. Proceed with troubleshooting for the AWA alerts', 'Advice cx about the problem. Suggest internet plan speed upgrade or disconnect some devices from network', 'Advice cx about the problem. Suggest internet plan speed upgrade or disconnect some devices from network. Cx will take a look at that later. No TS performed'];
 export const awaStepsOptionsSHS = ['Device not Responding', 'Video Quota Exceeded', 'Video Rule not configured', 'Video Device - No DDNS Messages', 'Malfunction (Z-Wave)', 'Malfunction (Sensor)', 'Malfunction (LiftMaster)'];
 export const extraStepsOptions = ['Advice cx about new equipment delivery (3 to 5 business days)', 'Provide instructions for the installation of new equipment | Use go/send to share "How to" video/Instructions', 'Inform about the Equipment Return process | Share instructions with go/send', 'Use go/send to share PIN reset instructions', 'Use go/send to share "How To" video / Instructions', 'Perform a consultation with PIWS based on workflow suggestion', 'Fill the Connect APP Feedback. Advice cx about 7 to 10 days waiting time for the response. Share instructions to try again in the next 7 days. '];
@@ -202,6 +206,7 @@ export const issueOptions = {
     'TOS': ['Unable to Login', 'Not Active', 'Upgrade Subscription'],
     'Telus Connect App': ['Login Issues', 'Missing Equipment', 'Feature Issue'],
     'SHS Legacy': ['Login / Password Issues', 'WebPage Portal Portal Issues', 'APP Issues', 'General Issues', 'Main Panel', 'Secondary Panel', 'Door / Window Sensor', 'Motion Sensor', 'Smoke Detector', 'CO Detector', 'Glass Break Detector', 'Thermostat', 'InDoor Camera', 'OutDoor Camera', 'Doorbell Camera', 'DoorLock', 'Garage Door Controller', 'Smart Automation Devices', 'CMS inquiry', 'Wi-Fi Issues'],
+    'SHS ADT / Acquisition / Custom Home': ['No issues provided for this category'],
     'Living Well Companion': ['Base Not Working', 'Pendant Not Working', 'Emergency Contacts', 'LWC Apple Watch APP', 'Self Install Inquiries', 'CMS ACCOUNT NUMBER'],
     'Other': ['Billing Issues', 'IPD Suspension', 'Ghost Call', 'Where is my Tech?', 'Same Day Appointment Cancell', 'Where is my equipment?']
 };
