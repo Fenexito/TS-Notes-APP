@@ -232,6 +232,7 @@ function addGlobalListeners() {
         const clearAllDropdownsAndOverflows = () => {
             document.querySelectorAll('.custom-select-options-container').forEach(c => {
                 c.style.display = 'none';
+                c.classList.remove('opens-up'); // Remove drop-up class on close
             });
             document.querySelectorAll('.section-content.overflow-visible').forEach(sec => {
                 sec.classList.remove('overflow-visible');
@@ -248,7 +249,24 @@ function addGlobalListeners() {
                 clearAllDropdownsAndOverflows();
 
                 if (!isVisible) {
-                    // If the dropdown was closed, open it and set overflow on its parent section
+                    // Temporarily show the container to measure its height for positioning logic
+                    optionsContainer.style.visibility = 'hidden';
+                    optionsContainer.style.display = 'block';
+                    const optionsHeight = optionsContainer.offsetHeight;
+                    optionsContainer.style.display = 'none';
+                    optionsContainer.style.visibility = 'visible';
+
+                    const buttonRect = multiSelectButton.getBoundingClientRect();
+                    const spaceBelow = window.innerHeight - buttonRect.bottom;
+
+                    // Decide direction: open up if not enough space below AND there is enough space above
+                    if (spaceBelow < optionsHeight && buttonRect.top > optionsHeight) {
+                        optionsContainer.classList.add('opens-up');
+                    } else {
+                        optionsContainer.classList.remove('opens-up');
+                    }
+                    
+                    // Finally, display the dropdown and set overflow on its parent section
                     optionsContainer.style.display = 'block';
                     const parentSectionContent = optionsContainer.closest('.section-content');
                     if (parentSectionContent) {
@@ -267,7 +285,7 @@ function addGlobalListeners() {
             } else if (container.id === 'extraStepsContainer') {
                 handleMultiSelectOptionClick(optionElement, state.extraStepsSelected, dom.extraStepsLabel, 'Select extra steps...');
             }
-            return; // Keep dropdown open after selection, as per original behavior
+            return; // Keep dropdown open after selection
         }
 
         // Close dropdowns if click is outside
