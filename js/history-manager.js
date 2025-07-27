@@ -10,7 +10,7 @@ import { db, saveAgentNameToDB, loadAgentNameFromDB, saveNoteToDB, loadAllNotesF
 import { showToast, customConfirm, copyToClipboard } from './ui-helpers.js';
 import { generateFinalNote, noteBuilder } from './note-builder.js';
 import { viewNoteInModal, closeModal, unhighlightAllNotes, showSidebarAndHighlightNote, hideSidebar, updateLatestNoteOverlay, openInfoOverlay, closeInfoOverlay, handleSeparateNote } from './modal-manager.js';
-import { setAgentNameEditable, setAgentNameReadonly, clearAllFormFields, checkCurrentFormHasData, updateThirdRowLayout, populateIssueSelect, updateAffectedFieldVisibilityAndLabel, _populatePhysicalCheckListLabelsAndOptions, _updatePhysicalCheckListEnablement, updateOptikTvLegacySpecificFields, _populateAwaAlertsOptions, updateAwaAlerts2SelectState, updateAwaStepsSelectState, updateTvsKeyFieldState, updateTransferFieldState, updateTechFieldsVisibilityAndState, applyInitialRequiredHighlight } from './ui-manager.js';
+import { setAgentNameEditable, setAgentNameReadonly, clearAllFormFields, checkCurrentFormHasData, updateThirdRowLayout, populateIssueSelect, updateAffectedFieldVisibilityAndLabel, _populatePhysicalCheckListLabelsAndOptions, _updatePhysicalCheckListEnablement, updateOptikTvLegacySpecificFields, populateAwaAlertsComponent, updateAwaStepsSelectState, updateTvsKeyFieldState, updateTransferFieldState, updateTechFieldsVisibilityAndState, applyInitialRequiredHighlight, populateExtraStepsComponent } from './ui-manager.js';
 
 // --- Funciones de Copiado Especializadas ---
 
@@ -78,14 +78,17 @@ function validateRequiredFields() {
         const element = dom[fieldId] || document.getElementById(fieldId);
         
         if (config.required && element) {
-            const container = element.closest('.input-group, .radio-group');
-            const isHidden = (container && (container.classList.contains('hidden-field'))) || element.disabled;
+            const isHidden = element.classList.contains('hidden-field') || element.closest('.hidden-field') || element.disabled;
             
             if (!isHidden) {
                 const value = noteBuilder._getFieldValue(fieldId);
-                if (value === '' || (element.tagName === 'SELECT' && value === '')) {
-                    return false;
+                let isMissing = false;
+                if (Array.isArray(value)) {
+                    isMissing = value.length === 0;
+                } else {
+                    isMissing = value === '' || (element.tagName === 'SELECT' && value === '');
                 }
+                if (isMissing) return false;
             }
         }
     }
@@ -134,7 +137,13 @@ export async function saveCurrentNote() {
     const formData = {};
     const formElements = dom.callNoteForm.elements;
 
+    // Save multi-select values
+    formData['awaAlertsContainer'] = Array.from(state.awaAlertsSelected);
+    formData['extraStepsContainer'] = Array.from(state.extraStepsSelected);
+
     for (const element of Array.from(formElements)) {
+        if (element.closest('.custom-select-container')) continue; // Skip elements within custom selects
+
         const id = element.id;
         const name = element.name;
         const type = element.type;
@@ -222,7 +231,6 @@ export async function loadNotes() {
     dom.noNotesMessage.classList.toggle('hidden-field', notes.length > 0);
     if (notes.length === 0) return;
 
-    // --- NUEVA LÓGICA DE AGRUPACIÓN ---
     const now = new Date();
     now.setHours(now.getHours() - 6);
     const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -244,14 +252,12 @@ export async function loadNotes() {
     sortedMonths.forEach(monthKey => {
         const daysInMonth = notesByMonth[monthKey];
         if (monthKey === currentMonthKey) {
-            // Para el mes actual, renderizar días directamente
             Object.keys(daysInMonth).sort((a, b) => new Date(b) - new Date(a)).forEach(dateKey => {
                 const notesForDay = daysInMonth[dateKey];
-                const groupEl = createDateGroupElement(dateKey, notesForDay, false); // No colapsado por defecto
+                const groupEl = createDateGroupElement(dateKey, notesForDay, false);
                 dom.noteHistoryList.appendChild(groupEl);
             });
         } else {
-            // Para meses pasados, renderizar un grupo de mes colapsable
             const monthGroupEl = createMonthGroupElement(monthKey, daysInMonth);
             dom.noteHistoryList.appendChild(monthGroupEl);
         }
@@ -272,7 +278,7 @@ function createMonthGroupElement(monthKey, daysInMonth) {
     let dayGroupsHTML = '';
     Object.keys(daysInMonth).sort((a, b) => new Date(b) - new Date(a)).forEach(dateKey => {
         const notesForDay = daysInMonth[dateKey];
-        const dayGroupElement = createDateGroupElement(dateKey, notesForDay, true); // Colapsado por defecto
+        const dayGroupElement = createDateGroupElement(dateKey, notesForDay, true);
         dayGroupsHTML += dayGroupElement.outerHTML;
     });
 
@@ -470,6 +476,10 @@ export async function editNote(formData, originalNoteId) {
     state.currentlyViewedNoteData = null;
     clearAllFormFields(true); 
 
+    // Populate multi-selects first
+    populateAwaAlertsComponent(formData.skill === 'SHS' ? 'SHS' : 'FFH', formData.awaAlertsContainer);
+    populateExtraStepsComponent(formData.extraStepsContainer);
+
     if (dom.skillToggle) {
         dom.skillToggle.checked = (formData.skill === 'SHS');
     }
@@ -477,11 +487,12 @@ export async function editNote(formData, originalNoteId) {
         dom.serviceSelect.value = formData.serviceSelect || '';
     }
     populateIssueSelect(formData.serviceSelect, formData.issueSelect);
-    _populateAwaAlertsOptions(formData.skill === 'SHS' ? 'SHS' : 'FFH', formData.awaAlertsSelect);
     _populatePhysicalCheckListLabelsAndOptions(formData.serviceSelect, '', '', '', '', formData.issueSelect);
 
     Object.keys(formData).forEach(key => {
         const value = formData[key];
+        if (key === 'awaAlertsContainer' || key === 'extraStepsContainer') return;
+
         const element = get(key) || dom[key];
 
         if (element) {
@@ -518,7 +529,6 @@ export async function editNote(formData, originalNoteId) {
     updateTechFieldsVisibilityAndState(formData.resolvedSelect, formData.cbr2Input, formData.aocInput, formData.dispatchDateInput, formData.dispatchTimeSlotSelect);
     
     _updatePhysicalCheckListEnablement(formData.serviceSelect, formData.enablePhysicalCheck2, formData.enablePhysicalCheck3, formData.enablePhysicalCheck4);
-    updateAwaAlerts2SelectState(formData.enableAwaAlerts2, formData.awaAlerts2Select);
     updateAwaStepsSelectState(formData.awaStepsSelect);
     updateTransferFieldState(formData.transferCheckbox, formData.transferSelect);
 
@@ -681,18 +691,12 @@ export async function saveAgentName() {
     generateFinalNote();
 }
 
-/**
- * Manages the display and logic of the welcome modal.
- * This function now returns a Promise that resolves with a boolean indicating
- * if the user is new (true) or returning (false).
- */
 export function handleWelcomeModal() {
     return new Promise(async (resolve) => {
         const agentNameRecord = await loadAgentNameFromDB();
         const agentName = agentNameRecord ? agentNameRecord.value : null;
 
         if (!agentName) {
-            // --- First visit logic: Show the modal ---
             const appVersion = `version: ${localStorage.getItem(APP_VERSION_KEY) || 'v?.?.?'}`;
             const startBtn = dom.startTakingNotesBtn;
 
@@ -722,7 +726,7 @@ export function handleWelcomeModal() {
                     dom.agentNameInput.value = nameInput.value.trim();
                     setAgentNameReadonly();
                     dom.welcomeModalOverlay.classList.remove('is-visible');
-                    resolve(true); // Resolve as a NEW user
+                    resolve(true);
                 } else {
                     showToast('Please enter your name.', 'warning');
                     nameInput.focus();
@@ -734,10 +738,9 @@ export function handleWelcomeModal() {
             dom.welcomeAgentNameInput.focus();
 
         } else {
-            // --- Returning user logic: Do not show the modal ---
             dom.agentNameInput.value = agentName;
             setAgentNameReadonly();
-            resolve(false); // Resolve as a RETURNING user immediately
+            resolve(false);
         }
     });
 }
