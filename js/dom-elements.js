@@ -48,11 +48,14 @@ export const dom = {
     optikTvLegacySpecificFieldsContainer: get('optikTvLegacySpecificFields'),
     xVuStatusSelect: get('xVuStatusSelect'),
     packetLossSelect: get('packetLossSelect'),
-    awaAlertsSelect: get('awaAlertsSelect'),
-    awaAlerts2Select: get('awaAlerts2Select'),
-    enableAwaAlerts2: get('enableAwaAlerts2'),
-    awaAlertsSelectLabel: query('label[for="awaAlertsSelect"]'),
-    awaAlerts2SelectLabel: query('label[for="awaAlerts2Select"]'),
+
+    // AWA MultiSelect Elements
+    awaAlertsContainer: get('awaAlertsContainer'),
+    awaAlertsButton: get('awaAlertsButton'),
+    awaAlertsLabel: get('awaAlertsLabel'),
+    awaAlertsOptionsContainer: get('awaAlertsOptionsContainer'),
+    awaAlertsOptionsList: get('awaAlertsOptionsList'),
+
     awaStepsSelect: get('awaStepsSelect'),
     awaStepsSelectLabel: query('label[for="awaStepsSelect"]'),
     activeDevicesInput: get('activeDevicesInput'),
@@ -70,8 +73,14 @@ export const dom = {
     tvsSelect: get('tvsSelect'),
     tvsKeyInput: get('tvsKeyInput'),
     tvsKeyFieldContainer: get('tvsKeyFieldContainer'),
-    extraStepsSelect: get('extraStepsSelect'),
-    extraStepsSelect2: get('extraStepsSelect2'),
+
+    // Extra Steps MultiSelect Elements
+    extraStepsContainer: get('extraStepsContainer'),
+    extraStepsButton: get('extraStepsButton'),
+    extraStepsLabel: get('extraStepsLabel'),
+    extraStepsOptionsContainer: get('extraStepsOptionsContainer'),
+    extraStepsOptionsList: get('extraStepsOptionsList'),
+
     resolvedSelect: get('resolvedSelect'),
     transferCheckbox: get('transferCheckbox'),
     transferSelect: get('transferSelect'),
