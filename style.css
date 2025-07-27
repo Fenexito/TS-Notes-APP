@@ -2269,7 +2269,7 @@ input:checked + .theme-slider:before {
     text-align: left;
     cursor: pointer;
     transition: border-color 0.2s ease, background-color 0.3s ease, color 0.3s ease;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* MODIFICADO: Fuente explícita */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .custom-select-button:disabled {
@@ -2310,6 +2310,13 @@ input:checked + .theme-slider:before {
     box-shadow: 0 4px 8px var(--shadow-primary);
 }
 
+/* MODIFICADO: Estilo para desplegar hacia arriba */
+.custom-select-options-container.opens-up {
+    bottom: 100%;
+    margin-top: 0;
+    margin-bottom: 2px;
+}
+
 .custom-select-option {
     display: flex;
     align-items: center;
@@ -2318,7 +2325,7 @@ input:checked + .theme-slider:before {
     font-size: 0.75em;
     transition: background-color 0.2s ease;
     user-select: none;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* MODIFICADO: Fuente explícita */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .custom-select-option:hover {
