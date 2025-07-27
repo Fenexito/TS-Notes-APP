@@ -2310,9 +2310,9 @@ input:checked + .theme-slider:before {
 .custom-select-option {
     display: flex;
     align-items: center;
-    padding: 6px 8px;
+    padding: 5px 8px; /* MODIFICADO: Ajuste de espaciado */
     cursor: pointer;
-    font-size: 0.8em;
+    font-size: 0.75em; /* MODIFICADO: Mismo tamaño de fuente que los inputs normales */
     transition: background-color 0.2s ease;
     user-select: none;
 }
@@ -2324,14 +2324,14 @@ input:checked + .theme-slider:before {
 .custom-select-option .option-icon {
     display: none;
     margin-right: 8px;
-    color: var(--text-multiselect-selected);
+    color: var(--accent-primary); /* MODIFICADO: Color del checkmark */
     flex-shrink: 0;
 }
 
 .custom-select-option.selected {
     background-color: var(--bg-multiselect-selected);
-    color: var(--text-multiselect-selected);
-    font-weight: 600;
+    color: var(--text-primary); /* MODIFICADO: Mismo color de texto que las opciones no seleccionadas */
+    /* MODIFICADO: Se elimina la negrita */
 }
 
 .custom-select-option.selected .option-icon {
