@@ -68,6 +68,7 @@ export const fieldConfig = {
     'skillToggle': { label: 'SKILL', required: true, type: 'checkbox' },
     'serviceSelect': { label: 'SERVICE', required: true, type: 'select' },
     'issueSelect': { label: 'WORKFLOW', required: true, type: 'select' },
+    'outageInfoText': { label: 'OUTAGE INFO', required: true, type: 'textarea', conditional: true },
     'cxIssueText': { label: 'CX ISSUE', required: true, type: 'textarea' },
     'affectedText': { label: 'AFFECTED', required: false, type: 'textarea', conditional: true },
     'physicalCheckList1Select': { label: 'ONT/GATEWAY', required: true, type: 'select' },
