@@ -147,7 +147,7 @@ export function populateIssueSelect(service, selectedIssue = '') {
 }
 
 export function updateAffectedFieldVisibilityAndLabel(service, affectedTextValue = '') {
-    if (!dom.affectedLabel || !dom.affectedText || !dom.affectedTextGroup || !dom.serviceAffectedRow) return;
+    if (!dom.affectedLabel || !dom.affectedText || !dom.affectedTextGroup) return;
 
     const servicesToShowField = ['HomePhone / Fiber', 'HomePhone / Copper', 'Telus Email', 'MyTelus'];
     const isVisible = servicesToShowField.includes(service);
@@ -170,15 +170,8 @@ export function updateAffectedFieldVisibilityAndLabel(service, affectedTextValue
 
     dom.affectedLabel.textContent = affectedLabelText;
 
-    if (isVisible) {
-        dom.affectedTextGroup.style.display = 'flex';
-        dom.serviceAffectedRow.classList.add('has-affected');
-        dom.affectedText.setAttribute('required', 'required');
-    } else {
-        dom.affectedTextGroup.style.display = 'none';
-        dom.serviceAffectedRow.classList.remove('has-affected');
-        dom.affectedText.removeAttribute('required');
-    }
+    dom.affectedTextGroup.classList.toggle('hidden-field', !isVisible);
+    dom.affectedText.toggleAttribute('required', isVisible);
 
     if (isVisible && config.state.isEditingNoteFlag) {
         dom.affectedText.value = affectedTextValue;
@@ -189,6 +182,28 @@ export function updateAffectedFieldVisibilityAndLabel(service, affectedTextValue
     applyInitialRequiredHighlight();
     generateFinalNote();
 }
+
+// NUEVA FUNCIÓN: Controla la visibilidad del campo de información de outage
+export function updateOutageInfoVisibility(outageValue = null, outageInfoValue = '') {
+    const { outageInfoGroup, outageInfoText } = dom;
+    if (!outageInfoGroup || !outageInfoText) return;
+
+    const currentOutageValue = outageValue ?? noteBuilder._getFieldValue('outage');
+    const showInfo = currentOutageValue === 'yes';
+
+    outageInfoGroup.classList.toggle('hidden-field', !showInfo);
+    outageInfoText.toggleAttribute('required', showInfo);
+
+    if (showInfo && config.state.isEditingNoteFlag) {
+        outageInfoText.value = outageInfoValue;
+    } else if (!showInfo) {
+        outageInfoText.value = '';
+    }
+    
+    applyInitialRequiredHighlight();
+    generateFinalNote();
+}
+
 
 export function _populatePhysicalCheckListLabelsAndOptions(service, phys1Value = '', phys2Value = '', phys3Value = '', phys4Value = '', selectedIssueFromForm = '') {
     const listsData = [
@@ -588,6 +603,7 @@ export function clearAllFormFields(isForEdit = false) {
         updateTvsKeyFieldState();
         updateTransferFieldState(false);
         updateTechFieldsVisibilityAndState('');
+        updateOutageInfoVisibility('no'); // Ocultar campo de outage al limpiar
     }
     
     generateFinalNote();
@@ -619,7 +635,7 @@ export function cleanSection(sectionId) {
         if (!input.disabled) input.checked = false;
     });
 
-    section.querySelectorAll('select, input[type="checkbox"]').forEach(el => {
+    section.querySelectorAll('select, input[type="checkbox"], input[type="radio"]').forEach(el => {
         el.dispatchEvent(new Event('change', { bubbles: true }));
     });
     
