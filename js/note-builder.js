@@ -80,9 +80,18 @@ const _buildSection1Content = (sourceData = null) => {
 const _buildSection2InitialContent = (sourceData = null) => {
     const parts = [];
     if (_getFieldValue('serviceOnCsr', sourceData)) parts.push(`SERVICE ON CSR: ${_getFieldValue('serviceOnCsr', sourceData)}`);
-    const outageValue = _getFieldValue('outage', sourceData);
-    if (outageValue === 'yes') parts.push('OUTAGE: Active Outage affecting services');
-    else if (outageValue === 'no') parts.push('OUTAGE: No Active Outage');
+    
+    const outageValue = _getFieldValue('outage', sourceData);
+    if (outageValue === 'yes') {
+        parts.push('OUTAGE: Active Outage affecting services');
+        const outageInfo = _getFieldValue('outageInfoText', sourceData);
+        if (outageInfo) {
+            parts.push(`OUTAGE INFO: ${outageInfo}`);
+        }
+    } else if (outageValue === 'no') {
+        parts.push('OUTAGE: No Active Outage');
+    }
+
     const errorsInNCValue = _getFieldValue('errorsInNC', sourceData);
     if (errorsInNCValue === 'yes') parts.push('NC: ERROR FOUND in NetCracker');
     else if (errorsInNCValue === 'no') parts.push('NC: No Errors in NetCracker');
