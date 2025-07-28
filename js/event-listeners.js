@@ -6,7 +6,7 @@
 import { dom } from './dom-elements.js';
 import { state, numericFields } from './config.js';
 import { saveCurrentNote, loadNotes, exportNotes, importNotes, saveAgentName, editNote, handleResolutionCopy, handleCopilotCopy, filterNotes, addEventListenersToHistoryItems } from './history-manager.js';
-import { clearAllFormFields, checkCurrentFormHasData, updateThirdRowLayout, populateIssueSelect, updateAffectedFieldVisibilityAndLabel, _populatePhysicalCheckListLabelsAndOptions, _updatePhysicalCheckListEnablement, updateOptikTvLegacySpecificFields, updateAwaStepsSelectState, updateTvsKeyFieldState, updateTransferFieldState, updateTechFieldsVisibilityAndState, handleSkillChange, setAgentNameEditable, cleanSection, updateStickyHeaderInfo, updateAwaAndSpeedFieldsVisibility, applyInitialRequiredHighlight, handleMultiSelectOptionClick } from './ui-manager.js';
+import { clearAllFormFields, checkCurrentFormHasData, updateThirdRowLayout, populateIssueSelect, updateAffectedFieldVisibilityAndLabel, _populatePhysicalCheckListLabelsAndOptions, _updatePhysicalCheckListEnablement, updateOptikTvLegacySpecificFields, updateAwaStepsSelectState, updateTvsKeyFieldState, updateTransferFieldState, updateTechFieldsVisibilityAndState, handleSkillChange, setAgentNameEditable, cleanSection, updateStickyHeaderInfo, updateAwaAndSpeedFieldsVisibility, applyInitialRequiredHighlight, handleMultiSelectOptionClick, updateOutageInfoVisibility } from './ui-manager.js';
 import { showToast, customConfirm, copyToClipboard } from './ui-helpers.js';
 import { generateFinalNote } from './note-builder.js';
 import { viewNoteInModal, closeModal, closeSeparateModal, hideSidebar, handleSeparateNote } from './modal-manager.js';
@@ -67,6 +67,11 @@ function addFormAndFieldListeners() {
 
     dom.callerSelect.addEventListener('change', () => updateThirdRowLayout());
     
+    // MODIFICADO: Añadido listener para el grupo de radio buttons de Outage
+    dom.outageRadioGroupElements.forEach(radio => {
+        radio.addEventListener('change', () => updateOutageInfoVisibility());
+    });
+
     dom.serviceSelect.addEventListener('change', () => {
         const service = dom.serviceSelect.value;
         populateIssueSelect(service);
@@ -92,7 +97,7 @@ function addFormAndFieldListeners() {
     dom.resolvedSelect.addEventListener('change', () => {
         const resolvedValue = dom.resolvedSelect.value;
         updateTechFieldsVisibilityAndState(resolvedValue);
-        dom.transferCheckbox.checked = (resolvedValue === 'Cx need to be transferred');
+        dom.transferCheckbox.checked = (resolvedValue === 'Cx need to be transfered');
         updateTransferFieldState(dom.transferCheckbox.checked);
     });
     
@@ -223,14 +228,13 @@ function addModalAndSidebarListeners() {
 
 function addGlobalListeners() {
     document.body.addEventListener('click', (event) => {
-        // --- Multi-Select Logic (MODIFICADO) ---
+        // --- Multi-Select Logic ---
         const multiSelectButton = event.target.closest('.custom-select-button');
 
-        // Helper function to close all dropdowns and remove overflow visibility class
         const clearAllDropdownsAndOverflows = () => {
             document.querySelectorAll('.custom-select-options-container').forEach(c => {
                 c.style.display = 'none';
-                c.classList.remove('opens-up'); // Remove drop-up class on close
+                c.classList.remove('opens-up');
             });
             document.querySelectorAll('.section-content.overflow-visible').forEach(sec => {
                 sec.classList.remove('overflow-visible');
@@ -243,11 +247,9 @@ function addGlobalListeners() {
             if (optionsContainer) {
                 const isVisible = optionsContainer.style.display === 'block';
                 
-                // Close all dropdowns and clear overflows before proceeding
                 clearAllDropdownsAndOverflows();
 
                 if (!isVisible) {
-                    // Temporarily show the container to measure its height for positioning logic
                     optionsContainer.style.visibility = 'hidden';
                     optionsContainer.style.display = 'block';
                     const optionsHeight = optionsContainer.offsetHeight;
@@ -257,14 +259,12 @@ function addGlobalListeners() {
                     const buttonRect = multiSelectButton.getBoundingClientRect();
                     const spaceBelow = window.innerHeight - buttonRect.bottom;
 
-                    // Decide direction: open up if not enough space below AND there is enough space above
                     if (spaceBelow < optionsHeight && buttonRect.top > optionsHeight) {
                         optionsContainer.classList.add('opens-up');
                     } else {
                         optionsContainer.classList.remove('opens-up');
                     }
                     
-                    // Finally, display the dropdown and set overflow on its parent section
                     optionsContainer.style.display = 'block';
                     const parentSectionContent = optionsContainer.closest('.section-content');
                     if (parentSectionContent) {
@@ -283,10 +283,9 @@ function addGlobalListeners() {
             } else if (container.id === 'extraStepsContainer') {
                 handleMultiSelectOptionClick(optionElement, state.extraStepsSelected, dom.extraStepsLabel, 'Select extra steps...');
             }
-            return; // Keep dropdown open after selection
+            return;
         }
 
-        // Close dropdowns if click is outside
         if (!event.target.closest('.custom-select-container')) {
             clearAllDropdownsAndOverflows();
         }
