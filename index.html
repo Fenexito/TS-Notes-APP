@@ -184,7 +184,7 @@
                                 </div>
                             </div>
                             <div class="input-group radio-group" id="errorsInNCRadioGroup">
-                                <label>NetCracker</label>
+                                <label>NetCracker Error</label>
                                 <div class="radio-options">
                                     <input type="radio" id="errorsInNCYes" name="errorsInNC" value="yes">
                                     <label for="errorsInNCYes">Yes</label>
@@ -252,10 +252,15 @@
                                 <textarea id="additionalinfoText" name="additionalinfoText" rows="4" autocomplete="off"></textarea>
                             </div>
                         </div>
-                        <div class="input-row" id="affectedTextRow" style="display: none;">
-                            <div class="input-group full-width">
+                        <!-- MODIFICADO: Fila para campos dinámicos -->
+                        <div class="input-row" id="dynamicTextareaRow">
+                            <div class="input-group" id="affectedTextGroup" style="display: none;">
                                 <label for="affectedText" id="affectedLabel">AFFECTED</label>
                                 <textarea id="affectedText" name="affectedText" autocomplete="off"></textarea>
+                            </div>
+                            <div class="input-group hidden-field" id="outageInfoGroup">
+                                <label for="outageInfoText">OUTAGE INFO</label>
+                                <textarea id="outageInfoText" name="outageInfoText" autocomplete="off"></textarea>
                             </div>
                         </div>
                         <div class="input-row four-columns-layout" id="physicalCheckListsContainer">
@@ -333,7 +338,7 @@
                             <div class="input-group custom-select-container wide-column" id="awaAlertsContainer">
                                 <label for="awaAlertsButton">AWA ALERTS</label>
                                 <button type="button" id="awaAlertsButton" class="custom-select-button">
-                                    <span id="awaAlertsLabel">Select AWA alerts (Multiple Selection Available)</span>
+                                    <span id="awaAlertsLabel">Select AWA alerts...</span>
                                     <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                         <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                     </svg>
@@ -399,7 +404,7 @@
                             <div class="input-group custom-select-container" id="extraStepsContainer">
                                 <label for="extraStepsButton">EXTRA STEPS</label>
                                 <button type="button" id="extraStepsButton" class="custom-select-button">
-                                    <span id="extraStepsLabel">Select extra steps (Multiple Selection Available)</span>
+                                    <span id="extraStepsLabel">Select extra steps...</span>
                                      <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                         <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                     </svg>
@@ -425,15 +430,14 @@
                                 <select id="resolvedSelect" name="resolvedSelect" required>
                                     <option value="">Select an option</option>
                                     <option value="Yes | EOC">Yes | EOC</option>
-                                    <option value="No | Call Disconnected | VM Left">No | Call Disconnected | VM Left</option>
-                                    <option value="No | Call Disconnected | Unable to left VM">No | Call Disconnected | Unable to left VM</option>
+                                    <option value="No. Cx hang up">No. Cx hang up</option>
                                     <option value="No | Tech Booked">No | Tech Booked</option>
                                     <option value="No | Follow Up Required">No | Follow Up Required</option>
                                     <option value="No | Follow Up Required | Set SCB with FVA">No | Follow Up Required | Set SCB with FVA</option>
                                     <option value="No | BOSR Created">No | BOSR Created</option>
                                     <option value="No | NC Ticket Created">No | NC Ticket Created</option>
-                                    <option value="Cx ask for a Manager | Unable to de-escalate | Escalate to EMT">Cx ask for a Manager | Unable to de-escalate | Escalate to EMT</option>
-                                    <option value="Cx need to be transferred">Cx need to be transferred</option>
+                                    <option value="Cx ask for a Manager | Unable to de escalate. Manager still needed | Escalate to EMT">Cx ask for a Manager | Unable to de escalate. Manager still needed | Escalate to EMT</option>
+                                    <option value="Cx need to be transfered">Cx need to be transfered</option>
                                 </select>
                             </div>
                             <div class="input-group physical-check-item">
