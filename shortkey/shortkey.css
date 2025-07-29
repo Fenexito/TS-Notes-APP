@@ -1,0 +1,23 @@
+/*
+ * Estilos personalizados para el componente Shortkey.
+ * Puedes añadir o modificar estos estilos para que coincidan con el diseño de tu PWA.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.modal-overlay {
+    transition: opacity 0.3s ease;
+}
+
+.modal-container {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Estilos para la animación de entrada/salida del modal */
+#settingsModal.hidden .modal-container {
+    transform: scale(0.95);
+    opacity: 0;
+}
