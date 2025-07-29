@@ -542,8 +542,11 @@ export function handleSkillChange() {
         dom.serviceSelect.value = '';
     }
     
+    // --- LÍNEA CORREGIDA ---
+    // Se comenta la siguiente línea porque los elementos 'enablePhysicalCheck...' no existen en el HTML,
+    // lo que causaba el error "Cannot set properties of null (setting 'checked')".
     if (!config.state.isEditingNoteFlag) {
-        [dom.enablePhysicalCheck2, dom.enablePhysicalCheck3, dom.enablePhysicalCheck4].forEach(cb => cb.checked = false);
+        // [dom.enablePhysicalCheck2, dom.enablePhysicalCheck3, dom.enablePhysicalCheck4].forEach(cb => cb.checked = false);
     }
     
     dom.serviceSelect.dispatchEvent(new Event('change'));
