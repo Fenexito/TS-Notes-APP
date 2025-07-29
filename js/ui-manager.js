@@ -11,37 +11,17 @@ import { resetChecklist } from './checklist-manager.js';
 
 // --- Layout Adjustment ---
 function adjustLayouts() {
-    const { cxIssueText, errorInfoGroup, affectedTextGroup } = dom;
-    const cxIssueRow = document.getElementById('cx-issue-row');
-    if (!cxIssueRow || !cxIssueText || !errorInfoGroup || !affectedTextGroup) return;
+    const gridContainer = document.getElementById('section2-grid-container');
+    const { errorInfoGroup, affectedTextGroup } = dom;
+
+    if (!gridContainer || !errorInfoGroup || !affectedTextGroup) return;
 
     const isErrorInfoVisible = !errorInfoGroup.classList.contains('hidden-field');
     const isAffectedVisible = !affectedTextGroup.classList.contains('hidden-field');
     const isSideColumnVisible = isErrorInfoVisible || isAffectedVisible;
 
-    cxIssueRow.classList.toggle('is-split', isSideColumnVisible);
-    
-    if (isSideColumnVisible) {
-        // Calculate height of the side column to make CX ISSUE match
-        let totalHeight = 0;
-        const gap = 16; // 1rem gap
-
-        if (isErrorInfoVisible) {
-            totalHeight += errorInfoGroup.offsetHeight;
-        }
-        if (isAffectedVisible) {
-            totalHeight += affectedTextGroup.offsetHeight;
-        }
-        if (isErrorInfoVisible && isAffectedVisible) {
-            totalHeight += gap;
-        }
-        
-        cxIssueText.style.height = `${totalHeight}px`;
-
-    } else {
-        // Reset height when side column is hidden
-        cxIssueText.style.height = 'auto'; 
-    }
+    // This class will be used by the external CSS to change the grid layout
+    gridContainer.classList.toggle('side-info-visible', isSideColumnVisible);
 }
 
 
@@ -758,31 +738,7 @@ export function checkCurrentFormHasData() {
 }
 
 export function initialResizeTextareas() {
-    // This function is now modified to exclude textareas controlled by new CSS layouts.
-    document.querySelectorAll('textarea').forEach(el => {
-        if (!el || el.id === 'modalNoteTextarea') return;
-        
-        // Let CSS handle the height for these specific textareas
-        if (['cxIssueText', 'troubleshootingProcessText', 'additionalinfoText', 'affectedText', 'errorInfoText'].includes(el.id)) {
-            el.style.height = ''; // Let CSS take over
-            return;
-        };
-        
-        el.style.height = 'auto';
-        const computedStyle = window.getComputedStyle(el);
-        const minHeightPx = parseFloat(computedStyle.minHeight);
-        const maxHeightPx = parseFloat(computedStyle.maxHeight);
-        let targetHeight = el.scrollHeight;
-        if (targetHeight < minHeightPx) {
-            targetHeight = minHeightPx;
-        } else if (targetHeight > maxHeightPx) {
-            targetHeight = maxHeightPx;
-            el.style.overflowY = 'auto';
-        } else {
-            el.style.overflowY = 'hidden';
-        }
-        el.style.height = targetHeight + 'px';
-    });
+    // This function is now empty as the layout is controlled by CSS grid.
 }
 
 export function applyInitialRequiredHighlight() {
