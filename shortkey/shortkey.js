@@ -82,10 +82,15 @@ class Shortkey {
         const potentialShortcut = textBeforeCursor.substring(lastAtIndex + 1).toLowerCase();
         if (this._shortcuts.hasOwnProperty(potentialShortcut)) {
             event.preventDefault();
-            const expansion = this._shortcuts[potentialShortcut];
+            
+            // --- CAMBIO CLAVE: Se añade un espacio al final de la expansión ---
+            const expansion = this._shortcuts[potentialShortcut] + ' ';
+            
             const textAfterCursor = element.value.substring(cursorPosition);
             const newText = element.value.substring(0, lastAtIndex) + expansion + textAfterCursor;
             element.value = newText;
+            
+            // Se actualiza la posición del cursor para que quede después del espacio añadido.
             const newCursorPosition = lastAtIndex + expansion.length;
             element.selectionStart = element.selectionEnd = newCursorPosition;
         }
