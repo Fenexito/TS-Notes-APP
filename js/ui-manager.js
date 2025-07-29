@@ -188,13 +188,13 @@ export function updateErrorFieldsVisibility(errorValue = null, errorInfoValue = 
     if (!errorInfoGroup || !errorInfoText || !errorInfoLabel) return;
 
     const currentErrorValue = errorValue ?? noteBuilder._getFieldValue('errorSelect');
-    const showInfo = currentErrorValue === 'Active Outage' || currentErrorValue === 'Netcracker Error';
+    const showInfo = currentErrorValue === 'Active Outage affecting services' || currentErrorValue === 'Error Found in NetCracker';
 
     errorInfoGroup.classList.toggle('hidden-field', !showInfo);
     errorInfoText.toggleAttribute('required', showInfo);
 
     if (showInfo) {
-        errorInfoLabel.textContent = currentErrorValue === 'Active Outage' ? 'OUTAGE INFO' : 'NC INFO';
+        errorInfoLabel.textContent = currentErrorValue === 'Active Outage affecting services' ? 'OUTAGE INFO' : 'NC INFO';
         if (config.state.isEditingNoteFlag) {
             errorInfoText.value = errorInfoValue;
         }
@@ -211,7 +211,7 @@ export function updateSecurityQuestionsVisibility(verifiedByValue = null, securi
     if (!securityQuestionsContainer) return;
 
     const currentVerifiedBy = verifiedByValue ?? noteBuilder._getFieldValue('verifiedBy');
-    const showQuestions = currentVerifiedBy === 'Security Questions';
+    const showQuestions = currentVerifiedBy === 'Security Questions' || currentVerifiedBy === 'Manual Auth';
 
     securityQuestionsContainer.classList.toggle('hidden-field', !showQuestions);
     
@@ -540,12 +540,36 @@ export function handleSkillChange() {
 
 export function updateAwaAndSpeedFieldsVisibility(service) {
     const isSHS = dom.skillToggle.checked;
-    const shouldHideForService = config.SERVICES_TO_HIDE_AWA_SPEED.includes(service);
-    const shouldHide = isSHS || shouldHideForService;
+    
+    // Logic for AWA fields
+    const shouldHideAwaForService = config.SERVICES_TO_HIDE_AWA_SPEED.includes(service);
+    const hideAwa = isSHS || shouldHideAwaForService;
+    const awaGroups = [dom.awaAlertsContainer, dom.awaStepsSelect?.closest('.input-group')];
 
-    const controlledGroups = [
-        dom.awaAlertsContainer,
-        dom.awaStepsSelect?.closest('.input-group'),
+    awaGroups.forEach(group => {
+        if (group) {
+            group.classList.toggle('hidden-field', hideAwa);
+            if (hideAwa) {
+                // Clear and reset AWA fields
+                if (group.id === 'awaAlertsContainer') {
+                    config.state.awaAlertsSelected.clear();
+                    _updateMultiSelectButtonLabel(dom.awaAlertsLabel, config.state.awaAlertsSelected, 'Select AWA alerts...');
+                    if(dom.awaAlertsOptionsList) Array.from(dom.awaAlertsOptionsList.children).forEach(opt => opt.classList.remove('selected'));
+                } else {
+                    const input = group.querySelector('select');
+                    if (input) {
+                        input.value = '';
+                        input.removeAttribute('required');
+                        input.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                }
+            }
+        }
+    });
+
+    // Logic for Speed fields
+    const showSpeedFields = ['HighSpeed / Fiber', 'HighSpeed / Copper'].includes(service) && !isSHS;
+    const speedGroups = [
         dom.activeDevicesGroup,
         dom.totalDevicesGroup,
         dom.downloadBeforeGroup,
@@ -554,28 +578,11 @@ export function updateAwaAndSpeedFieldsVisibility(service) {
         dom.uploadAfterGroup
     ];
 
-    controlledGroups.forEach(group => {
-        if (!group) return;
-
-        const wasHidden = group.classList.contains('hidden-field');
-        group.classList.toggle('hidden-field', shouldHide);
-        
-        if (shouldHide && !wasHidden) {
-            // Clear multi-select
-            if (group.id === 'awaAlertsContainer') {
-                config.state.awaAlertsSelected.clear();
-                _updateMultiSelectButtonLabel(dom.awaAlertsLabel, config.state.awaAlertsSelected, 'Select AWA alerts...');
-                if(dom.awaAlertsOptionsList) Array.from(dom.awaAlertsOptionsList.children).forEach(opt => opt.classList.remove('selected'));
-            } else { // Clear standard inputs/selects
-                group.querySelectorAll('input, select').forEach(input => {
-                    if (input.type === 'checkbox' || input.type === 'radio') {
-                        input.checked = false;
-                    } else {
-                        input.value = '';
-                    }
-                    input.removeAttribute('required');
-                    input.dispatchEvent(new Event('change', { bubbles: true }));
-                });
+    speedGroups.forEach(group => {
+        if (group) {
+            group.classList.toggle('hidden-field', !showSpeedFields);
+            if (!showSpeedFields) {
+                 group.querySelectorAll('input').forEach(input => input.value = '');
             }
         }
     });
@@ -584,6 +591,7 @@ export function updateAwaAndSpeedFieldsVisibility(service) {
     applyInitialRequiredHighlight();
     generateFinalNote();
 }
+
 
 export function clearAllFormFields(isForEdit = false) {
     const form = dom.callNoteForm;
