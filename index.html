@@ -155,6 +155,18 @@
                                     <option value="Not Required">Not Required</option>
                                 </select>
                             </div>
+                            <div class="input-group custom-select-container hidden-field" id="securityQuestionsContainer">
+                                <label for="securityQuestionsButton">SECURITY QUESTIONS</label>
+                                <button type="button" id="securityQuestionsButton" class="custom-select-button">
+                                    <span id="securityQuestionsLabel">Select questions...</span>
+                                    <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                                <div id="securityQuestionsOptionsContainer" class="custom-select-options-container">
+                                    <div id="securityQuestionsOptionsList" role="listbox"></div>
+                                </div>
+                            </div>
                             <div class="input-group">
                                 <label for="address">ADDRESS</label>
                                 <input type="text" id="address" name="address" autocomplete="address-off">
@@ -173,35 +185,6 @@
                         <span>Status, Issue and Troubleshoot Steps</span>
                     </h2>
                     <div class="section-content section2-grid-layout">
-                        <div class="input-row radio-group-row">
-                            <div class="input-group radio-group" id="outageRadioGroup">
-                                <label>Outage</label>
-                                <div class="radio-options">
-                                    <input type="radio" id="outageYes" name="outage" value="yes">
-                                    <label for="outageYes">Yes</label>
-                                    <input type="radio" id="outageNo" name="outage" value="no">
-                                    <label for="outageNo">No</label>
-                                </div>
-                            </div>
-                            <div class="input-group radio-group" id="errorsInNCRadioGroup">
-                                <label>NetCracker Error</label>
-                                <div class="radio-options">
-                                    <input type="radio" id="errorsInNCYes" name="errorsInNC" value="yes">
-                                    <label for="errorsInNCYes">Yes</label>
-                                    <input type="radio" id="errorsInNCNo" name="errorsInNC" value="no">
-                                    <label for="errorsInNCNo">No</label>
-                                </div>
-                            </div>
-                            <div class="input-group radio-group" id="accountSuspendedRadioGroup">
-                                <label>Suspended</label>
-                                <div class="radio-options">
-                                    <input type="radio" id="accountSuspendedYes" name="accountSuspended" value="yes">
-                                    <label for="accountSuspendedYes">Yes</label>
-                                    <input type="radio" id="accountSuspendedNo" name="accountSuspended" value="no">
-                                    <label for="accountSuspendedNo">No</label>
-                                </div>
-                            </div>
-                        </div>
                         <div class="input-row three-columns-layout">
                             <div class="input-group" id="serviceOnCsrGroup">
                                 <label for="serviceOnCsr">SERVICE ON CSR</label>
@@ -243,6 +226,24 @@
                             </div>
                         </div>
                         <div class="input-row three-columns-layout">
+                            <div class="input-group">
+                                <label for="errorSelect">ERROR:</label>
+                                <select id="errorSelect" name="errorSelect" required>
+                                    <option value="">Select an option</option>
+                                    <option value="Active Outage">Active Outage</option>
+                                    <option value="Netcracker Error">Netcracker Error</option>
+                                </select>
+                            </div>
+                            <div class="input-group hidden-field" id="affectedTextGroup">
+                                <label for="affectedText" id="affectedLabel">AFFECTED</label>
+                                <textarea id="affectedText" name="affectedText" autocomplete="off"></textarea>
+                            </div>
+                            <div class="input-group hidden-field" id="errorInfoGroup">
+                                <label for="errorInfoText" id="errorInfoLabel">INFO</label>
+                                <textarea id="errorInfoText" name="errorInfoText" autocomplete="off"></textarea>
+                            </div>
+                        </div>
+                        <div class="input-row three-columns-layout">
                             <div class="input-group wide-column">
                                 <label for="cxIssueText">CX ISSUE</label>
                                 <textarea id="cxIssueText" name="cxIssueText" rows="4" required autocomplete="off"></textarea>
@@ -250,16 +251,6 @@
                             <div class="input-group narrow-column">
                                 <label for="additionalinfoText">ADDITIONAL INFO</label>
                                 <textarea id="additionalinfoText" name="additionalinfoText" rows="4" autocomplete="off"></textarea>
-                            </div>
-                        </div>
-                        <div class="input-row" id="dynamicTextareaRow">
-                            <div class="input-group hidden-field" id="affectedTextGroup">
-                                <label for="affectedText" id="affectedLabel">AFFECTED</label>
-                                <textarea id="affectedText" name="affectedText" autocomplete="off"></textarea>
-                            </div>
-                            <div class="input-group hidden-field" id="outageInfoGroup">
-                                <label for="outageInfoText">OUTAGE INFO</label>
-                                <textarea id="outageInfoText" name="outageInfoText" autocomplete="off"></textarea>
                             </div>
                         </div>
                         <div class="input-row four-columns-layout" id="physicalCheckListsContainer">
@@ -429,7 +420,7 @@
                                 <select id="resolvedSelect" name="resolvedSelect" required>
                                     <option value="">Select an option</option>
                                     <option value="Yes | EOC">Yes | EOC</option>
-                                    <option value="No. Cx hang up">No. Cx hang up</option>
+                                    <option value="No | Call disconnected | Left VM">No | Call disconnected | Left VM</option>
                                     <option value="No | Tech Booked">No | Tech Booked</option>
                                     <option value="No | Follow Up Required">No | Follow Up Required</option>
                                     <option value="No | Follow Up Required | Set SCB with FVA">No | Follow Up Required | Set SCB with FVA</option>
