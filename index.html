@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>APad - NoteApp</title>
     <link rel="stylesheet" href="/style.css">
-   
+    <link rel="stylesheet" href="shortkey.css">
     <link rel="manifest" href="/manifest.json">
     
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -830,9 +830,42 @@
             </div>
         </div>
     </div>
+
+
+    <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <!-- Overlay oscuro -->
+        <div id="modalOverlay" class="absolute inset-0 bg-black bg-opacity-60 modal-overlay"></div>
+        
+        <!-- Contenedor del Modal -->
+        <div class="bg-white rounded-xl shadow-2xl w-11/12 md:max-w-2xl mx-auto z-10 modal-container">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-2xl font-semibold">Configuración de Shortkeys</h3>
+                <button id="closeSettingsBtn" class="text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button>
+            </div>
+
+            <!-- Contenido del Modal -->
+            <div class="p-6">
+                <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                    <h4 class="font-semibold mb-3">Añadir Nuevo Shortkey</h4>
+                    <form id="addShortcutForm" class="grid sm:grid-cols-3 gap-4">
+                        <input type="text" id="shortcutKeyInput" placeholder="Abreviatura (ej. sds)" class="p-2 border rounded-md col-span-1" required>
+                        <input type="text" id="shortcutValueInput" placeholder="Texto completo a expandir" class="p-2 border rounded-md sm:col-span-2" required>
+                        <button type="submit" class="bg-green-500 text-white font-semibold p-2 rounded-md hover:bg-green-600 sm:col-span-3">Añadir</button>
+                    </form>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold mb-3">Shortkeys Guardados</h4>
+                    <div id="shortcutsList" class="max-h-64 overflow-y-auto space-y-2 pr-2">
+                        <!-- Los shortkeys se insertarán aquí dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
-    
     <script type="module" src="js/main.js"></script>
-    
+    <script src="shortkey.js"></script>
     </body>
 </html>
