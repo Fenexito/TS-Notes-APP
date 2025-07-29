@@ -844,16 +844,35 @@
                 <button id="closeSettingsBtn">&times;</button>
             </div>
             <div class="modal-body">
+                <!-- Notificaciones -->
+                <div id="shortcut-notification" class="notification"></div>
+
+                <!-- Formulario -->
                 <div class="form-section">
-                    <h4>Añadir Nuevo Shortkey</h4>
+                    <h4 id="form-title">Añadir Nuevo Shortkey</h4>
                     <form id="addShortcutForm">
-                        <input type="text" id="shortcutKeyInput" placeholder="Abreviatura (ej. sds)" required>
+                        <div class="input-with-prefix">
+                            <span>@</span>
+                            <input type="text" id="shortcutKeyInput" placeholder="abreviatura" required>
+                        </div>
                         <input type="text" id="shortcutValueInput" placeholder="Texto completo a expandir" required>
-                        <button type="submit">Añadir</button>
+                        <div class="form-buttons">
+                            <button type="submit" id="submit-button">Añadir</button>
+                            <button type="button" id="cancel-edit-button" class="cancel-button hidden">Cancelar</button>
+                        </div>
                     </form>
                 </div>
+
+                <!-- Lista y Acciones -->
                 <div class="list-section">
-                    <h4>Shortkeys Guardados</h4>
+                    <div class="list-header">
+                        <h4>Shortkeys Guardados</h4>
+                        <div class="import-export-buttons">
+                            <button id="import-button">Importar</button>
+                            <button id="export-button">Exportar</button>
+                            <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                        </div>
+                    </div>
                     <div id="shortcutsList">
                         <!-- Los shortkeys se insertarán aquí dinámicamente -->
                     </div>
