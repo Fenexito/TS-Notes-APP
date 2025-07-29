@@ -1,14 +1,11 @@
 /*
  * Estilos personalizados para el componente Shortkey.
- * Versión 2: Estilos autocontenidos para el modal, sin depender de Tailwind para el contenido.
+ * Versión 3: Estilos 100% aislados al ID #settingsModal para no afectar la app principal.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400&display=swap');
 
-body {
-    font-family: 'Inter', sans-serif;
-}
-
 /* --- Estructura del Modal Flotante --- */
+/* Estas reglas solo se aplican al contenedor principal del modal y sus hijos directos */
 
 #settingsModal {
     position: fixed;
@@ -22,6 +19,7 @@ body {
     justify-content: center;
     opacity: 0;
     visibility: hidden;
+    font-family: 'Inter', sans-serif; /* Fuente base solo para el modal */
     transition: opacity 0.3s ease, visibility 0s linear 0.3s;
 }
 
@@ -31,7 +29,7 @@ body {
     transition: opacity 0.3s ease;
 }
 
-#modalOverlay {
+#settingsModal #modalOverlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -41,10 +39,11 @@ body {
     cursor: pointer;
 }
 
-.modal-container {
+#settingsModal .modal-container {
     position: relative;
     z-index: 1001;
     background-color: white;
+    color: #1f2937; /* Color de texto por defecto para el modal */
     border-radius: 0.75rem;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     width: 91.666667%;
@@ -57,8 +56,9 @@ body {
     transform: scale(1);
 }
 
-/* --- Contenido del Modal --- */
-.modal-header {
+/* --- Contenido del Modal (Todo con prefijo #settingsModal) --- */
+
+#settingsModal .modal-header {
     padding: 1.5rem;
     border-bottom: 1px solid #e5e7eb;
     display: flex;
@@ -66,12 +66,13 @@ body {
     align-items: center;
 }
 
-.modal-header h3 {
+#settingsModal .modal-header h3 {
     font-size: 1.5rem;
     font-weight: 600;
+    margin: 0; /* Reseteo de margen */
 }
 
-.modal-header button {
+#settingsModal .modal-header button {
     font-size: 2rem;
     line-height: 1;
     color: #9ca3af;
@@ -80,74 +81,79 @@ body {
     cursor: pointer;
     transition: color 0.2s;
 }
-.modal-header button:hover {
+#settingsModal .modal-header button:hover {
     color: #374151;
 }
 
-.modal-body {
+#settingsModal .modal-body {
     padding: 1.5rem;
 }
 
-.form-section {
+#settingsModal .form-section {
     background-color: #f9fafb;
     padding: 1rem;
     border-radius: 0.5rem;
     margin-bottom: 1.5rem;
 }
 
-.form-section h4, .list-section h4 {
+#settingsModal .form-section h4, 
+#settingsModal .list-section h4 {
     font-weight: 600;
-    margin-bottom: 0.75rem;
+    font-size: 1.125rem; /* Tamaño de fuente explícito */
+    margin: 0 0 0.75rem 0; /* Reseteo y margen inferior */
 }
 
-#addShortcutForm {
+#settingsModal #addShortcutForm {
     display: grid;
     gap: 1rem;
 }
 
 @media (min-width: 640px) {
-    #addShortcutForm {
+    #settingsModal #addShortcutForm {
         grid-template-columns: 1fr 2fr;
     }
-    #addShortcutForm button {
+    #settingsModal #addShortcutForm button {
         grid-column: span 2;
     }
 }
 
-#addShortcutForm input {
+#settingsModal #addShortcutForm input {
     width: 100%;
     padding: 0.75rem;
     border: 1px solid #d1d5db;
     border-radius: 0.375rem;
+    font-size: 1rem;
+    box-sizing: border-box; /* Asegura que el padding no afecte el ancho */
     transition: border-color 0.2s, box-shadow 0.2s;
 }
-#addShortcutForm input:focus {
+#settingsModal #addShortcutForm input:focus {
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
 }
 
-#addShortcutForm button {
+#settingsModal #addShortcutForm button {
     background-color: #22c55e;
     color: white;
     font-weight: 600;
+    font-size: 1rem;
     padding: 0.75rem;
     border: none;
     border-radius: 0.375rem;
     cursor: pointer;
     transition: background-color 0.2s;
 }
-#addShortcutForm button:hover {
+#settingsModal #addShortcutForm button:hover {
     background-color: #16a34a;
 }
 
-#shortcutsList {
-    max-height: 16rem; /* 256px */
+#settingsModal #shortcutsList {
+    max-height: 16rem;
     overflow-y: auto;
     padding-right: 0.5rem;
 }
 
-.shortcut-item {
+#settingsModal .shortcut-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -157,7 +163,7 @@ body {
     margin-bottom: 0.5rem;
 }
 
-.shortcut-key {
+#settingsModal .shortcut-key {
     font-family: 'Fira Code', monospace;
     background-color: #e5e7eb;
     color: #374151;
@@ -166,17 +172,17 @@ body {
     font-size: 0.9em;
 }
 
-.shortcut-arrow {
+#settingsModal .shortcut-arrow {
     color: #6b7280;
     margin: 0 0.75rem;
 }
 
-.shortcut-value {
+#settingsModal .shortcut-value {
     color: #1f2937;
     word-break: break-all;
 }
 
-.delete-btn {
+#settingsModal .delete-btn {
     font-family: sans-serif;
     font-size: 1.5rem;
     font-weight: bold;
@@ -188,6 +194,6 @@ body {
     line-height: 1;
     padding: 0 0.5rem;
 }
-.delete-btn:hover {
+#settingsModal .delete-btn:hover {
     color: #b91c1c;
 }
