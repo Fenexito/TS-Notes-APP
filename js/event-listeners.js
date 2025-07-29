@@ -108,10 +108,9 @@ function addFormAndFieldListeners() {
         });
     });
 
-    [dom.enablePhysicalCheck2, dom.enablePhysicalCheck3, dom.enablePhysicalCheck4.forEach(cb => {
+    [dom.enablePhysicalCheck2, dom.enablePhysicalCheck3, dom.enablePhysicalCheck4].forEach(cb => {
         cb.addEventListener('change', () => _updatePhysicalCheckListEnablement(dom.serviceSelect.value));
     });
-    */
 
     dom.tvsSelect.addEventListener('change', () => updateTvsKeyFieldState());
     dom.transferCheckbox.addEventListener('change', () => updateTransferFieldState());
