@@ -30,12 +30,12 @@ class Shortkey {
 
     addShortcut(key, value) {
         if (!key || !value) return;
-        this._shortcuts[key.trim()] = value.trim();
+        this._shortcuts[key.trim().toLowerCase()] = value.trim(); // Guardar la llave en minúsculas
         this._saveShortcuts();
     }
 
     removeShortcut(key) {
-        delete this._shortcuts[key];
+        delete this._shortcuts[key.toLowerCase()];
         this._saveShortcuts();
     }
 
@@ -55,14 +55,18 @@ class Shortkey {
         const element = event.target;
         const text = element.value;
 
+        // **CAMBIO CLAVE:** Se convierte el texto a minúsculas para la comparación.
+        const textForCheck = text.toLowerCase();
+
         for (const key in this._shortcuts) {
-            const trigger = key + ' ';
-            if (text.endsWith(trigger)) {
+            const trigger = key + ' '; // El disparador siempre es en minúsculas
+            if (textForCheck.endsWith(trigger)) {
                 this._isExpanding = true;
                 
-                // **CAMBIO:** La expansión ya no añade un espacio extra al final.
                 const expansion = this._shortcuts[key];
-                const newText = text.substring(0, text.length - trigger.length) + expansion;
+                // Se busca la posición del disparador en el texto original para reemplazarlo
+                const triggerStartIndex = textForCheck.lastIndexOf(trigger);
+                const newText = text.substring(0, triggerStartIndex) + expansion;
                 
                 element.value = newText;
                 
@@ -86,7 +90,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const editorConShortkeys = document.getElementById('editorConShortkeys');
     shortkeyManager.attach(editorConShortkeys);
 
-    // --- Lógica para manejar el Modal de Configuración ---
     const modal = document.getElementById('settingsModal');
     const openBtn = document.getElementById('openSettingsBtn');
     const closeBtn = document.getElementById('closeSettingsBtn');
@@ -110,14 +113,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const shortcuts = shortkeyManager.getShortcuts();
 
         if (Object.keys(shortcuts).length === 0) {
-            listContainer.innerHTML = `<p class="text-gray-500 text-center">No tienes shortkeys guardados.</p>`;
+            listContainer.innerHTML = `<p style="text-align: center; color: #6b7280;">No tienes shortkeys guardados.</p>`;
             return;
         }
 
         for (const key in shortcuts) {
             const value = shortcuts[key];
             const item = document.createElement('div');
-            // **CAMBIO:** Se usan las clases del CSS personalizado
             item.className = 'shortcut-item';
             item.innerHTML = `
                 <div>
@@ -131,17 +133,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    // Event Listeners para los botones
     if (openBtn) {
         openBtn.addEventListener('click', openModal);
     }
     closeBtn.addEventListener('click', closeModal);
-    // **NUEVO:** El overlay ahora también cierra el modal.
     overlay.addEventListener('click', closeModal);
 
-    // Atajo de teclado global
     document.addEventListener('keydown', (event) => {
-        // **NUEVO:** Añadido listener para la tecla Escape
         if (event.key === 'Escape' && modal.classList.contains('visible')) {
             closeModal();
         }
@@ -156,16 +154,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Añadir nuevo shortkey
     addForm.addEventListener('submit', (e) => {
         e.preventDefault();
         shortkeyManager.addShortcut(keyInput.value, valueInput.value);
         keyInput.value = '';
         valueInput.value = '';
         renderShortcuts();
+        keyInput.focus(); // Pone el foco de nuevo en el primer input.
     });
 
-    // Eliminar un shortkey
     listContainer.addEventListener('click', (e) => {
         if (e.target.classList.contains('delete-btn')) {
             const key = e.target.dataset.key;
