@@ -46,19 +46,28 @@ class Shortkey {
     }
 
     /**
-     * "Engancha" el expansor a un elemento de input o textarea.
-     * CAMBIO: Ahora escucha el evento 'keydown' para tener más control.
+     * "Engancha" el expansor a uno o más elementos.
+     * MEJORA: Ahora puede recibir un elemento único o un selector CSS
+     * para engancharse a múltiples elementos a la vez.
+     * @param {HTMLElement|string} selectorOrElement - El elemento o selector CSS.
      */
-    attach(element) {
-        if (element) {
-            element.addEventListener('keydown', this._handleKeydown.bind(this));
-        }
+    attach(selectorOrElement) {
+        if (!selectorOrElement) return;
+
+        const elements = typeof selectorOrElement === 'string'
+            ? document.querySelectorAll(selectorOrElement)
+            : [selectorOrElement];
+
+        elements.forEach(element => {
+            if (element && typeof element.addEventListener === 'function') {
+                element.addEventListener('keydown', this._handleKeydown.bind(this));
+            }
+        });
     }
 
     /**
-     * CORRECCIÓN PRINCIPAL: Nueva lógica de manejo de shortkeys.
+     * CORRECCIÓN FINAL: Lógica de manejo de shortkeys más robusta.
      * Se activa al presionar la barra espaciadora y revisa solo la palabra anterior.
-     * Esto es mucho más preciso y eficiente.
      */
     _handleKeydown(event) {
         // Solo nos interesa el evento de la barra espaciadora.
@@ -73,12 +82,22 @@ class Shortkey {
         // Extraemos el texto que está justo antes del cursor.
         const textBeforeCursor = text.substring(0, cursorPosition);
         
-        // Buscamos el inicio de la última palabra (el último espacio o el principio del texto).
+        // Si no hay texto antes del cursor, no hay nada que hacer.
+        if (textBeforeCursor.length === 0) {
+            return;
+        }
+        
+        // Buscamos el inicio de la última palabra.
         const lastSpaceIndex = textBeforeCursor.lastIndexOf(' ');
         const wordStartIndex = lastSpaceIndex + 1;
         
         // Aislamos la palabra que podría ser nuestra abreviatura.
         const potentialShortcut = textBeforeCursor.substring(wordStartIndex).toLowerCase();
+
+        // --- AYUDA PARA DEPURACIÓN ---
+        // Si sigue sin funcionar, descomenta la siguiente línea para ver en la consola del navegador
+        // qué palabra está intentando evaluar el sistema cada vez que presionas espacio.
+        // console.log(`[Shortkey] Evaluando: "${potentialShortcut}"`);
 
         // Comprobamos si la palabra existe en nuestro diccionario de shortkeys.
         if (this._shortcuts.hasOwnProperty(potentialShortcut)) {
@@ -108,8 +127,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const shortkeyManager = new Shortkey();
 
-    const editorConShortkeys = document.getElementById('editorConShortkeys');
-    shortkeyManager.attach(editorConShortkeys);
+    // MEJORA: Ahora puedes añadir la clase "shortkey-enabled" a cualquier
+    // <textarea> o <input> en tu HTML para activar la funcionalidad.
+    shortkeyManager.attach('.shortkey-enabled');
+    
+    // Para el ejemplo, nos aseguramos de que el editor principal tenga la clase.
+    const editorPrincipal = document.getElementById('editorConShortkeys');
+    if(editorPrincipal && !editorPrincipal.classList.contains('shortkey-enabled')) {
+        editorPrincipal.classList.add('shortkey-enabled');
+        shortkeyManager.attach(editorPrincipal); // Re-enganchar por si acaso.
+    }
+
 
     // --- Lógica para manejar el Modal de Configuración ---
     const modal = document.getElementById('settingsModal');
