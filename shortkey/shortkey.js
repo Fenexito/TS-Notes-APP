@@ -1,11 +1,11 @@
 /**
  * Clase Shortkey
  * Encapsula toda la lógica para crear, gestionar y aplicar expansiones de texto.
- * Usa localStorage para persistir los datos en el navegador del usuario.
  */
 class Shortkey {
     constructor() {
         this._shortcuts = {};
+        this._isEditingKey = null; // Para saber qué llave se está editando
         this._loadShortcuts();
     }
 
@@ -14,12 +14,7 @@ class Shortkey {
         if (saved) {
             this._shortcuts = JSON.parse(saved);
         } else {
-            // Datos de ejemplo si no hay nada guardado.
-            this._shortcuts = {
-                'sds': 'Saludos cordiales,',
-                'atte': 'Atentamente,',
-                'asap': 'tan pronto como sea posible'
-            };
+            this._shortcuts = { 'sds': 'Saludos cordiales,', 'asap': 'tan pronto como sea posible' };
             this._saveShortcuts();
         }
     }
@@ -28,34 +23,47 @@ class Shortkey {
         localStorage.setItem('userShortkeys', JSON.stringify(this._shortcuts));
     }
 
+    getShortcuts() { return this._shortcuts; }
+    getIsEditingKey() { return this._isEditingKey; }
+    setIsEditingKey(key) { this._isEditingKey = key; }
+
     addShortcut(key, value) {
-        if (!key || !value) return;
-        // Siempre guardamos la abreviatura en minúsculas para evitar duplicados.
-        this._shortcuts[key.trim().toLowerCase()] = value.trim();
+        if (!key || !value) return { success: false, error: 'empty' };
+        const cleanKey = key.trim().toLowerCase();
+        if (this._shortcuts.hasOwnProperty(cleanKey)) {
+            return { success: false, error: 'duplicate', key: cleanKey };
+        }
+        this._shortcuts[cleanKey] = value.trim();
         this._saveShortcuts();
+        return { success: true };
+    }
+    
+    updateShortcut(oldKey, newKey, value) {
+        if (!newKey || !value) return { success: false, error: 'empty' };
+        const cleanNewKey = newKey.trim().toLowerCase();
+        // Si la llave cambió y la nueva ya existe, es un error.
+        if (oldKey !== cleanNewKey && this._shortcuts.hasOwnProperty(cleanNewKey)) {
+            return { success: false, error: 'duplicate', key: cleanNewKey };
+        }
+        // Borramos la llave vieja si es necesario
+        if (oldKey !== cleanNewKey) {
+            delete this._shortcuts[oldKey];
+        }
+        this._shortcuts[cleanNewKey] = value.trim();
+        this._saveShortcuts();
+        this.setIsEditingKey(null);
+        return { success: true };
     }
 
     removeShortcut(key) {
-        // Buscamos la abreviatura en minúsculas para borrarla.
         delete this._shortcuts[key.toLowerCase()];
         this._saveShortcuts();
     }
 
-    getShortcuts() {
-        return this._shortcuts;
-    }
-
-    /**
-     * "Engancha" el expansor a uno o más elementos.
-     * @param {HTMLElement|string} selectorOrElement - El elemento o selector CSS.
-     */
     attach(selectorOrElement) {
-        if (!selectorOrElement) return;
-
         const elements = typeof selectorOrElement === 'string'
             ? document.querySelectorAll(selectorOrElement)
             : [selectorOrElement];
-
         elements.forEach(element => {
             if (element && typeof element.addEventListener === 'function') {
                 element.addEventListener('keydown', this._handleKeydown.bind(this));
@@ -63,54 +71,27 @@ class Shortkey {
         });
     }
 
-    /**
-     * CORRECCIÓN FINAL: Lógica de manejo de shortkeys más robusta.
-     * Se activa al presionar la barra espaciadora y revisa solo la palabra anterior.
-     */
     _handleKeydown(event) {
-        // Solo nos interesa el evento de la barra espaciadora.
-        if (event.key !== ' ') {
-            return;
-        }
+        if (event.key !== ' ') return;
 
         const element = event.target;
         const cursorPosition = element.selectionStart;
-
-        // Si no hay texto antes del cursor, no hay nada que hacer.
-        if (cursorPosition === 0) {
-            return;
-        }
+        if (cursorPosition === 0) return;
         
-        // Extraemos el texto que está justo antes del cursor.
         const textBeforeCursor = element.value.substring(0, cursorPosition);
-        
-        // Buscamos el inicio de la última palabra.
-        const lastSpaceIndex = textBeforeCursor.lastIndexOf(' ');
-        const wordStartIndex = lastSpaceIndex > -1 ? lastSpaceIndex + 1 : 0;
-        
-        // Aislamos la palabra que podría ser nuestra abreviatura.
-        const potentialShortcut = textBeforeCursor.substring(wordStartIndex).toLowerCase();
+        const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+        if (lastAtIndex === -1 || textBeforeCursor.lastIndexOf(' ') > lastAtIndex) {
+            return; // No hay un '@' en la palabra actual
+        }
 
-        // --- AYUDA PARA DEPURACIÓN ---
-        // Si sigue sin funcionar, descomenta la siguiente línea para ver en la consola del navegador
-        // qué palabra está intentando evaluar el sistema cada vez que presionas espacio.
-        // console.log(`[Shortkey] Evaluando: "${potentialShortcut}"`);
-
-        // Comprobamos si la palabra existe en nuestro diccionario de shortkeys.
+        const potentialShortcut = textBeforeCursor.substring(lastAtIndex + 1).toLowerCase();
         if (this._shortcuts.hasOwnProperty(potentialShortcut)) {
-            // ¡Coincidencia! Prevenimos que se escriba el espacio.
             event.preventDefault();
-
             const expansion = this._shortcuts[potentialShortcut];
             const textAfterCursor = element.value.substring(cursorPosition);
-            
-            // Reconstruimos el texto: [texto antes de la palabra] + [expansión] + [texto después del cursor]
-            const newText = element.value.substring(0, wordStartIndex) + expansion + textAfterCursor;
-            
+            const newText = element.value.substring(0, lastAtIndex) + expansion + textAfterCursor;
             element.value = newText;
-            
-            // Movemos el cursor al final del texto que acabamos de insertar.
-            const newCursorPosition = wordStartIndex + expansion.length;
+            const newCursorPosition = lastAtIndex + expansion.length;
             element.selectionStart = element.selectionEnd = newCursorPosition;
         }
     }
@@ -118,29 +99,14 @@ class Shortkey {
 
 /**
  * Lógica de la Aplicación
- * Este es el "pegamento" que conecta la UI (HTML) con el módulo Shortkey.
  */
 document.addEventListener('DOMContentLoaded', () => {
-    
     console.info('[Shortkey] Módulo cargado y listo.');
-
     const shortkeyManager = new Shortkey();
 
-    // MEJORA: Ahora puedes añadir la clase "shortkey-enabled" a cualquier
-    // <textarea> o <input> en tu HTML para activar la funcionalidad.
     shortkeyManager.attach('.shortkey-enabled');
-    
-    // Para el ejemplo, nos aseguramos de que el editor principal tenga la clase.
-    const editorPrincipal = document.getElementById('editorConShortkeys');
-    if(editorPrincipal && !editorPrincipal.classList.contains('shortkey-enabled')) {
-        editorPrincipal.classList.add('shortkey-enabled');
-        // Volvemos a llamar a attach para asegurarnos de que el listener se añade
-        // si la clase se acaba de agregar.
-        shortkeyManager.attach(editorPrincipal);
-    }
 
-
-    // --- Lógica para manejar el Modal de Configuración ---
+    // --- Elementos del DOM ---
     const modal = document.getElementById('settingsModal');
     const openBtn = document.getElementById('openSettingsBtn');
     const closeBtn = document.getElementById('closeSettingsBtn');
@@ -149,76 +115,174 @@ document.addEventListener('DOMContentLoaded', () => {
     const keyInput = document.getElementById('shortcutKeyInput');
     const valueInput = document.getElementById('shortcutValueInput');
     const listContainer = document.getElementById('shortcutsList');
-
-    const openModal = () => {
-        renderShortcuts();
-        modal.classList.add('visible');
-    };
-
+    const notification = document.getElementById('shortcut-notification');
+    const formTitle = document.getElementById('form-title');
+    const submitButton = document.getElementById('submit-button');
+    const cancelEditButton = document.getElementById('cancel-edit-button');
+    const exportButton = document.getElementById('export-button');
+    const importButton = document.getElementById('import-button');
+    const importFileInput = document.getElementById('import-file-input');
+    
+    // --- Funciones de la UI ---
+    const openModal = () => modal.classList.add('visible');
     const closeModal = () => {
+        cancelEditing();
         modal.classList.remove('visible');
     };
-    
+
+    const showNotification = (message, type = 'error') => {
+        notification.textContent = message;
+        notification.className = `notification ${type} show`;
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    };
+
+    const highlightShortcut = (key) => {
+        const item = document.querySelector(`[data-key="${key}"]`);
+        if (item) {
+            item.classList.add('highlight');
+            item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => item.classList.remove('highlight'), 2000);
+        }
+    };
+
+    const startEditing = (key) => {
+        const value = shortkeyManager.getShortcuts()[key];
+        shortkeyManager.setIsEditingKey(key);
+        keyInput.value = key;
+        valueInput.value = value;
+        formTitle.textContent = 'Editar Shortkey';
+        submitButton.textContent = 'Guardar Cambios';
+        cancelEditButton.classList.remove('hidden');
+        keyInput.focus();
+    };
+
+    const cancelEditing = () => {
+        shortkeyManager.setIsEditingKey(null);
+        addForm.reset();
+        formTitle.textContent = 'Añadir Nuevo Shortkey';
+        submitButton.textContent = 'Añadir';
+        cancelEditButton.classList.add('hidden');
+    };
+
     const renderShortcuts = () => {
         listContainer.innerHTML = '';
         const shortcuts = shortkeyManager.getShortcuts();
-
         if (Object.keys(shortcuts).length === 0) {
             listContainer.innerHTML = `<p style="text-align: center; color: #6b7280;">No tienes shortkeys guardados.</p>`;
             return;
         }
-
         for (const key in shortcuts) {
             const value = shortcuts[key];
             const item = document.createElement('div');
             item.className = 'shortcut-item';
+            item.dataset.key = key;
             item.innerHTML = `
                 <div>
-                    <span class="shortcut-key">${key}</span>
+                    <span class="shortcut-key">@${key}</span>
                     <span class="shortcut-arrow">→</span>
                     <span class="shortcut-value">${value}</span>
                 </div>
-                <button data-key="${key}" class="delete-btn">&times;</button>
-            `;
+                <div class="shortcut-actions">
+                    <button class="action-btn edit-btn" title="Editar">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+                    </button>
+                    <button class="action-btn delete-btn" title="Eliminar">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                    </button>
+                </div>`;
             listContainer.appendChild(item);
         }
     };
-    
-    if (openBtn) {
-        openBtn.addEventListener('click', openModal);
-    }
+
+    // --- Event Listeners ---
+    if (openBtn) openBtn.addEventListener('click', openModal);
     closeBtn.addEventListener('click', closeModal);
     overlay.addEventListener('click', closeModal);
-
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && modal.classList.contains('visible')) {
-            closeModal();
-        }
-
-        if (event.ctrlKey && event.shiftKey && (event.key === 'S' || event.key === 's')) {
-            event.preventDefault();
-            if (modal.classList.contains('visible')) {
-                closeModal();
-            } else {
-                openModal();
-            }
-        }
-    });
+    cancelEditButton.addEventListener('click', cancelEditing);
 
     addForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        shortkeyManager.addShortcut(keyInput.value, valueInput.value);
-        keyInput.value = '';
-        valueInput.value = '';
-        renderShortcuts();
-        keyInput.focus();
+        const editingKey = shortkeyManager.getIsEditingKey();
+        const result = editingKey
+            ? shortkeyManager.updateShortcut(editingKey, keyInput.value, valueInput.value)
+            : shortkeyManager.addShortcut(keyInput.value, valueInput.value);
+
+        if (result.success) {
+            cancelEditing();
+            renderShortcuts();
+        } else if (result.error === 'duplicate') {
+            showNotification(`El shortkey "@${result.key}" ya existe.`);
+            highlightShortcut(result.key);
+        }
     });
 
     listContainer.addEventListener('click', (e) => {
-        if (e.target.classList.contains('delete-btn')) {
-            const key = e.target.dataset.key;
+        const target = e.target.closest('.action-btn');
+        if (!target) return;
+        
+        const item = target.closest('.shortcut-item');
+        const key = item.dataset.key;
+
+        if (target.classList.contains('edit-btn')) {
+            startEditing(key);
+        } else if (target.classList.contains('delete-btn')) {
+            item.innerHTML = `
+                <div class="delete-confirmation">
+                    <span>¿Eliminar "@${key}"?</span>
+                    <button class="confirm-yes" data-key="${key}">Sí</button>
+                    <button class="confirm-no">No</button>
+                </div>`;
+        } else if (target.classList.contains('confirm-yes')) {
             shortkeyManager.removeShortcut(key);
+            renderShortcuts();
+        } else if (target.classList.contains('confirm-no')) {
             renderShortcuts();
         }
     });
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('visible')) closeModal();
+        if (e.ctrlKey && e.shiftKey && (e.key === 'S' || e.key === 's')) {
+            e.preventDefault();
+            modal.classList.contains('visible') ? closeModal() : openModal();
+        }
+    });
+
+    // Import/Export
+    exportButton.addEventListener('click', () => {
+        const dataStr = JSON.stringify(shortkeyManager.getShortcuts(), null, 2);
+        const dataBlob = new Blob([dataStr], {type: "application/json"});
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.download = 'shortkeys_backup.json';
+        link.href = url;
+        link.click();
+        URL.revokeObjectURL(url);
+    });
+
+    importButton.addEventListener('click', () => importFileInput.click());
+    importFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const importedShortcuts = JSON.parse(event.target.result);
+                Object.entries(importedShortcuts).forEach(([key, value]) => {
+                    shortkeyManager.addShortcut(key, value); // Usa add para evitar duplicados
+                });
+                renderShortcuts();
+                showNotification('Shortkeys importados con éxito.', 'success');
+            } catch (error) {
+                showNotification('Error: El archivo no es un JSON válido.');
+            }
+        };
+        reader.readAsText(file);
+        e.target.value = ''; // Reset input
+    });
+
+    // Carga inicial
+    renderShortcuts();
 });
