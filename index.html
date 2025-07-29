@@ -185,7 +185,8 @@
                         <span>Status, Issue and Troubleshoot Steps</span>
                     </h2>
                     <div class="section-content section2-grid-layout">
-                        <div class="input-row three-columns-layout">
+                        <!-- MODIFIED ROW -->
+                        <div class="input-row four-columns-layout">
                             <div class="input-group" id="serviceOnCsrGroup">
                                 <label for="serviceOnCsr">SERVICE ON CSR</label>
                                 <select id="serviceOnCsr" name="serviceOnCsr" required>
@@ -195,6 +196,15 @@
                                     <option value="Activating">Activating</option>
                                     <option value="Suspended">Suspended</option>
                                     <option value="Cancelled">Cancelled</option>
+                                    <option value="No Services">No Services</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="errorSelect">ERROR</label>
+                                <select id="errorSelect" name="errorSelect" required>
+                                    <option value="">Select an option</option>
+                                    <option value="Active Outage affecting services">Active Outage affecting services</option>
+                                    <option value="Error Found in NetCracker">Error Found in NetCracker</option>
                                 </select>
                             </div>
                             <div class="input-group">
@@ -213,7 +223,6 @@
                                     <option value="TOS">TOS</option>
                                     <option value="Telus Connect App">Telus Connect App</option>
                                     <option value="SHS Legacy">SHS Legacy</option>
-                                    <option value="SHS ADT / Acquisition / Custom Home">SHS ADT / Acquisition / Custom Home</option>
                                     <option value="Living Well Companion">Living Well Companion</option>
                                     <option value="Other">Other</option>
                                 </select>
@@ -225,30 +234,25 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="input-row three-columns-layout">
-                            <div class="input-group">
-                                <label for="errorSelect">ERROR:</label>
-                                <select id="errorSelect" name="errorSelect" required>
-                                    <option value="">Select an option</option>
-                                    <option value="Active Outage">Active Outage</option>
-                                    <option value="Netcracker Error">Netcracker Error</option>
-                                </select>
-                            </div>
-                            <div class="input-group hidden-field" id="affectedTextGroup">
-                                <label for="affectedText" id="affectedLabel">AFFECTED</label>
-                                <textarea id="affectedText" name="affectedText" autocomplete="off"></textarea>
-                            </div>
-                            <div class="input-group hidden-field" id="errorInfoGroup">
-                                <label for="errorInfoText" id="errorInfoLabel">INFO</label>
-                                <textarea id="errorInfoText" name="errorInfoText" autocomplete="off"></textarea>
-                            </div>
-                        </div>
-                        <div class="input-row three-columns-layout">
+                        <!-- MODIFIED ROW -->
+                        <div class="input-row issue-row-layout">
                             <div class="input-group wide-column">
                                 <label for="cxIssueText">CX ISSUE</label>
                                 <textarea id="cxIssueText" name="cxIssueText" rows="4" required autocomplete="off"></textarea>
                             </div>
-                            <div class="input-group narrow-column">
+                            <div class="side-info-column">
+                                <div class="input-group hidden-field" id="affectedTextGroup">
+                                    <label for="affectedText" id="affectedLabel">AFFECTED</label>
+                                    <textarea id="affectedText" name="affectedText" autocomplete="off"></textarea>
+                                </div>
+                                <div class="input-group hidden-field" id="errorInfoGroup">
+                                    <label for="errorInfoText" id="errorInfoLabel">INFO</label>
+                                    <textarea id="errorInfoText" name="errorInfoText" autocomplete="off"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="input-row">
+                             <div class="input-group narrow-column">
                                 <label for="additionalinfoText">ADDITIONAL INFO</label>
                                 <textarea id="additionalinfoText" name="additionalinfoText" rows="4" autocomplete="off"></textarea>
                             </div>
@@ -427,7 +431,7 @@
                                     <option value="No | BOSR Created">No | BOSR Created</option>
                                     <option value="No | NC Ticket Created">No | NC Ticket Created</option>
                                     <option value="Cx ask for a Manager | Unable to de escalate. Manager still needed | Escalate to EMT">Cx ask for a Manager | Unable to de escalate. Manager still needed | Escalate to EMT</option>
-                                    <option value="Cx need to be transfered">Cx need to be transfered</option>
+                                    <option value="Cx needs to be transferred">Cx needs to be transferred</option>
                                 </select>
                             </div>
                             <div class="input-group physical-check-item">
