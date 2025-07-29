@@ -721,8 +721,10 @@ export function checkCurrentFormHasData() {
 }
 
 export function initialResizeTextareas() {
-    document.querySelectorAll('#cxIssueText, #troubleshootingProcessText, #additionalinfoText').forEach(el => {
-        if (!el || el.id === 'modalNoteTextarea') return;
+    // This function is now modified to exclude textareas controlled by new CSS layouts.
+    document.querySelectorAll('textarea').forEach(el => {
+        if (!el || ['modalNoteTextarea', 'cxIssueText', 'troubleshootingProcessText', 'additionalinfoText', 'affectedText', 'errorInfoText'].includes(el.id)) return;
+        
         el.style.height = 'auto';
         const computedStyle = window.getComputedStyle(el);
         const minHeightPx = parseFloat(computedStyle.minHeight);
