@@ -9,6 +9,42 @@ import { generateFinalNote, noteBuilder } from './note-builder.js';
 import { populateTimeSlots, showToast } from './ui-helpers.js';
 import { resetChecklist } from './checklist-manager.js';
 
+// --- Layout Adjustment ---
+function adjustLayouts() {
+    const { cxIssueText, errorInfoGroup, affectedTextGroup } = dom;
+    const cxIssueRow = document.getElementById('cx-issue-row');
+    if (!cxIssueRow || !cxIssueText || !errorInfoGroup || !affectedTextGroup) return;
+
+    const isErrorInfoVisible = !errorInfoGroup.classList.contains('hidden-field');
+    const isAffectedVisible = !affectedTextGroup.classList.contains('hidden-field');
+    const isSideColumnVisible = isErrorInfoVisible || isAffectedVisible;
+
+    cxIssueRow.classList.toggle('is-split', isSideColumnVisible);
+    
+    if (isSideColumnVisible) {
+        // Calculate height of the side column to make CX ISSUE match
+        let totalHeight = 0;
+        const gap = 16; // 1rem gap
+
+        if (isErrorInfoVisible) {
+            totalHeight += errorInfoGroup.offsetHeight;
+        }
+        if (isAffectedVisible) {
+            totalHeight += affectedTextGroup.offsetHeight;
+        }
+        if (isErrorInfoVisible && isAffectedVisible) {
+            totalHeight += gap;
+        }
+        
+        cxIssueText.style.height = `${totalHeight}px`;
+
+    } else {
+        // Reset height when side column is hidden
+        cxIssueText.style.height = 'auto'; 
+    }
+}
+
+
 // --- Multi-Select Component Helper ---
 function _populateMultiSelect(options, listElement, selectedSet, savedValues = []) {
     if (!listElement) return;
@@ -169,7 +205,6 @@ export function updateAffectedFieldVisibilityAndLabel(service, affectedTextValue
     }
 
     dom.affectedLabel.textContent = affectedLabelText;
-
     dom.affectedTextGroup.classList.toggle('hidden-field', !isVisible);
     dom.affectedText.toggleAttribute('required', isVisible);
 
@@ -179,6 +214,7 @@ export function updateAffectedFieldVisibilityAndLabel(service, affectedTextValue
         dom.affectedText.value = '';
     }
 
+    adjustLayouts();
     applyInitialRequiredHighlight();
     generateFinalNote();
 }
@@ -202,6 +238,7 @@ export function updateErrorFieldsVisibility(errorValue = null, errorInfoValue = 
         errorInfoText.value = '';
     }
     
+    adjustLayouts();
     applyInitialRequiredHighlight();
     generateFinalNote();
 }
@@ -723,7 +760,13 @@ export function checkCurrentFormHasData() {
 export function initialResizeTextareas() {
     // This function is now modified to exclude textareas controlled by new CSS layouts.
     document.querySelectorAll('textarea').forEach(el => {
-        if (!el || ['modalNoteTextarea', 'cxIssueText', 'troubleshootingProcessText', 'additionalinfoText', 'affectedText', 'errorInfoText'].includes(el.id)) return;
+        if (!el || el.id === 'modalNoteTextarea') return;
+        
+        // Let CSS handle the height for these specific textareas
+        if (['cxIssueText', 'troubleshootingProcessText', 'additionalinfoText', 'affectedText', 'errorInfoText'].includes(el.id)) {
+            el.style.height = ''; // Let CSS take over
+            return;
+        };
         
         el.style.height = 'auto';
         const computedStyle = window.getComputedStyle(el);
