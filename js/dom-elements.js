@@ -21,9 +21,20 @@ export const dom = {
     xidInput: get('xid'),
     verifiedBySelect: get('verifiedBy'),
     addressInput: get('address'),
-    outageRadioGroupElements: queryAll('input[name="outage"]'),
-    errorsInNCRadioGroupElements: queryAll('input[name="errorsInNC"]'),
-    accountSuspendedRadioGroupElements: queryAll('input[name="accountSuspended"]'),
+    
+    // MODIFICADO: Se eliminan los radio groups antiguos y se añaden los nuevos elementos
+    errorSelect: get('errorSelect'),
+    errorInfoGroup: get('errorInfoGroup'),
+    errorInfoText: get('errorInfoText'),
+    errorInfoLabel: get('errorInfoLabel'),
+
+    // MODIFICADO: Nuevos elementos para el selector múltiple de Security Questions
+    securityQuestionsContainer: get('securityQuestionsContainer'),
+    securityQuestionsButton: get('securityQuestionsButton'),
+    securityQuestionsLabel: get('securityQuestionsLabel'),
+    securityQuestionsOptionsContainer: get('securityQuestionsOptionsContainer'),
+    securityQuestionsOptionsList: get('securityQuestionsOptionsList'),
+
     serviceOnCsrSelect: get('serviceOnCsr'),
     serviceSelect: get('serviceSelect'),
     issueSelect: get('issueSelect'),
@@ -32,10 +43,7 @@ export const dom = {
     affectedText: get('affectedText'),
     affectedTextGroup: get('affectedTextGroup'),
     affectedLabel: get('affectedLabel'),
-    serviceAffectedRow: get('affectedTextGroup'),
-    // MODIFICADO: Nuevos elementos para la función de Outage
-    outageInfoGroup: get('outageInfoGroup'),
-    outageInfoText: get('outageInfoText'),
+    
     physicalCheckListsContainer: get('physicalCheckListsContainer'),
     physicalCheckList1Select: get('physicalCheckList1Select'),
     physicalCheckList2Select: get('physicalCheckList2Select'),
