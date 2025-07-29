@@ -45,9 +45,8 @@ export async function initializeApp() {
     const isNewUser = await handleWelcomeModal();
     initialResizeTextareas();
 
-    // Asegura que los campos dinámicos empiecen ocultos.
-    if (dom.affectedTextGroup) dom.affectedTextGroup.style.display = 'none';
-    if (dom.serviceAffectedRow) dom.serviceAffectedRow.classList.remove('has-affected');
+    // MODIFICADO: Se elimina la línea que ocultaba el campo "affected" con un estilo en línea.
+    // La visibilidad ahora es controlada completamente por las clases CSS y la lógica en ui-manager.js
 
     // Inicializa los selects de "physical check".
     const initialPhysicalCheckListIds = ['physicalCheckList1Select', 'physicalCheckList2Select', 'physicalCheckList3Select', 'physicalCheckList4Select'];
