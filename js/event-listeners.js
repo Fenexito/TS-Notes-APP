@@ -98,7 +98,7 @@ function addFormAndFieldListeners() {
         updateTransferFieldState(dom.transferCheckbox.checked);
     });
 
-    dom.physicalCheckList1Select, dom.physicalCheckList2Select, dom.physicalCheckList3Select.forEach((select, index) => {
+    [dom.physicalCheckList1Select, dom.physicalCheckList2Select, dom.physicalCheckList3Select].forEach((select, index) => {
         select.addEventListener('change', () => {
             const nextCheckbox = dom[`enablePhysicalCheck${index + 2}`];
             if (select.value !== '' && nextCheckbox && !nextCheckbox.checked) {
