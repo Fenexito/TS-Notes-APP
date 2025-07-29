@@ -83,7 +83,8 @@ function addFormAndFieldListeners() {
         if(dom.skillToggle.checked) {
             _populatePhysicalCheckListLabelsAndOptions(dom.serviceSelect.value);
             if (!state.isEditingNoteFlag) {
-                [dom.enablePhysicalCheck2, dom.enablePhysicalCheck3, dom.enablePhysicalCheck4].forEach(cb => cb.checked = false);
+                // The following elements are not in index.html, so they cause an error.
+                // [dom.enablePhysicalCheck2, dom.enablePhysicalCheck3, dom.enablePhysicalCheck4].forEach(cb => cb.checked = false);
             }
             _updatePhysicalCheckListEnablement(dom.serviceSelect.value);
         }
@@ -98,6 +99,10 @@ function addFormAndFieldListeners() {
         updateTransferFieldState(dom.transferCheckbox.checked);
     });
     
+    // --- BLOQUE CORREGIDO ---
+    // El siguiente código fue comentado porque los elementos 'physicalCheckList...Select' y 'enablePhysicalCheck...' 
+    // no existen en el archivo index.html, lo que causaba un error 'Cannot read properties of null'.
+    /*
     [dom.physicalCheckList1Select, dom.physicalCheckList2Select, dom.physicalCheckList3Select].forEach((select, index) => {
         select.addEventListener('change', () => {
             const nextCheckbox = dom[`enablePhysicalCheck${index + 2}`];
@@ -111,6 +116,7 @@ function addFormAndFieldListeners() {
     [dom.enablePhysicalCheck2, dom.enablePhysicalCheck3, dom.enablePhysicalCheck4].forEach(cb => {
         cb.addEventListener('change', () => _updatePhysicalCheckListEnablement(dom.serviceSelect.value));
     });
+    */
 
     dom.tvsSelect.addEventListener('change', () => updateTvsKeyFieldState());
     dom.transferCheckbox.addEventListener('change', () => updateTransferFieldState());
