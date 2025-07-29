@@ -14,8 +14,7 @@ const _getFieldValue = (id, sourceData = null) => {
         if (id === 'skillToggle') {
             return sourceData.skill === 'SHS';
         }
-        // For multiselect components, the data is stored directly as an array
-        if (id === 'awaAlertsContainer' || id === 'extraStepsContainer') {
+        if (id === 'awaAlertsContainer' || id === 'extraStepsContainer' || id === 'securityQuestionsContainer') {
             return sourceData[id] || [];
         }
         if (sourceData[id] !== undefined) {
@@ -25,13 +24,9 @@ const _getFieldValue = (id, sourceData = null) => {
         return radioName ? sourceData[radioName] : '';
     }
 
-    // Handle new multi-select components
-    if (id === 'awaAlertsContainer') {
-        return Array.from(state.awaAlertsSelected);
-    }
-    if (id === 'extraStepsContainer') {
-        return Array.from(state.extraStepsSelected);
-    }
+    if (id === 'awaAlertsContainer') return Array.from(state.awaAlertsSelected);
+    if (id === 'extraStepsContainer') return Array.from(state.extraStepsSelected);
+    if (id === 'securityQuestionsContainer') return Array.from(state.securityQuestionsSelected);
 
     const element = dom[id] || document.getElementById(id);
     if (element) {
@@ -70,10 +65,20 @@ const _buildSection1Content = (sourceData = null) => {
     if (_getFieldValue('caller', sourceData) === 'Consultation' && _getFieldValue('xid', sourceData)) {
         parts.push(`XID: ${_getFieldValue('xid', sourceData)}`);
     }
-    ['verifiedBy', 'address', ].forEach(fieldId => {
-        const value = _getFieldValue(fieldId, sourceData);
-        if (value) parts.push(`${fieldConfig[fieldId].label}: ${value}`);
-    });
+    
+    const verifiedByValue = _getFieldValue('verifiedBy', sourceData);
+    if (verifiedByValue) {
+        let verifiedByLine = `${fieldConfig['verifiedBy'].label}: ${verifiedByValue}`;
+        if (verifiedByValue === 'Security Questions') {
+            const questions = _getFieldValue('securityQuestionsContainer', sourceData);
+            if (questions.length > 0) {
+                verifiedByLine += ` (${questions.join(', ')})`;
+            }
+        }
+        parts.push(verifiedByLine);
+    }
+
+    if (_getFieldValue('address', sourceData)) parts.push(`${fieldConfig['address'].label}: ${_getFieldValue('address', sourceData)}`);
     return parts;
 };
 
@@ -81,23 +86,23 @@ const _buildSection2InitialContent = (sourceData = null) => {
     const parts = [];
     if (_getFieldValue('serviceOnCsr', sourceData)) parts.push(`SERVICE ON CSR: ${_getFieldValue('serviceOnCsr', sourceData)}`);
     
-    const outageValue = _getFieldValue('outage', sourceData);
-    if (outageValue === 'yes') {
+    const errorValue = _getFieldValue('errorSelect', sourceData);
+    if (errorValue === 'Active Outage') {
         parts.push('OUTAGE: Active Outage affecting services');
-        const outageInfo = _getFieldValue('outageInfoText', sourceData);
-        if (outageInfo) {
-            parts.push(`OUTAGE INFO: ${outageInfo}`);
+        const errorInfo = _getFieldValue('errorInfoText', sourceData);
+        if (errorInfo) {
+            parts.push(`OUTAGE INFO: ${errorInfo}`);
         }
-    } else if (outageValue === 'no') {
-        parts.push('OUTAGE: No Active Outage');
+    } else if (errorValue === 'Netcracker Error') {
+        parts.push('NC: ERROR FOUND in NetCracker');
+        const errorInfo = _getFieldValue('errorInfoText', sourceData);
+        if (errorInfo) {
+            parts.push(`NC INFO: ${errorInfo}`);
+        }
+    } else {
+        parts.push('No Active Outage / No Errors on NC');
     }
 
-    const errorsInNCValue = _getFieldValue('errorsInNC', sourceData);
-    if (errorsInNCValue === 'yes') parts.push('NC: ERROR FOUND in NetCracker');
-    else if (errorsInNCValue === 'no') parts.push('NC: No Errors in NetCracker');
-    const accountSuspendedValue = _getFieldValue('accountSuspended', sourceData);
-    if (accountSuspendedValue === 'yes') parts.push('SUSPENDED: Yes');
-    else if (accountSuspendedValue === 'no') parts.push('SUSPENDED: No');
     if (_getFieldValue('serviceSelect', sourceData)) parts.push(`SERVICE: ${_getFieldValue('serviceSelect', sourceData)}`);
     if (_getFieldValue('issueSelect', sourceData)) parts.push(`WORKFLOW: ${_getFieldValue('issueSelect', sourceData)}`);
     
