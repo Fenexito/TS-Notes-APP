@@ -183,7 +183,6 @@ export function updateAffectedFieldVisibilityAndLabel(service, affectedTextValue
     generateFinalNote();
 }
 
-// NUEVA FUNCIÓN: Controla la visibilidad del campo de información de outage
 export function updateOutageInfoVisibility(outageValue = null, outageInfoValue = '') {
     const { outageInfoGroup, outageInfoText } = dom;
     if (!outageInfoGroup || !outageInfoText) return;
