@@ -2369,10 +2369,18 @@ input:checked + .theme-slider:before {
     resize: none;
 }
 
+/* ===== INICIO DE CAMBIOS Y ADICIONES ===== */
+
+/* 1. Añadimos el nuevo elemento a la fila 2 */
+.grid-item-physical-checks {
+    grid-column: 1 / -1; /* Ocupa todo el ancho */
+    grid-row: 2;         /* Se posiciona en la segunda fila */
+}
+
 /* Default state (side info hidden) */
 .grid-item-cx-issue {
     grid-column: 1 / 5; /* Ocupa 4 columnas */
-    grid-row: 2 / 4;    /* Ocupa 2 filas */
+    grid-row: 3 / 5;     /* CAMBIO: Movido de la fila 2 a la 3 (ocupa 2 filas) */
 }
 
 .grid-item-side-info {
@@ -2388,17 +2396,19 @@ input:checked + .theme-slider:before {
     display: flex;
     flex-direction: column;
     grid-column: 4 / 5; /* Ocupa la 4ta columna */
-    grid-row: 2 / 4;    /* Ocupa 2 filas */
+    grid-row: 3 / 5;     /* CAMBIO: Movido de la fila 2 a la 3 (ocupa 2 filas) */
     gap: 10px;
 }
 
 /* Layout for Troubleshooting and Additional Info */
 .grid-item-ts-process {
     grid-column: 1 / 4; /* Ocupa 3 columnas */
-    grid-row: 4 / 6;    /* Ocupa 2 filas */
+    grid-row: 5 / 7;     /* CAMBIO: Movido de la fila 4 a la 5 (ocupa 2 filas) */
 }
 
 .grid-item-additional-info {
     grid-column: 4 / 5; /* Ocupa la 4ta columna */
-    grid-row: 4 / 6;    /* Ocupa 2 filas */
+    grid-row: 5 / 7;     /* CAMBIO: Movido de la fila 4 a la 5 (ocupa 2 filas) */
 }
+
+/* ===== FIN DE CAMBIOS Y ADICIONES ===== */
