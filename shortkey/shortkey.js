@@ -73,7 +73,6 @@ class Shortkey {
                 
                 element.value = newText;
                 
-                // Movemos el cursor manualmente al final del texto insertado.
                 element.selectionStart = element.selectionEnd = newText.length;
                 
                 this._isExpanding = false;
@@ -86,14 +85,11 @@ class Shortkey {
 /**
  * Lógica de la Aplicación
  * Este es el "pegamento" que conecta la UI (HTML) con el módulo Shortkey.
- * Se ejecuta cuando el DOM está completamente cargado.
  */
 document.addEventListener('DOMContentLoaded', () => {
     
-    // 1. Inicializamos el módulo Shortkey.
     const shortkeyManager = new Shortkey();
 
-    // 2. "Enganchamos" el módulo SOLO al campo de texto deseado.
     const editorConShortkeys = document.getElementById('editorConShortkeys');
     shortkeyManager.attach(editorConShortkeys);
 
@@ -107,18 +103,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const valueInput = document.getElementById('shortcutValueInput');
     const listContainer = document.getElementById('shortcutsList');
 
+    // **CAMBIO:** Funciones para abrir/cerrar usando una clase CSS para las animaciones.
     const openModal = () => {
         renderShortcuts();
-        modal.classList.remove('hidden');
+        modal.classList.add('visible');
     };
 
     const closeModal = () => {
-        modal.classList.add('hidden');
+        modal.classList.remove('visible');
     };
     
-    // Función para renderizar la lista de shortkeys en el modal.
     const renderShortcuts = () => {
-        listContainer.innerHTML = ''; // Limpiamos la lista actual.
+        listContainer.innerHTML = '';
         const shortcuts = shortkeyManager.getShortcuts();
 
         if (Object.keys(shortcuts).length === 0) {
@@ -142,10 +138,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    // Event Listeners
+    // Event Listeners para los botones
     openBtn.addEventListener('click', openModal);
     closeBtn.addEventListener('click', closeModal);
     overlay.addEventListener('click', closeModal);
+
+    // **NUEVO:** Atajo de teclado global para abrir/cerrar el modal.
+    document.addEventListener('keydown', (event) => {
+        // Comprobamos la combinación CTRL + SHIFT + S
+        if (event.ctrlKey && event.shiftKey && (event.key === 'S' || event.key === 's')) {
+            // Prevenimos la acción por defecto del navegador (como "Guardar página")
+            event.preventDefault();
+            
+            // Si el modal está visible, lo cerramos. Si no, lo abrimos.
+            if (modal.classList.contains('visible')) {
+                closeModal();
+            } else {
+                openModal();
+            }
+        }
+    });
 
     // Añadir nuevo shortkey
     addForm.addEventListener('submit', (e) => {
@@ -156,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderShortcuts();
     });
 
-    // Eliminar un shortkey (usando delegación de eventos)
+    // Eliminar un shortkey
     listContainer.addEventListener('click', (e) => {
         if (e.target.classList.contains('delete-btn')) {
             const key = e.target.dataset.key;
@@ -164,4 +176,4 @@ document.addEventListener('DOMContentLoaded', () => {
             renderShortcuts();
         }
     });
-});  
+});
