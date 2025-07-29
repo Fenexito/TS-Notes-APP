@@ -164,7 +164,4 @@ document.addEventListener('DOMContentLoaded', () => {
             renderShortcuts();
         }
     });
-});
-// Exportamos la clase Shortkey para que pueda ser usada en otros módulos si es necesario.
-export default Shortkey;
-export { Shortkey };  
+});  
