@@ -544,7 +544,7 @@ export function handleSkillChange() {
     
     
     if (!config.state.isEditingNoteFlag) {
-        dom.enablePhysicalCheck2, dom.enablePhysicalCheck3, dom.enablePhysicalCheck4].forEach(cb => cb.checked = false);
+        [dom.enablePhysicalCheck2, dom.enablePhysicalCheck3, dom.enablePhysicalCheck4].forEach(cb => cb.checked = false);
     }
     
     dom.serviceSelect.dispatchEvent(new Event('change'));
