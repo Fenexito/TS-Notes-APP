@@ -98,12 +98,8 @@ function addFormAndFieldListeners() {
         dom.transferCheckbox.checked = (resolvedValue === 'Cx needs to be transferred');
         updateTransferFieldState(dom.transferCheckbox.checked);
     });
-    
-    // --- BLOQUE CORREGIDO ---
-    // El siguiente código fue comentado porque los elementos 'physicalCheckList...Select' y 'enablePhysicalCheck...' 
-    // no existen en el archivo index.html, lo que causaba un error 'Cannot read properties of null'.
-    /*
-    [dom.physicalCheckList1Select, dom.physicalCheckList2Select, dom.physicalCheckList3Select].forEach((select, index) => {
+
+    dom.physicalCheckList1Select, dom.physicalCheckList2Select, dom.physicalCheckList3Select].forEach((select, index) => {
         select.addEventListener('change', () => {
             const nextCheckbox = dom[`enablePhysicalCheck${index + 2}`];
             if (select.value !== '' && nextCheckbox && !nextCheckbox.checked) {
