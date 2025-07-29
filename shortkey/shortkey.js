@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                 </div>`;
             listContainer.appendChild(item);
-        }
+        });
     };
 
     // --- Event Listeners ---
