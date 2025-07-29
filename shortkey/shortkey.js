@@ -47,8 +47,6 @@ class Shortkey {
 
     /**
      * "Engancha" el expansor a uno o más elementos.
-     * MEJORA: Ahora puede recibir un elemento único o un selector CSS
-     * para engancharse a múltiples elementos a la vez.
      * @param {HTMLElement|string} selectorOrElement - El elemento o selector CSS.
      */
     attach(selectorOrElement) {
@@ -76,20 +74,19 @@ class Shortkey {
         }
 
         const element = event.target;
-        const text = element.value;
         const cursorPosition = element.selectionStart;
 
-        // Extraemos el texto que está justo antes del cursor.
-        const textBeforeCursor = text.substring(0, cursorPosition);
-        
         // Si no hay texto antes del cursor, no hay nada que hacer.
-        if (textBeforeCursor.length === 0) {
+        if (cursorPosition === 0) {
             return;
         }
         
+        // Extraemos el texto que está justo antes del cursor.
+        const textBeforeCursor = element.value.substring(0, cursorPosition);
+        
         // Buscamos el inicio de la última palabra.
         const lastSpaceIndex = textBeforeCursor.lastIndexOf(' ');
-        const wordStartIndex = lastSpaceIndex + 1;
+        const wordStartIndex = lastSpaceIndex > -1 ? lastSpaceIndex + 1 : 0;
         
         // Aislamos la palabra que podría ser nuestra abreviatura.
         const potentialShortcut = textBeforeCursor.substring(wordStartIndex).toLowerCase();
@@ -105,10 +102,10 @@ class Shortkey {
             event.preventDefault();
 
             const expansion = this._shortcuts[potentialShortcut];
-            const textAfterCursor = text.substring(cursorPosition);
+            const textAfterCursor = element.value.substring(cursorPosition);
             
             // Reconstruimos el texto: [texto antes de la palabra] + [expansión] + [texto después del cursor]
-            const newText = text.substring(0, wordStartIndex) + expansion + textAfterCursor;
+            const newText = element.value.substring(0, wordStartIndex) + expansion + textAfterCursor;
             
             element.value = newText;
             
@@ -125,6 +122,8 @@ class Shortkey {
  */
 document.addEventListener('DOMContentLoaded', () => {
     
+    console.info('[Shortkey] Módulo cargado y listo.');
+
     const shortkeyManager = new Shortkey();
 
     // MEJORA: Ahora puedes añadir la clase "shortkey-enabled" a cualquier
@@ -135,7 +134,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const editorPrincipal = document.getElementById('editorConShortkeys');
     if(editorPrincipal && !editorPrincipal.classList.contains('shortkey-enabled')) {
         editorPrincipal.classList.add('shortkey-enabled');
-        shortkeyManager.attach(editorPrincipal); // Re-enganchar por si acaso.
+        // Volvemos a llamar a attach para asegurarnos de que el listener se añade
+        // si la clase se acaba de agregar.
+        shortkeyManager.attach(editorPrincipal);
     }
 
 
