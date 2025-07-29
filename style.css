@@ -2348,7 +2348,7 @@ input:checked + .theme-slider:before {
 }
 
 /* ==========================================================================
-   19. NUEVOS ESTILOS PARA LA CUADRÍCULA DE LA SECCIÓN 2
+   19. ESTILOS CORREGIDOS PARA LA CUADRÍCULA DE LA SECCIÓN 2
    ========================================================================== */
 
 .section2-grid {
@@ -2371,16 +2371,10 @@ input:checked + .theme-slider:before {
 
 /* ===== INICIO DE CAMBIOS Y ADICIONES ===== */
 
-/* 1. Añadimos el nuevo elemento a la fila 2 */
-.grid-item-physical-checks {
-    grid-column: 1 / -1; /* Ocupa todo el ancho */
-    grid-row: 2;         /* Se posiciona en la segunda fila */
-}
-
 /* Default state (side info hidden) */
 .grid-item-cx-issue {
     grid-column: 1 / 5; /* Ocupa 4 columnas */
-    grid-row: 3 / 5;     /* CAMBIO: Movido de la fila 2 a la 3 (ocupa 2 filas) */
+    grid-row: 2 / 4;    /* Se mantiene en las filas 2 y 3 */
 }
 
 .grid-item-side-info {
@@ -2396,19 +2390,25 @@ input:checked + .theme-slider:before {
     display: flex;
     flex-direction: column;
     grid-column: 4 / 5; /* Ocupa la 4ta columna */
-    grid-row: 3 / 5;     /* CAMBIO: Movido de la fila 2 a la 3 (ocupa 2 filas) */
+    grid-row: 2 / 4;    /* Se mantiene en las filas 2 y 3 */
     gap: 10px;
 }
 
-/* Layout for Troubleshooting and Additional Info */
+/* 1. Se añaden los nuevos elementos en la fila 4, justo debajo de CX-ISSUE */
+.grid-item-physical-checks {
+    grid-column: 1 / -1; /* Ocupa todo el ancho */
+    grid-row: 4;         /* CAMBIO: Posicionado en la fila 4 */
+}
+
+/* 2. Se empujan los siguientes elementos a la fila 5 */
 .grid-item-ts-process {
     grid-column: 1 / 4; /* Ocupa 3 columnas */
-    grid-row: 5 / 7;     /* CAMBIO: Movido de la fila 4 a la 5 (ocupa 2 filas) */
+    grid-row: 5 / 7;     /* CAMBIO: Movido para empezar en la fila 5 (ocupa 2 filas) */
 }
 
 .grid-item-additional-info {
     grid-column: 4 / 5; /* Ocupa la 4ta columna */
-    grid-row: 5 / 7;     /* CAMBIO: Movido de la fila 4 a la 5 (ocupa 2 filas) */
+    grid-row: 5 / 7;     /* CAMBIO: Movido para empezar en la fila 5 (ocupa 2 filas) */
 }
 
 /* ===== FIN DE CAMBIOS Y ADICIONES ===== */
