@@ -41,11 +41,9 @@ class Shortkey {
     updateShortcut(oldKey, newKey, value) {
         if (!newKey || !value) return { success: false, error: 'empty' };
         const cleanNewKey = newKey.trim().toLowerCase();
-        // Si la llave cambió y la nueva ya existe, es un error.
         if (oldKey !== cleanNewKey && this._shortcuts.hasOwnProperty(cleanNewKey)) {
             return { success: false, error: 'duplicate', key: cleanNewKey };
         }
-        // Borramos la llave vieja si es necesario
         if (oldKey !== cleanNewKey) {
             delete this._shortcuts[oldKey];
         }
@@ -73,17 +71,14 @@ class Shortkey {
 
     _handleKeydown(event) {
         if (event.key !== ' ') return;
-
         const element = event.target;
         const cursorPosition = element.selectionStart;
         if (cursorPosition === 0) return;
-        
         const textBeforeCursor = element.value.substring(0, cursorPosition);
         const lastAtIndex = textBeforeCursor.lastIndexOf('@');
-        if (lastAtIndex === -1 || textBeforeCursor.lastIndexOf(' ') > lastAtIndex) {
-            return; // No hay un '@' en la palabra actual
+        if (lastAtIndex === -1 || textBeforeCursor.substring(lastAtIndex).includes(' ')) {
+            return;
         }
-
         const potentialShortcut = textBeforeCursor.substring(lastAtIndex + 1).toLowerCase();
         if (this._shortcuts.hasOwnProperty(potentialShortcut)) {
             event.preventDefault();
@@ -103,7 +98,6 @@ class Shortkey {
 document.addEventListener('DOMContentLoaded', () => {
     console.info('[Shortkey] Módulo cargado y listo.');
     const shortkeyManager = new Shortkey();
-
     shortkeyManager.attach('.shortkey-enabled');
 
     // --- Elementos del DOM ---
@@ -133,13 +127,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const showNotification = (message, type = 'error') => {
         notification.textContent = message;
         notification.className = `notification ${type} show`;
-        setTimeout(() => {
-            notification.classList.remove('show');
-        }, 3000);
+        setTimeout(() => notification.classList.remove('show'), 3000);
     };
 
     const highlightShortcut = (key) => {
-        const item = document.querySelector(`[data-key="${key}"]`);
+        const item = document.querySelector(`.shortcut-item[data-key="${key}"]`);
         if (item) {
             item.classList.add('highlight');
             item.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -170,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         listContainer.innerHTML = '';
         const shortcuts = shortkeyManager.getShortcuts();
         if (Object.keys(shortcuts).length === 0) {
-            listContainer.innerHTML = `<p style="text-align: center; color: #6b7280;">No tienes shortkeys guardados.</p>`;
+            listContainer.innerHTML = `<p style="text-align: center; color: #6b7280; padding: 1rem;">No tienes shortkeys guardados.</p>`;
             return;
         }
         for (const key in shortcuts) {
@@ -179,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
             item.className = 'shortcut-item';
             item.dataset.key = key;
             item.innerHTML = `
-                <div>
+                <div class="shortcut-details">
                     <span class="shortcut-key">@${key}</span>
                     <span class="shortcut-arrow">→</span>
                     <span class="shortcut-value">${value}</span>
@@ -219,11 +211,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     listContainer.addEventListener('click', (e) => {
-        const target = e.target.closest('.action-btn');
+        const target = e.target.closest('button');
         if (!target) return;
         
         const item = target.closest('.shortcut-item');
-        const key = item.dataset.key;
+        const key = item ? item.dataset.key : null;
 
         if (target.classList.contains('edit-btn')) {
             startEditing(key);
@@ -231,11 +223,13 @@ document.addEventListener('DOMContentLoaded', () => {
             item.innerHTML = `
                 <div class="delete-confirmation">
                     <span>¿Eliminar "@${key}"?</span>
-                    <button class="confirm-yes" data-key="${key}">Sí</button>
-                    <button class="confirm-no">No</button>
+                    <div>
+                        <button class="confirm-yes" data-key="${key}">Sí</button>
+                        <button class="confirm-no">No</button>
+                    </div>
                 </div>`;
         } else if (target.classList.contains('confirm-yes')) {
-            shortkeyManager.removeShortcut(key);
+            shortkeyManager.removeShortcut(target.dataset.key);
             renderShortcuts();
         } else if (target.classList.contains('confirm-no')) {
             renderShortcuts();
@@ -252,7 +246,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Import/Export
     exportButton.addEventListener('click', () => {
-        const dataStr = JSON.stringify(shortkeyManager.getShortcuts(), null, 2);
+        const shortcuts = shortkeyManager.getShortcuts();
+        if (Object.keys(shortcuts).length === 0) {
+            showNotification('No hay shortkeys para exportar.', 'error');
+            return;
+        }
+        const dataStr = JSON.stringify(shortcuts, null, 2);
         const dataBlob = new Blob([dataStr], {type: "application/json"});
         const url = URL.createObjectURL(dataBlob);
         const link = document.createElement('a');
@@ -270,11 +269,13 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.onload = (event) => {
             try {
                 const importedShortcuts = JSON.parse(event.target.result);
+                let addedCount = 0;
                 Object.entries(importedShortcuts).forEach(([key, value]) => {
-                    shortkeyManager.addShortcut(key, value); // Usa add para evitar duplicados
+                    const result = shortkeyManager.addShortcut(key, value);
+                    if (result.success) addedCount++;
                 });
                 renderShortcuts();
-                showNotification('Shortkeys importados con éxito.', 'success');
+                showNotification(`${addedCount} shortkey(s) importado(s) con éxito.`, 'success');
             } catch (error) {
                 showNotification('Error: El archivo no es un JSON válido.');
             }
