@@ -183,24 +183,55 @@ export function updateAffectedFieldVisibilityAndLabel(service, affectedTextValue
     generateFinalNote();
 }
 
-export function updateOutageInfoVisibility(outageValue = null, outageInfoValue = '') {
-    const { outageInfoGroup, outageInfoText } = dom;
-    if (!outageInfoGroup || !outageInfoText) return;
+export function updateErrorFieldsVisibility(errorValue = null, errorInfoValue = '') {
+    const { errorInfoGroup, errorInfoText, errorInfoLabel } = dom;
+    if (!errorInfoGroup || !errorInfoText || !errorInfoLabel) return;
 
-    const currentOutageValue = outageValue ?? noteBuilder._getFieldValue('outage');
-    const showInfo = currentOutageValue === 'yes';
+    const currentErrorValue = errorValue ?? noteBuilder._getFieldValue('errorSelect');
+    const showInfo = currentErrorValue === 'Active Outage' || currentErrorValue === 'Netcracker Error';
 
-    outageInfoGroup.classList.toggle('hidden-field', !showInfo);
-    outageInfoText.toggleAttribute('required', showInfo);
+    errorInfoGroup.classList.toggle('hidden-field', !showInfo);
+    errorInfoText.toggleAttribute('required', showInfo);
 
-    if (showInfo && config.state.isEditingNoteFlag) {
-        outageInfoText.value = outageInfoValue;
-    } else if (!showInfo) {
-        outageInfoText.value = '';
+    if (showInfo) {
+        errorInfoLabel.textContent = currentErrorValue === 'Active Outage' ? 'OUTAGE INFO' : 'NC INFO';
+        if (config.state.isEditingNoteFlag) {
+            errorInfoText.value = errorInfoValue;
+        }
+    } else {
+        errorInfoText.value = '';
     }
     
     applyInitialRequiredHighlight();
     generateFinalNote();
+}
+
+export function updateSecurityQuestionsVisibility(verifiedByValue = null, securityQuestions = []) {
+    const { securityQuestionsContainer } = dom;
+    if (!securityQuestionsContainer) return;
+
+    const currentVerifiedBy = verifiedByValue ?? noteBuilder._getFieldValue('verifiedBy');
+    const showQuestions = currentVerifiedBy === 'Security Questions';
+
+    securityQuestionsContainer.classList.toggle('hidden-field', !showQuestions);
+    
+    if (showQuestions) {
+        populateSecurityQuestionsComponent(securityQuestions);
+    } else {
+        config.state.securityQuestionsSelected.clear();
+        _updateMultiSelectButtonLabel(dom.securityQuestionsLabel, config.state.securityQuestionsSelected, 'Select questions...');
+    }
+
+    applyInitialRequiredHighlight();
+    generateFinalNote();
+}
+
+export function populateSecurityQuestionsComponent(savedValues = []) {
+    const { securityQuestionsOptionsList, securityQuestionsLabel } = dom;
+    if (!securityQuestionsOptionsList || !securityQuestionsLabel) return;
+
+    _populateMultiSelect(config.securityQuestionsOptions, securityQuestionsOptionsList, config.state.securityQuestionsSelected, savedValues);
+    _updateMultiSelectButtonLabel(securityQuestionsLabel, config.state.securityQuestionsSelected, 'Select questions...');
 }
 
 
@@ -567,11 +598,15 @@ export function clearAllFormFields(isForEdit = false) {
     if(dom.extraStepsOptionsList) Array.from(dom.extraStepsOptionsList.children).forEach(opt => opt.classList.remove('selected'));
     _updateMultiSelectButtonLabel(dom.extraStepsLabel, config.state.extraStepsSelected, 'Select extra steps...');
 
+    config.state.securityQuestionsSelected.clear();
+    if(dom.securityQuestionsOptionsList) Array.from(dom.securityQuestionsOptionsList.children).forEach(opt => opt.classList.remove('selected'));
+    _updateMultiSelectButtonLabel(dom.securityQuestionsLabel, config.state.securityQuestionsSelected, 'Select questions...');
+
+
     Array.from(form.elements).forEach(element => {
         if (element.tagName === 'BUTTON' || element.tagName === 'FIELDSET' || (!element.id && !element.name)) return;
         if (element.id === 'agentName' && dom.agentNameInput?.readOnly) return;
 
-        // Skip elements that are part of the multi-select components
         if (element.closest('.custom-select-container')) return;
 
         element.classList.remove('required-initial-border');
@@ -602,7 +637,8 @@ export function clearAllFormFields(isForEdit = false) {
         updateTvsKeyFieldState();
         updateTransferFieldState(false);
         updateTechFieldsVisibilityAndState('');
-        updateOutageInfoVisibility('no'); // Ocultar campo de outage al limpiar
+        updateErrorFieldsVisibility();
+        updateSecurityQuestionsVisibility();
     }
     
     generateFinalNote();
@@ -625,6 +661,11 @@ export function cleanSection(sectionId) {
             _updateMultiSelectButtonLabel(dom.extraStepsLabel, config.state.extraStepsSelected, 'Select extra steps...');
             if(dom.extraStepsOptionsList) Array.from(dom.extraStepsOptionsList.children).forEach(opt => opt.classList.remove('selected'));
         }
+        if (container.id === 'securityQuestionsContainer') {
+            config.state.securityQuestionsSelected.clear();
+            _updateMultiSelectButtonLabel(dom.securityQuestionsLabel, config.state.securityQuestionsSelected, 'Select questions...');
+            if(dom.securityQuestionsOptionsList) Array.from(dom.securityQuestionsOptionsList.children).forEach(opt => opt.classList.remove('selected'));
+        }
     });
 
     section.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]), select, textarea').forEach(input => {
@@ -645,7 +686,7 @@ export function cleanSection(sectionId) {
 }
 
 export function checkCurrentFormHasData() {
-    if (config.state.awaAlertsSelected.size > 0 || config.state.extraStepsSelected.size > 0) {
+    if (config.state.awaAlertsSelected.size > 0 || config.state.extraStepsSelected.size > 0 || config.state.securityQuestionsSelected.size > 0) {
         return true;
     }
 
@@ -704,8 +745,12 @@ export function applyInitialRequiredHighlight() {
         if (fieldConf.required && !isHidden) {
             let isMissing = false;
             if (fieldConf.type === 'multiselect') {
-                const selectedSet = fieldId === 'awaAlertsContainer' ? config.state.awaAlertsSelected : config.state.extraStepsSelected;
-                isMissing = selectedSet.size === 0;
+                let selectedSet;
+                if (fieldId === 'awaAlertsContainer') selectedSet = config.state.awaAlertsSelected;
+                else if (fieldId === 'extraStepsContainer') selectedSet = config.state.extraStepsSelected;
+                else if (fieldId === 'securityQuestionsContainer') selectedSet = config.state.securityQuestionsSelected;
+                
+                isMissing = selectedSet ? selectedSet.size === 0 : true;
                 const button = element.querySelector('button');
                 if (button) button.classList.toggle('required-initial-border', isMissing);
 
