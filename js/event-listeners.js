@@ -6,7 +6,7 @@
 import { dom } from './dom-elements.js';
 import { state, numericFields } from './config.js';
 import { saveCurrentNote, loadNotes, exportNotes, importNotes, saveAgentName, editNote, handleResolutionCopy, handleCopilotCopy, filterNotes, addEventListenersToHistoryItems } from './history-manager.js';
-import { clearAllFormFields, checkCurrentFormHasData, updateThirdRowLayout, populateIssueSelect, updateAffectedFieldVisibilityAndLabel, _populatePhysicalCheckListLabelsAndOptions, _updatePhysicalCheckListEnablement, updateOptikTvLegacySpecificFields, updateAwaStepsSelectState, updateTvsKeyFieldState, updateTransferFieldState, updateTechFieldsVisibilityAndState, handleSkillChange, setAgentNameEditable, cleanSection, updateStickyHeaderInfo, updateAwaAndSpeedFieldsVisibility, applyInitialRequiredHighlight, handleMultiSelectOptionClick, updateOutageInfoVisibility } from './ui-manager.js';
+import { clearAllFormFields, checkCurrentFormHasData, updateThirdRowLayout, populateIssueSelect, updateAffectedFieldVisibilityAndLabel, _populatePhysicalCheckListLabelsAndOptions, _updatePhysicalCheckListEnablement, updateOptikTvLegacySpecificFields, updateAwaStepsSelectState, updateTvsKeyFieldState, updateTransferFieldState, updateTechFieldsVisibilityAndState, handleSkillChange, setAgentNameEditable, cleanSection, updateStickyHeaderInfo, updateAwaAndSpeedFieldsVisibility, applyInitialRequiredHighlight, handleMultiSelectOptionClick, updateErrorFieldsVisibility, updateSecurityQuestionsVisibility } from './ui-manager.js';
 import { showToast, customConfirm, copyToClipboard } from './ui-helpers.js';
 import { generateFinalNote } from './note-builder.js';
 import { viewNoteInModal, closeModal, closeSeparateModal, hideSidebar, handleSeparateNote } from './modal-manager.js';
@@ -66,12 +66,9 @@ function addFormAndFieldListeners() {
     dom.editAgentNameBtn.addEventListener('click', () => setAgentNameEditable(saveAgentNameOnBlur, saveAgentNameOnEnter));
 
     dom.callerSelect.addEventListener('change', () => updateThirdRowLayout());
+    dom.verifiedBySelect.addEventListener('change', () => updateSecurityQuestionsVisibility());
+    dom.errorSelect.addEventListener('change', () => updateErrorFieldsVisibility());
     
-    // MODIFICADO: Añadido listener para el grupo de radio buttons de Outage
-    dom.outageRadioGroupElements.forEach(radio => {
-        radio.addEventListener('change', () => updateOutageInfoVisibility());
-    });
-
     dom.serviceSelect.addEventListener('change', () => {
         const service = dom.serviceSelect.value;
         populateIssueSelect(service);
@@ -228,7 +225,6 @@ function addModalAndSidebarListeners() {
 
 function addGlobalListeners() {
     document.body.addEventListener('click', (event) => {
-        // --- Multi-Select Logic ---
         const multiSelectButton = event.target.closest('.custom-select-button');
 
         const clearAllDropdownsAndOverflows = () => {
@@ -282,6 +278,8 @@ function addGlobalListeners() {
                 handleMultiSelectOptionClick(optionElement, state.awaAlertsSelected, dom.awaAlertsLabel, 'Select AWA alerts...');
             } else if (container.id === 'extraStepsContainer') {
                 handleMultiSelectOptionClick(optionElement, state.extraStepsSelected, dom.extraStepsLabel, 'Select extra steps...');
+            } else if (container.id === 'securityQuestionsContainer') {
+                handleMultiSelectOptionClick(optionElement, state.securityQuestionsSelected, dom.securityQuestionsLabel, 'Select questions...');
             }
             return;
         }
@@ -289,7 +287,6 @@ function addGlobalListeners() {
         if (!event.target.closest('.custom-select-container')) {
             clearAllDropdownsAndOverflows();
         }
-        // --- End Multi-Select Logic ---
 
         const copyButton = event.target.closest('.copy-button, .copy-button-sticky');
         if (copyButton) {
