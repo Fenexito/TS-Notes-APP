@@ -83,8 +83,7 @@ function addFormAndFieldListeners() {
         if(dom.skillToggle.checked) {
             _populatePhysicalCheckListLabelsAndOptions(dom.serviceSelect.value);
             if (!state.isEditingNoteFlag) {
-                // The following elements are not in index.html, so they cause an error.
-                // [dom.enablePhysicalCheck2, dom.enablePhysicalCheck3, dom.enablePhysicalCheck4].forEach(cb => cb.checked = false);
+                dom.enablePhysicalCheck2, dom.enablePhysicalCheck3, dom.enablePhysicalCheck4.forEach(cb => cb.checked = false);
             }
             _updatePhysicalCheckListEnablement(dom.serviceSelect.value);
         }
@@ -99,9 +98,9 @@ function addFormAndFieldListeners() {
         updateTransferFieldState(dom.transferCheckbox.checked);
     });
 
-    dom.physicalCheckList1Select, dom.physicalCheckList2Select, dom.physicalCheckList3Select].forEach((select, index) => {
+    dom.physicalCheckList1Select, dom.physicalCheckList2Select, dom.physicalCheckList3Select.forEach((select, index) => {
         select.addEventListener('change', () => {
-            const nextCheckbox = dom[`enablePhysicalCheck${index + 2}`];
+            const nextCheckbox = dom[`enablePhysicalCheck${index + 2}`;
             if (select.value !== '' && nextCheckbox && !nextCheckbox.checked) {
                 nextCheckbox.checked = true;
                 _updatePhysicalCheckListEnablement(dom.serviceSelect.value);
@@ -109,7 +108,7 @@ function addFormAndFieldListeners() {
         });
     });
 
-    [dom.enablePhysicalCheck2, dom.enablePhysicalCheck3, dom.enablePhysicalCheck4].forEach(cb => {
+    [dom.enablePhysicalCheck2, dom.enablePhysicalCheck3, dom.enablePhysicalCheck4.forEach(cb => {
         cb.addEventListener('change', () => _updatePhysicalCheckListEnablement(dom.serviceSelect.value));
     });
     */
