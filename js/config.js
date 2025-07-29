@@ -64,7 +64,7 @@ export const fieldConfig = {
     'address': { label: 'ADDRESS', required: false, type: 'text' },
     'xid': { label: 'XID', required: true, type: 'text', conditional: true },
     'serviceOnCsr': { label: 'SERVICE ON CSR', required: true, type: 'select' },
-    'errorSelect': { label: 'ERROR:', required: true, type: 'select' },
+    'errorSelect': { label: 'ERROR:', required: false, type: 'select' },
     'errorInfoText': { label: 'INFO', required: true, type: 'textarea', conditional: true },
     'skillToggle': { label: 'SKILL', required: true, type: 'checkbox' },
     'serviceSelect': { label: 'SERVICE', required: true, type: 'select' },
