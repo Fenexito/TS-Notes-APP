@@ -44,6 +44,7 @@ export let state = {
     // State for new multi-selects
     awaAlertsSelected: new Set(),
     extraStepsSelected: new Set(),
+    securityQuestionsSelected: new Set(), // MODIFICADO: Nuevo estado para las preguntas de seguridad
 };
 
 
@@ -59,16 +60,15 @@ export const fieldConfig = {
     'cbr': { label: 'CBR', required: true, type: 'text' },
     'caller': { label: 'CALLER', required: true, type: 'select' },
     'verifiedBy': { label: 'VERIFIED BY', required: true, type: 'select' },
+    'securityQuestionsContainer': { label: 'SECURITY QUESTIONS', required: true, type: 'multiselect', conditional: true },
     'address': { label: 'ADDRESS', required: false, type: 'text' },
     'xid': { label: 'XID', required: true, type: 'text', conditional: true },
     'serviceOnCsr': { label: 'SERVICE ON CSR', required: true, type: 'select' },
-    'outage': { label: 'Outage', required: true, type: 'radio' },
-    'errorsInNC': { label: 'NetCracker', required: true, type: 'radio' },
-    'accountSuspended': { label: 'Suspended', required: false, type: 'radio' },
+    'errorSelect': { label: 'ERROR:', required: true, type: 'select' },
+    'errorInfoText': { label: 'INFO', required: true, type: 'textarea', conditional: true },
     'skillToggle': { label: 'SKILL', required: true, type: 'checkbox' },
     'serviceSelect': { label: 'SERVICE', required: true, type: 'select' },
     'issueSelect': { label: 'WORKFLOW', required: true, type: 'select' },
-    'outageInfoText': { label: 'OUTAGE INFO', required: true, type: 'textarea', conditional: true },
     'cxIssueText': { label: 'CX ISSUE', required: true, type: 'textarea' },
     'affectedText': { label: 'AFFECTED', required: false, type: 'textarea', conditional: true },
     'physicalCheckList1Select': { label: 'ONT/GATEWAY', required: true, type: 'select' },
@@ -193,6 +193,7 @@ export const allAwaAlertsOptionsSHS = [
 export const awaStepsOptionsFFH = ['Advice cx about AWA alerts but is not facing the problems so far. (everything working fine on their end). No TS needed/performed about this', 'Advice cx about issues but cx dont want to troubheshoot this now', 'Inform cx about the problem. Offer WiFi Plus and cx refuses for now, but he will think about the feature', 'Inform cx about the problem. Cx already paying for Wifi Plus. No actions taken', 'Advice cx about issues. Most likely this alerts are causing the problem. Proceed with troubleshooting for the AWA alerts', 'Advice cx about the problem. Suggest internet plan speed upgrade or disconnect some devices from network', 'Advice cx about the problem. Suggest internet plan speed upgrade or disconnect some devices from network. Cx will take a look at that later. No TS performed'];
 export const awaStepsOptionsSHS = ['Device not Responding', 'Video Quota Exceeded', 'Video Rule not configured', 'Video Device - No DDNS Messages', 'Malfunction (Z-Wave)', 'Malfunction (Sensor)', 'Malfunction (LiftMaster)'];
 export const extraStepsOptions = ['Advice cx about new equipment delivery (3 to 5 business days)', 'Provide instructions for the installation of new equipment | Use go/send to share "How to" video/Instructions', 'Inform about the Equipment Return process | Share instructions with go/send', 'Use go/send to share PIN reset instructions', 'Use go/send to share "How To" video / Instructions', 'Perform a consultation with PIWS based on workflow suggestion', 'Fill the Connect APP Feedback. Advice cx about 7 to 10 days waiting time for the response. Share instructions to try again in the next 7 days. '];
+export const securityQuestionsOptions = ['DOB', 'DL', 'SIN', 'Phone Number 1', 'Phone Number 2', 'Email Address', 'Billing Address & Postal Code'];
 
 export const issueOptions = {
     'HighSpeed / Fiber': ['ONT Not Ranged', 'Intermittent Connectivity', 'No Dataflow', 'No IP', 'SlowSpeed', 'WiFi Disconnects', 'WiFi Can\'t Connect', 'Can\'t Browse some Websites'],
