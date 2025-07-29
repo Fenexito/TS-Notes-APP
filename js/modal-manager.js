@@ -272,7 +272,7 @@ async function loadLastNoteForOverlay() {
     if (lastNote) {
         updateLatestNoteOverlay(lastNote);
     } else {
-        updateInfoOverlay('Last Note', '<p>Same some notes first</p>');
+        updateInfoOverlay('Last Note', '<p>Save some notes first</p>');
     }
 }
 
