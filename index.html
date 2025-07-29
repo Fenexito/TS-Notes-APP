@@ -13,47 +13,6 @@
     <meta name="apple-mobile-web-app-title" content="APad Notes">
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
     
-    <style>
-        /* Styles for new symmetrical layouts */
-        .issue-row-layout, .ts-row-layout {
-            display: flex;
-            gap: 1rem;
-            align-items: stretch;
-        }
-
-        .side-info-column {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            flex: 1;
-        }
-
-        .side-info-column .input-group {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .side-info-column .input-group textarea {
-            flex-grow: 1;
-            resize: none;
-        }
-
-        #cxIssueText {
-            height: 12rem; /* Fixed height for symmetry */
-            resize: none;
-        }
-
-        .ts-row-layout .input-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .ts-row-layout .input-group textarea {
-            flex-grow: 1; /* Ensures textareas fill the container height */
-            resize: none;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -274,7 +233,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="input-row issue-row-layout">
+                        <div class="input-row issue-row-layout" id="cx-issue-row">
                             <div class="input-group wide-column">
                                 <label for="cxIssueText">CX ISSUE</label>
                                 <textarea id="cxIssueText" name="cxIssueText" required autocomplete="off"></textarea>
