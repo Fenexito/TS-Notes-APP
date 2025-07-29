@@ -136,7 +136,7 @@ function renderCodeInputScreen(email, resolve) {
         <p>A 6-digit verification code has been sent to <strong>${email}</strong>.</p>
         <p style="font-size:0.8em; color: #888; margin-top: -15px; margin-bottom: 25px;">(If you don't see it, check your spam folder)</p>
         <div class="code-input-container">
-            ${Array.from({ length: 6 }).map((_, i) => `<input type="text" class="code-input" maxlength="1" data-index="${i}" />`).join('')}
+            ${Array.from({ length: 6 }).map((_, i) => `<input type="tel" inputmode="numeric" class="code-input" maxlength="1" data-index="${i}" />`).join('')}
         </div>
         <button id="verify-code-btn" class="submit-btn" style="display: none;">Verify</button>
         <div class="auth-message" style="color: #ff4d4d;"></div>
@@ -193,6 +193,7 @@ function renderCodeInputScreen(email, resolve) {
 
     codeContainer.addEventListener('input', e => {
         const target = e.target;
+        target.value = target.value.replace(/[^0-9]/g, ''); // Ensure only numbers are entered
         const index = parseInt(target.dataset.index);
 
         if (target.value && index < 5) {
@@ -216,7 +217,7 @@ function renderCodeInputScreen(email, resolve) {
     // NUEVA FUNCIÓN: Verificar automáticamente al pegar un código completo.
     codeContainer.addEventListener('paste', e => {
         e.preventDefault();
-        const pasteData = e.clipboardData.getData('text').trim();
+        const pasteData = e.clipboardData.getData('text').trim().replace(/[^0-9]/g, '');
         if (/^\d{6}$/.test(pasteData)) {
             pasteData.split('').forEach((char, i) => codeInputs[i].value = char);
             codeInputs[5].focus();
