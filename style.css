@@ -2346,3 +2346,59 @@ input:checked + .theme-slider:before {
 .custom-select-option.selected .option-icon {
     display: inline-block;
 }
+
+/* ==========================================================================
+   19. NUEVOS ESTILOS PARA LA CUADRÍCULA DE LA SECCIÓN 2
+   ========================================================================== */
+
+.section2-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: min-content;
+    gap: 10px 6px;
+}
+
+.grid-item .input-group {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.grid-item .input-group textarea {
+    flex-grow: 1;
+    resize: none;
+}
+
+/* Default state (side info hidden) */
+.grid-item-cx-issue {
+    grid-column: 1 / 5; /* Ocupa 4 columnas */
+    grid-row: 2 / 4;    /* Ocupa 2 filas */
+}
+
+.grid-item-side-info {
+    display: none; /* Oculto por defecto */
+}
+
+/* State when side info is visible */
+.section2-grid.side-info-visible .grid-item-cx-issue {
+    grid-column: 1 / 4; /* Ocupa 3 columnas */
+}
+
+.section2-grid.side-info-visible .grid-item-side-info {
+    display: flex;
+    flex-direction: column;
+    grid-column: 4 / 5; /* Ocupa la 4ta columna */
+    grid-row: 2 / 4;    /* Ocupa 2 filas */
+    gap: 10px;
+}
+
+/* Layout for Troubleshooting and Additional Info */
+.grid-item-ts-process {
+    grid-column: 1 / 4; /* Ocupa 3 columnas */
+    grid-row: 4 / 6;    /* Ocupa 2 filas */
+}
+
+.grid-item-additional-info {
+    grid-column: 4 / 5; /* Ocupa la 4ta columna */
+    grid-row: 4 / 6;    /* Ocupa 2 filas */
+}
