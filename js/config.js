@@ -17,7 +17,7 @@ export const TS_CHAR_RED_THRESHOLD = 985;
 export const AGENT_NAME_KEY = 'agentNameSaved';
 export const APP_VERSION_KEY = 'appVersion';
 export const SERVICES_TO_HIDE_PHYSICAL_CHECK = [
-    'Telus Email', 'MyTelus', 'TOS', 'Telus Connect App', 'Living Well Companion', 'SHS ADT / Acquisition / Custom Home', 'Other', 'HomePhone / Copper'
+    'Telus Email', 'MyTelus', 'TOS', 'Telus Connect App', 'Living Well Companion', 'Other', 'HomePhone / Copper'
 ];
 export const SERVICES_TO_HIDE_AWA_SPEED = [
     'HomePhone / Fiber', 'HomePhone / Copper', 'Telus Email', 'MyTelus', 'TOS', 'Telus Connect App', 'Living Well Companion', 'Other'
@@ -44,7 +44,7 @@ export let state = {
     // State for new multi-selects
     awaAlertsSelected: new Set(),
     extraStepsSelected: new Set(),
-    securityQuestionsSelected: new Set(), // MODIFICADO: Nuevo estado para las preguntas de seguridad
+    securityQuestionsSelected: new Set(),
 };
 
 
@@ -64,13 +64,13 @@ export const fieldConfig = {
     'address': { label: 'ADDRESS', required: false, type: 'text' },
     'xid': { label: 'XID', required: true, type: 'text', conditional: true },
     'serviceOnCsr': { label: 'SERVICE ON CSR', required: true, type: 'select' },
-    'errorSelect': { label: 'ERROR:', required: false, type: 'select' },
+    'errorSelect': { label: 'ERROR', required: false, type: 'select' },
     'errorInfoText': { label: 'INFO', required: true, type: 'textarea', conditional: true },
     'skillToggle': { label: 'SKILL', required: true, type: 'checkbox' },
     'serviceSelect': { label: 'SERVICE', required: true, type: 'select' },
     'issueSelect': { label: 'WORKFLOW', required: true, type: 'select' },
     'cxIssueText': { label: 'CX ISSUE', required: true, type: 'textarea' },
-    'affectedText': { label: 'AFFECTED', required: false, type: 'textarea', conditional: true },
+    'affectedText': { label: 'AFFECTED', required: true, type: 'textarea', conditional: true },
     'physicalCheckList1Select': { label: 'ONT/GATEWAY', required: true, type: 'select' },
     'physicalCheckList2Select': { label: 'MODEM/GATEWAY', required: false, type: 'select', conditional: true },
     'physicalCheckList3Select': { label: 'BOOSTER/EXTENDER', required: false, type: 'select', conditional: true },
@@ -145,7 +145,7 @@ export const equipmentOptions = {
         list2: ['Power NOT connected', 'Power connected / NO LIGHTS', 'Power connected properly / Powered ON', 'Power connected properly / In Stanby', 'Power connected properly / Not Reachable'],
         list3: ['Connected WIRELES', 'Connected WIRED to T3200', 'C onnected WIRED to Extender', 'Connected WIRED to TWH', 'Connected WIRED to NAH', 'Connected WIRED to BW6', 'Connected WIRED to WallJack', 'Connected WIRED to MoCa', 'Connected WIRED to Ethernet Splitter', 'Non Wired / Wireless connection'],
         list4: ['HDMI connected / Input selected properly', 'HDMI connected / wrong Input selected'],
-        list5: ['Not Available', 'No Error Found', 'Critical Errors Found', 'Major Errors Found', 'Minor Errors Found'],
+        list5: ['Not Available', 'No Error Found', 'Minor Errors Found', 'Major Errors Found', 'Critical Errors Found'],
         list6: ['Not Available', 'No Packet Loss', 'A Few Packet Loss', 'Some Packet Loss', 'Too Many Packet']
     },
     'Optik TV (Evo)': {
@@ -208,7 +208,6 @@ export const issueOptions = {
     'TOS': ['Unable to Login', 'Not Active', 'Upgrade Subscription'],
     'Telus Connect App': ['Login Issues', 'Missing Equipment', 'Feature Issue'],
     'SHS Legacy': ['Login / Password Issues', 'WebPage Portal Portal Issues', 'APP Issues', 'General Issues', 'Main Panel', 'Secondary Panel', 'Door / Window Sensor', 'Motion Sensor', 'Smoke Detector', 'CO Detector', 'Glass Break Detector', 'Thermostat', 'InDoor Camera', 'OutDoor Camera', 'Doorbell Camera', 'DoorLock', 'Garage Door Controller', 'Smart Automation Devices', 'CMS inquiry', 'Wi-Fi Issues'],
-    'SHS ADT / Acquisition / Custom Home': ['No issues provided for this category'],
     'Living Well Companion': ['Base Not Working', 'Pendant Not Working', 'Emergency Contacts', 'LWC Apple Watch APP', 'Self Install Inquiries', 'CMS ACCOUNT NUMBER'],
     'Other': ['Billing Issues', 'IPD Suspension', 'Ghost Call', 'Where is my Tech?', 'Same Day Appointment Cancell', 'Where is my equipment?']
 };
