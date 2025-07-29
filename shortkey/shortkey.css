@@ -1,6 +1,6 @@
 /*
  * Estilos personalizados para el componente Shortkey.
- * Versión 8: Colores de botones y vista previa de texto mejorados.
+ * Versión 8: Añade estilos para los botones de reordenación.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
@@ -20,32 +20,12 @@
 #settingsModal .modal-header { padding: 1rem 1.5rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 #settingsModal .modal-header h3 { font-size: 1.25rem; font-weight: 600; margin: 0; flex-grow: 1; }
 #settingsModal .modal-header .import-export-buttons { display: flex; gap: 0.5rem; }
-
-#settingsModal .modal-header .import-export-buttons button { 
-    font-size: 0.875rem; 
-    font-weight: 600;
-    color: white;
-    padding: 0.4rem 0.8rem; 
-    border: none;
-    border-radius: 0.375rem; 
-    cursor: pointer; 
-    transition: all 0.2s; 
-}
+#settingsModal .modal-header .import-export-buttons button { font-size: 0.875rem; font-weight: 600; color: white; padding: 0.4rem 0.8rem; border: none; border-radius: 0.375rem; cursor: pointer; transition: all 0.2s; }
 #settingsModal .modal-header .import-export-buttons button:hover { transform: translateY(-1px); }
-
-#settingsModal #import-button {
-    background-color: #6f42c1; /* --accent-purple */
-}
-#settingsModal #import-button:hover {
-    background-color: #5a32a3; /* --accent-purple-hover */
-}
-#settingsModal #export-button {
-    background-color: #28a745; /* --accent-success */
-}
-#settingsModal #export-button:hover {
-    background-color: #218838; /* --accent-success-hover */
-}
-
+#settingsModal #import-button { background-color: #6f42c1; }
+#settingsModal #import-button:hover { background-color: #5a32a3; }
+#settingsModal #export-button { background-color: #28a745; }
+#settingsModal #export-button:hover { background-color: #218838; }
 #settingsModal .modal-header #closeSettingsBtn { font-size: 1.5rem; line-height: 1; color: #9ca3af; background: #e5e7eb; border: none; cursor: pointer; transition: all 0.2s; border-radius: 50%; width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; }
 #settingsModal .modal-header #closeSettingsBtn:hover { color: #374151; background-color: #d1d5db; }
 #settingsModal .modal-body { padding: 1.5rem; }
@@ -68,15 +48,8 @@
 #settingsModal #shortcutValueInput:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
 #settingsModal .form-buttons { display: grid; grid-template-columns: 1fr auto; gap: 1rem; }
 #settingsModal #addShortcutForm button { color: white; font-weight: 600; font-size: 1rem; padding: 0.75rem; border: none; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; }
-
-/* --- CAMBIO: Color del botón de Añadir --- */
-#settingsModal #submit-button {
-    background-color: #28a745;
-}
-#settingsModal #submit-button:hover {
-    background-color: #218838;
-}
-
+#settingsModal #submit-button { background-color: #28a745; }
+#settingsModal #submit-button:hover { background-color: #218838; }
 #settingsModal .cancel-button { background-color: #6b7280; }
 #settingsModal .cancel-button:hover { background-color: #4b5563; }
 #settingsModal .hidden { display: none; }
@@ -85,39 +58,30 @@
 #settingsModal .list-section h4 { font-weight: 600; font-size: 1.125rem; margin: 0; }
 #settingsModal .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
 #settingsModal #shortcutsList { max-height: 20rem; overflow-y: auto; padding-right: 0.5rem; }
-#settingsModal .shortcut-item { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 1rem; background-color: white; border: 1px solid #e5e7eb; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; transition: all 0.2s; }
+#settingsModal .shortcut-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; background-color: white; border: 1px solid #e5e7eb; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; transition: all 0.2s; }
 #settingsModal .shortcut-item.highlight { background-color: #fef9c3; border-color: #fde047; }
 #settingsModal .shortcut-details { display: flex; align-items: center; min-width: 0; }
 #settingsModal .shortcut-key { font-family: 'JetBrains Mono', monospace; background-color: #dbeafe; color: #1e40af; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-weight: 500; }
 #settingsModal .shortcut-arrow { color: #9ca3af; margin: 0 0.75rem; font-weight: bold; }
-
-/* --- CAMBIO: El texto del shortkey ahora es visible completamente --- */
-#settingsModal .shortcut-value {
-    color: #374151;
-    white-space: normal; /* Permite que el texto se divida en múltiples líneas */
-    word-break: break-word; /* Rompe palabras largas si es necesario */
-    min-width: 0;
-}
-
+#settingsModal .shortcut-value { color: #374151; white-space: normal; word-break: break-word; min-width: 0; }
 #settingsModal .shortcut-actions { display: flex; align-items: center; }
 #settingsModal .action-btn { background: none; border: none; cursor: pointer; padding: 0.25rem; margin-left: 0.5rem; }
 #settingsModal .action-btn svg { width: 1.125rem; height: 1.125rem; color: #9ca3af; transition: color 0.2s; }
-
-/* --- CAMBIO: Colores de los botones de Acción --- */
-#settingsModal .action-btn.edit-btn:hover svg {
-    color: #3498db;
-}
-#settingsModal .action-btn.delete-btn:hover svg {
-    color: #dc3545;
-}
-
-#settingsModal .delete-confirmation { grid-column: span 2; display: flex; justify-content: flex-end; align-items: center; gap: 1rem; padding: 0.5rem; }
+#settingsModal .action-btn.edit-btn:hover svg { color: #3498db; }
+#settingsModal .action-btn.delete-btn:hover svg { color: #dc3545; }
+#settingsModal .delete-confirmation { grid-column: span 3; display: flex; justify-content: flex-end; align-items: center; gap: 1rem; padding: 0.5rem; }
 #settingsModal .delete-confirmation span { font-size: 0.9rem; font-weight: 500; color: #374151; }
 #settingsModal .delete-confirmation button { font-size: 0.8rem; font-weight: bold; padding: 0.35rem 0.7rem; border-radius: 0.375rem; cursor: pointer; border: 1px solid; transition: all 0.2s; }
 #settingsModal .confirm-yes { border-color: #dc2626; background-color: #fee2e2; color: #991b1b; }
 #settingsModal .confirm-yes:hover { background-color: #fecaca; }
 #settingsModal .confirm-no { border-color: #d1d5db; background-color: white; color: #4b5563; }
 #settingsModal .confirm-no:hover { background-color: #f9fafb; }
+
+/* --- NUEVO: Estilos para botones de Reordenación --- */
+#settingsModal .shortcut-reorder { display: flex; flex-direction: column; }
+#settingsModal .shortcut-reorder .action-btn { margin: 0; padding: 0.1rem; }
+#settingsModal .shortcut-reorder .action-btn:hover svg { color: #3b82f6; }
+#settingsModal .shortcut-reorder .action-btn:disabled svg { color: #d1d5db; cursor: not-allowed; }
 
 @media (min-width: 640px) {
     #settingsModal #addShortcutForm { grid-template-columns: 1fr 2fr; }
