@@ -87,13 +87,13 @@ const _buildSection2InitialContent = (sourceData = null) => {
     if (_getFieldValue('serviceOnCsr', sourceData)) parts.push(`SERVICE ON CSR: ${_getFieldValue('serviceOnCsr', sourceData)}`);
     
     const errorValue = _getFieldValue('errorSelect', sourceData);
-    if (errorValue === 'Active Outage') {
+    if (errorValue === 'Active Outage affecting services') {
         parts.push('OUTAGE: Active Outage affecting services');
         const errorInfo = _getFieldValue('errorInfoText', sourceData);
         if (errorInfo) {
             parts.push(`OUTAGE INFO: ${errorInfo}`);
         }
-    } else if (errorValue === 'Netcracker Error') {
+    } else if (errorValue === 'Error Found in NetCracker') {
         parts.push('NC: ERROR FOUND in NetCracker');
         const errorInfo = _getFieldValue('errorInfoText', sourceData);
         if (errorInfo) {
@@ -245,7 +245,12 @@ const _buildSection4Content = (sourceData = null) => {
         parts.push(`TRANSFER TO ${_getFieldValue('transferSelect', sourceData)}`);
     }
     if (_getFieldValue('csrOrderInput', sourceData)) parts.push(`CSR ORDER: ${_getFieldValue('csrOrderInput', sourceData)}`);
-    if (_getFieldValue('ticketInput', sourceData)) parts.push(`TICKET: ${_getFieldValue('ticketInput', sourceData)}`);
+    
+    const ticketValue = _getFieldValue('ticketInput', sourceData);
+    if (ticketValue && ticketValue !== '0') {
+        parts.push(`TICKET: ${ticketValue}`);
+    }
+
     return parts;
 };
 
