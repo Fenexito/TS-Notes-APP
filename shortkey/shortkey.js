@@ -158,8 +158,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelEditing = () => {
         shortkeyManager.setIsEditingKey(null);
         addForm.reset();
-        formTitle.textContent = 'Añadir Nuevo Shortkey';
-        submitButton.textContent = 'Añadir';
+        formTitle.textContent = 'Add a New ShortKey';
+        submitButton.textContent = 'Add ShortKey';
         cancelEditButton.classList.add('hidden');
     };
 
