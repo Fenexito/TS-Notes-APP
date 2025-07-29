@@ -6,7 +6,6 @@
 class Shortkey {
     constructor() {
         this._shortcuts = {};
-        this._isExpanding = false;
         this._loadShortcuts();
     }
 
@@ -15,6 +14,7 @@ class Shortkey {
         if (saved) {
             this._shortcuts = JSON.parse(saved);
         } else {
+            // Datos de ejemplo si no hay nada guardado.
             this._shortcuts = {
                 'sds': 'Saludos cordiales,',
                 'atte': 'Atentamente,',
@@ -30,11 +30,13 @@ class Shortkey {
 
     addShortcut(key, value) {
         if (!key || !value) return;
-        this._shortcuts[key.trim().toLowerCase()] = value.trim(); // Guardar la llave en minúsculas
+        // Siempre guardamos la abreviatura en minúsculas para evitar duplicados.
+        this._shortcuts[key.trim().toLowerCase()] = value.trim();
         this._saveShortcuts();
     }
 
     removeShortcut(key) {
+        // Buscamos la abreviatura en minúsculas para borrarla.
         delete this._shortcuts[key.toLowerCase()];
         this._saveShortcuts();
     }
@@ -43,38 +45,57 @@ class Shortkey {
         return this._shortcuts;
     }
 
+    /**
+     * "Engancha" el expansor a un elemento de input o textarea.
+     * CAMBIO: Ahora escucha el evento 'keydown' para tener más control.
+     */
     attach(element) {
         if (element) {
-            element.addEventListener('input', this._handleInput.bind(this));
+            element.addEventListener('keydown', this._handleKeydown.bind(this));
         }
     }
 
-    _handleInput(event) {
-        if (this._isExpanding) return;
+    /**
+     * CORRECCIÓN PRINCIPAL: Nueva lógica de manejo de shortkeys.
+     * Se activa al presionar la barra espaciadora y revisa solo la palabra anterior.
+     * Esto es mucho más preciso y eficiente.
+     */
+    _handleKeydown(event) {
+        // Solo nos interesa el evento de la barra espaciadora.
+        if (event.key !== ' ') {
+            return;
+        }
 
         const element = event.target;
         const text = element.value;
+        const cursorPosition = element.selectionStart;
 
-        // **CAMBIO CLAVE:** Se convierte el texto a minúsculas para la comparación.
-        const textForCheck = text.toLowerCase();
+        // Extraemos el texto que está justo antes del cursor.
+        const textBeforeCursor = text.substring(0, cursorPosition);
+        
+        // Buscamos el inicio de la última palabra (el último espacio o el principio del texto).
+        const lastSpaceIndex = textBeforeCursor.lastIndexOf(' ');
+        const wordStartIndex = lastSpaceIndex + 1;
+        
+        // Aislamos la palabra que podría ser nuestra abreviatura.
+        const potentialShortcut = textBeforeCursor.substring(wordStartIndex).toLowerCase();
 
-        for (const key in this._shortcuts) {
-            const trigger = key + ' '; // El disparador siempre es en minúsculas
-            if (textForCheck.endsWith(trigger)) {
-                this._isExpanding = true;
-                
-                const expansion = this._shortcuts[key];
-                // Se busca la posición del disparador en el texto original para reemplazarlo
-                const triggerStartIndex = textForCheck.lastIndexOf(trigger);
-                const newText = text.substring(0, triggerStartIndex) + expansion;
-                
-                element.value = newText;
-                
-                element.selectionStart = element.selectionEnd = newText.length;
-                
-                this._isExpanding = false;
-                break;
-            }
+        // Comprobamos si la palabra existe en nuestro diccionario de shortkeys.
+        if (this._shortcuts.hasOwnProperty(potentialShortcut)) {
+            // ¡Coincidencia! Prevenimos que se escriba el espacio.
+            event.preventDefault();
+
+            const expansion = this._shortcuts[potentialShortcut];
+            const textAfterCursor = text.substring(cursorPosition);
+            
+            // Reconstruimos el texto: [texto antes de la palabra] + [expansión] + [texto después del cursor]
+            const newText = text.substring(0, wordStartIndex) + expansion + textAfterCursor;
+            
+            element.value = newText;
+            
+            // Movemos el cursor al final del texto que acabamos de insertar.
+            const newCursorPosition = wordStartIndex + expansion.length;
+            element.selectionStart = element.selectionEnd = newCursorPosition;
         }
     }
 }
@@ -90,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const editorConShortkeys = document.getElementById('editorConShortkeys');
     shortkeyManager.attach(editorConShortkeys);
 
+    // --- Lógica para manejar el Modal de Configuración ---
     const modal = document.getElementById('settingsModal');
     const openBtn = document.getElementById('openSettingsBtn');
     const closeBtn = document.getElementById('closeSettingsBtn');
@@ -160,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
         keyInput.value = '';
         valueInput.value = '';
         renderShortcuts();
-        keyInput.focus(); // Pone el foco de nuevo en el primer input.
+        keyInput.focus();
     });
 
     listContainer.addEventListener('click', (e) => {
