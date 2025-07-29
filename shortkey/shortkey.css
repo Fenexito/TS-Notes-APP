@@ -1,48 +1,36 @@
 /*
  * Estilos personalizados para el componente Shortkey.
- * Puedes añadir o modificar estos estilos para que coincidan con el diseño de tu PWA.
+ * Versión 2: Estilos autocontenidos para el modal, sin depender de Tailwind para el contenido.
  */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400&display=swap');
 
 body {
     font-family: 'Inter', sans-serif;
 }
 
-/*
- * Estilos para el Modal Flotante.
- * Estos estilos aseguran que el modal se superponga y se centre correctamente,
- * independientemente de otros estilos en la página.
-*/
+/* --- Estructura del Modal Flotante --- */
 
-/* Contenedor principal del modal, inicialmente oculto */
 #settingsModal {
-    /* Posicionamiento y visibilidad */
-    position: fixed; /* Se posiciona relativo a la ventana del navegador */
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1000; /* Un z-index alto para estar por encima de todo */
-
-    /* Centrado del contenido con Flexbox */
+    z-index: 1000;
     display: flex;
-    align-items: center; /* Centrado vertical */
-    justify-content: center; /* Centrado horizontal */
-
-    /* Transición para la aparición suave */
+    align-items: center;
+    justify-content: center;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0s linear 0.3s;
 }
 
-/* Cuando el modal deba ser visible, cambiamos la opacidad y visibilidad */
 #settingsModal.visible {
     opacity: 1;
     visibility: visible;
     transition: opacity 0.3s ease;
 }
 
-/* Overlay oscuro de fondo */
 #modalOverlay {
     position: absolute;
     top: 0;
@@ -50,24 +38,156 @@ body {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.6);
+    cursor: pointer;
 }
 
-/* Contenedor del contenido del modal */
 .modal-container {
-    position: relative; /* Para que el z-index funcione sobre el overlay */
+    position: relative;
     z-index: 1001;
     background-color: white;
-    border-radius: 0.75rem; /* 12px */
+    border-radius: 0.75rem;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    width: 91.666667%; /* w-11/12 */
-    max-width: 42rem; /* md:max-w-2xl */
-    
-    /* Animación de entrada */
+    width: 91.666667%;
+    max-width: 42rem;
     transform: scale(0.95);
     transition: transform 0.3s ease;
 }
 
-/* Cuando el modal es visible, el contenedor escala a su tamaño normal */
 #settingsModal.visible .modal-container {
     transform: scale(1);
+}
+
+/* --- Contenido del Modal --- */
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.modal-header button {
+    font-size: 2rem;
+    line-height: 1;
+    color: #9ca3af;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.modal-header button:hover {
+    color: #374151;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.form-section {
+    background-color: #f9fafb;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-section h4, .list-section h4 {
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+#addShortcutForm {
+    display: grid;
+    gap: 1rem;
+}
+
+@media (min-width: 640px) {
+    #addShortcutForm {
+        grid-template-columns: 1fr 2fr;
+    }
+    #addShortcutForm button {
+        grid-column: span 2;
+    }
+}
+
+#addShortcutForm input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+#addShortcutForm input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+}
+
+#addShortcutForm button {
+    background-color: #22c55e;
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+#addShortcutForm button:hover {
+    background-color: #16a34a;
+}
+
+#shortcutsList {
+    max-height: 16rem; /* 256px */
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.shortcut-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f3f4f6;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    margin-bottom: 0.5rem;
+}
+
+.shortcut-key {
+    font-family: 'Fira Code', monospace;
+    background-color: #e5e7eb;
+    color: #374151;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.9em;
+}
+
+.shortcut-arrow {
+    color: #6b7280;
+    margin: 0 0.75rem;
+}
+
+.shortcut-value {
+    color: #1f2937;
+    word-break: break-all;
+}
+
+.delete-btn {
+    font-family: sans-serif;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #ef4444;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s;
+    line-height: 1;
+    padding: 0 0.5rem;
+}
+.delete-btn:hover {
+    color: #b91c1c;
 }
