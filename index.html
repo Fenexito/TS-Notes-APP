@@ -184,9 +184,9 @@
                     <h2 class="section-title">
                         <span>Status, Issue and Troubleshoot Steps</span>
                     </h2>
-                    <div class="section-content section2-grid-layout">
-                        <div class="input-row four-columns-layout">
-                            <div class="input-group" id="serviceOnCsrGroup">
+                    <div class="section-content section2-grid" id="section2-grid-container">
+                        <div class="grid-item" id="serviceOnCsrGroup">
+                            <div class="input-group">
                                 <label for="serviceOnCsr">SERVICE ON CSR</label>
                                 <select id="serviceOnCsr" name="serviceOnCsr" required>
                                     <option value="">Select Status</option>
@@ -198,6 +198,8 @@
                                     <option value="No Services">No Services</option>
                                 </select>
                             </div>
+                        </div>
+                        <div class="grid-item">
                             <div class="input-group">
                                 <label for="errorSelect">ERROR (Outage/NC)</label>
                                 <select id="errorSelect" name="errorSelect" required>
@@ -206,6 +208,8 @@
                                     <option value="Error Found in NetCracker">Error Found in NetCracker</option>
                                 </select>
                             </div>
+                        </div>
+                        <div class="grid-item">
                             <div class="input-group">
                                 <label for="serviceSelect">SERVICE</label>
                                 <select id="serviceSelect" name="serviceSelect" required>
@@ -226,6 +230,8 @@
                                     <option value="Other">Other</option>
                                 </select>
                             </div>
+                        </div>
+                        <div class="grid-item">
                             <div class="input-group">
                                 <label for="issueSelect">WORKFLOW</label>
                                 <select id="issueSelect" name="issueSelect" required disabled>
@@ -233,86 +239,82 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="input-row issue-row-layout" id="cx-issue-row">
-                            <div class="input-group wide-column">
+            
+                        <div class="grid-item" style="grid-column: span 4;"> <div class="input-row four-columns-layout" id="physicalCheckListsContainer">
+                                <div class="input-group physical-check-item-with-label-above">
+                                    <label for="physicalCheckList1Select" id="physicalCheckList1Label">ONT/GATEWAY</label>
+                                    <select id="physicalCheckList1Select" name="physicalCheckList1" required>
+                                        <option value="">Select an option</option>
+                                    </select>
+                                </div>
+                                <div class="input-group physical-check-item">
+                                    <label for="physicalCheckList2Select" id="physicalCheckList2Label">MODEM/GATEWAY</label>
+                                    <div class="checkbox-and-select-wrapper">
+                                        <input type="checkbox" id="enablePhysicalCheck2" class="physical-check-toggle">
+                                        <select id="physicalCheckList2Select" name="physicalCheckList2" disabled>
+                                            <option value="">Select an option</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="input-group physical-check-item">
+                                    <label for="physicalCheckList3Select" id="physicalCheckList3Label">BOOSTER/EXTENDER</label>
+                                    <div class="checkbox-and-select-wrapper">
+                                        <input type="checkbox" id="enablePhysicalCheck3" class="physical-check-toggle">
+                                        <select id="physicalCheckList3Select" name="physicalCheckList3" disabled>
+                                            <option value="">Select an option</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="input-group physical-check-item">
+                                    <label for="physicalCheckList4Select" id="physicalCheckList4Label">EXTRA BOOSTER</label>
+                                    <div class="checkbox-and-select-wrapper">
+                                        <input type="checkbox" id="enablePhysicalCheck4" class="physical-check-toggle">
+                                        <select id="physicalCheckList4Select" name="physicalCheckList4" disabled>
+                                            <option value="">Select an option</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="input-row three-columns-layout hidden-field" id="optikTvLegacySpecificFields">
+                                <div class="input-group">
+                                    <label for="xVuStatusSelect" id="xVuStatusLabel">xVu STATUS</label>
+                                    <select id="xVuStatusSelect" name="xVuStatus" disabled></select>
+                                </div>
+                                <div class="input-group">
+                                    <label for="packetLossSelect" id="packetLossLabel">PACKET LOSS</label>
+                                    <select id="packetLossSelect" name="packetLoss" disabled></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid-item grid-item-cx-issue">
+                            <div class="input-group">
                                 <label for="cxIssueText">CX ISSUE</label>
                                 <textarea id="cxIssueText" name="cxIssueText" required autocomplete="off"></textarea>
                             </div>
-                            <div class="side-info-column">
-                                <div class="input-group hidden-field" id="errorInfoGroup">
-                                    <label for="errorInfoText" id="errorInfoLabel">INFO</label>
-                                    <textarea id="errorInfoText" name="errorInfoText" autocomplete="off"></textarea>
-                                </div>
-                                <div class="input-group hidden-field" id="affectedTextGroup">
-                                    <label for="affectedText" id="affectedLabel">AFFECTED</label>
-                                    <textarea id="affectedText" name="affectedText" autocomplete="off"></textarea>
-                                </div>
+                        </div>
+                        <div class="grid-item grid-item-side-info">
+                            <div class="input-group hidden-field" id="errorInfoGroup">
+                                <label for="errorInfoText" id="errorInfoLabel">INFO</label>
+                                <textarea id="errorInfoText" name="errorInfoText" autocomplete="off"></textarea>
+                            </div>
+                            <div class="input-group hidden-field" id="affectedTextGroup">
+                                <label for="affectedText" id="affectedLabel">AFFECTED</label>
+                                <textarea id="affectedText" name="affectedText" autocomplete="off"></textarea>
                             </div>
                         </div>
-                        <div class="input-row four-columns-layout" id="physicalCheckListsContainer">
-                            <div class="input-group physical-check-item-with-label-above">
-                                <label for="physicalCheckList1Select" id="physicalCheckList1Label">ONT/GATEWAY</label>
-                                <select id="physicalCheckList1Select" name="physicalCheckList1" required>
-                                    <option value="">Select an option</option>
-                                </select>
-                            </div>
-                            <div class="input-group physical-check-item">
-                                <label for="physicalCheckList2Select" id="physicalCheckList2Label">MODEM/GATEWAY</label>
-                                <div class="checkbox-and-select-wrapper">
-                                    <input type="checkbox" id="enablePhysicalCheck2" class="physical-check-toggle">
-                                    <select id="physicalCheckList2Select" name="physicalCheckList2" disabled>
-                                        <option value="">Select an option</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="input-group physical-check-item">
-                                <label for="physicalCheckList3Select" id="physicalCheckList3Label">BOOSTER/EXTENDER</label>
-                                <div class="checkbox-and-select-wrapper">
-                                    <input type="checkbox" id="enablePhysicalCheck3" class="physical-check-toggle">
-                                    <select id="physicalCheckList3Select" name="physicalCheckList3" disabled>
-                                        <option value="">Select an option</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="input-group physical-check-item">
-                                <label for="physicalCheckList4Select" id="physicalCheckList4Label">EXTRA BOOSTER</label>
-                                <div class="checkbox-and-select-wrapper">
-                                    <input type="checkbox" id="enablePhysicalCheck4" class="physical-check-toggle">
-                                    <select id="physicalCheckList4Select" name="physicalCheckList4" disabled>
-                                        <option value="">Select an option</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="input-row three-columns-layout hidden-field" id="optikTvLegacySpecificFields">
+                        <div class="grid-item grid-item-ts-process">
                             <div class="input-group">
-                                <label for="xVuStatusSelect" id="xVuStatusLabel">xVu STATUS</label>
-                                <select id="xVuStatusSelect" name="xVuStatus" disabled></select>
-                            </div>
-                            <div class="input-group">
-                                <label for="packetLossSelect" id="packetLossLabel">PACKET LOSS</label>
-                                <select id="packetLossSelect" name="packetLoss" disabled></select>
-                            </div>
-                        </div>
-                        <div class="input-row ts-row-layout">
-                            <div class="input-group wide-column">
                                 <label for="troubleshootingProcessText" class="label-with-right-aligned-counter">
                                     <span>TROUBLESHOOTING PROCESS</span>
                                     <span id="troubleshootingCharCount" class="char-counter">0</span>
                                 </label>
                                 <textarea id="troubleshootingProcessText" name="troubleshootingProcessText" required autocomplete="off"></textarea>
                             </div>
-                            <div class="input-group narrow-column">
+                        </div>
+                        <div class="grid-item grid-item-additional-info">
+                            <div class="input-group">
                                 <label for="additionalinfoText">ADDITIONAL INFO</label>
                                 <textarea id="additionalinfoText" name="additionalinfoText" autocomplete="off"></textarea>
-                            </div>
-                        </div>
-                        <div class="input-row links-row">
-                            <div class="input-group go-link-group">
-                                <p>Always use <a href="http://go/checkphysical" target="_blank" id="goCheckPhysicalLink" rel="noopener noreferrer"><strong>GO/CHECKPHYSICAL</strong></a></p>
-                            </div>
-                            <div class="input-group go-link-group">
-                                <p>Always use <a href="http://go/tscopilot" target="_blank" id="goTsCopilotLink" rel="noopener noreferrer"><strong>GO/TSCOPILOT</strong></a></p>
                             </div>
                         </div>
                     </div>
