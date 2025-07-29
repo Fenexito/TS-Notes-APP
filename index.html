@@ -841,7 +841,12 @@
         <div class="modal-container">
             <div class="modal-header">
                 <h3>Configuración de Shortkeys</h3>
-                <button id="closeSettingsBtn">&times;</button>
+                <div class="import-export-buttons">
+                    <button id="import-button" title="Importar desde archivo JSON">Importar</button>
+                    <button id="export-button" title="Exportar a archivo JSON">Exportar</button>
+                    <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                </div>
+                <button id="closeSettingsBtn" title="Cerrar">&times;</button>
             </div>
             <div class="modal-body">
                 <!-- Notificaciones -->
@@ -853,9 +858,9 @@
                     <form id="addShortcutForm">
                         <div class="input-with-prefix">
                             <span>@</span>
-                            <input type="text" id="shortcutKeyInput" placeholder="abreviatura" required>
+                            <input type="text" id="shortcutKeyInput" placeholder="abreviatura" required autocomplete="off">
                         </div>
-                        <input type="text" id="shortcutValueInput" placeholder="Texto completo a expandir" required>
+                        <input type="text" id="shortcutValueInput" placeholder="Texto completo a expandir" required autocomplete="off">
                         <div class="form-buttons">
                             <button type="submit" id="submit-button">Añadir</button>
                             <button type="button" id="cancel-edit-button" class="cancel-button hidden">Cancelar</button>
@@ -865,14 +870,7 @@
 
                 <!-- Lista y Acciones -->
                 <div class="list-section">
-                    <div class="list-header">
-                        <h4>Shortkeys Guardados</h4>
-                        <div class="import-export-buttons">
-                            <button id="import-button">Importar</button>
-                            <button id="export-button">Exportar</button>
-                            <input type="file" id="import-file-input" accept=".json" style="display: none;">
-                        </div>
-                    </div>
+                    <h4>Shortkeys Guardados</h4>
                     <div id="shortcutsList">
                         <!-- Los shortkeys se insertarán aquí dinámicamente -->
                     </div>
