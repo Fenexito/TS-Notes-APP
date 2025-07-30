@@ -1,6 +1,6 @@
 /**
  * Estilos personalizados para el componente Shortkey.
- * Versión 17: Diseño compacto y unificación visual del editor.
+ * Versión 18: Corrección definitiva de especificidad de color en el pop-up.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
@@ -121,15 +121,15 @@
 .shortkey-popup .popup-option { display: block; width: 100%; text-align: left; padding: 0.6rem 0.8rem; background: none; border: none; cursor: pointer; }
 #shortkey-search-popup .popup-option { display: flex; flex-direction: column; gap: 0.1rem; }
 
-/* --- REGLAS DE COLOR CORREGIDAS --- */
+/* --- REGLAS DE COLOR CORREGIDAS Y DEFINITIVAS --- */
 
 /* 1. Estado por defecto (NO SELECCIONADO) */
-#shortkey-search-popup .search-key { 
+#shortkey-search-popup .popup-option .search-key { 
     font-family: 'JetBrains Mono', monospace; 
     font-weight: 500; 
     color: var(--text-dark); /* Texto oscuro para la llave */
 }
-#shortkey-search-popup .search-desc { 
+#shortkey-search-popup .popup-option .search-desc { 
     font-size: 0.9em; 
     color: var(--text-light); /* Texto gris para la descripción */
 }
@@ -138,7 +138,7 @@
 .shortkey-popup .popup-option.selected { 
     background-color: var(--brand-blue); 
 }
-/* Forzamos que AMBOS textos internos sean blancos cuando la opción está seleccionada */
+/* Se aplica SOLO a los elementos internos de un botón seleccionado */
 .shortkey-popup .popup-option.selected .search-key,
 .shortkey-popup .popup-option.selected .search-desc {
     color: white;
