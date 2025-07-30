@@ -1,118 +1,78 @@
 /*
  * Estilos personalizados para el componente Shortkey.
- * Versión 9: Estilo visual restaurado a la versión aprobada, con escala general reducida.
+ * Versión 10: Añade estilos para el pop-up de interacción dinámica.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
+
+/* Estilos de la página de demo (puedes ignorarlos en tu app) */
+.editor { width: 100%; height: 16rem; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 1rem; }
+.main-button { background-color: #2563eb; color: white; font-weight: 600; padding: 0.75rem 1.5rem; border: none; border-radius: 0.375rem; cursor: pointer; }
 
 /* --- Estructura del Modal Flotante --- */
 #settingsModal {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 1000; display: flex; align-items: center; justify-content: center;
     opacity: 0; visibility: hidden; font-family: 'Inter', sans-serif;
-    /* CAMBIO: Se establece una fuente base más pequeña para escalar todo el contenido */
     font-size: 14px;
     transition: opacity 0.3s ease, visibility 0s linear 0.3s;
 }
-#settingsModal.visible { opacity: 1; visibility: visible; transition: opacity 0.3s ease; }
+#settingsModal.visible { opacity: 1; visibility: visible; }
 #settingsModal #modalOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(17, 24, 39, 0.6); backdrop-filter: blur(4px); cursor: pointer; }
-#settingsModal .modal-container { 
-    position: relative; z-index: 1001; margin: 1rem; 
-    background-color: #f9fafb; color: #1f2937; 
-    border-radius: 0.75rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); 
-    width: 91.666667%; 
-    /* CAMBIO: Ancho máximo reducido para un modal más compacto */
-    max-width: 44rem; 
-    transform: scale(0.95); transition: transform 0.3s ease; 
-}
+#settingsModal .modal-container { position: relative; z-index: 1001; margin: 1rem; background-color: #f9fafb; color: #1f2937; border-radius: 0.75rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); width: 91.666667%; max-width: 44rem; transform: scale(0.95); transition: transform 0.3s ease; }
 #settingsModal.visible .modal-container { transform: scale(1); }
 
-/* --- Contenido del Modal --- */
-#settingsModal .modal-header { 
-    padding: 0.75rem 1.25rem; /* Padding reducido */
-    border-bottom: 1px solid #e5e7eb; 
-    display: flex; justify-content: space-between; align-items: center; gap: 1rem; 
-}
+/* Contenido del Modal */
+#settingsModal .modal-header { padding: 0.75rem 1.25rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 #settingsModal .modal-header h3 { font-size: 1.15rem; font-weight: 600; margin: 0; flex-grow: 1; }
-#settingsModal .modal-header .import-export-buttons { display: flex; gap: 0.5rem; }
-#settingsModal .modal-header .import-export-buttons button { 
-    font-size: 0.8rem; /* Tamaño de fuente reducido */
-    font-weight: 600;
-    color: white;
-    padding: 0.35rem 0.7rem; /* Padding reducido */
-    border: none;
-    border-radius: 0.375rem; 
-    cursor: pointer; 
-    transition: all 0.2s;  
-    margin-bottom: 0px;
-}
-#settingsModal .modal-header .import-export-buttons button:hover { transform: translateY(-1px); }
-
-/* Colores restaurados */
+#settingsModal .modal-header .import-export-buttons button { font-size: 0.8rem; font-weight: 600; color: white; padding: 0.35rem 0.7rem; border: none; border-radius: 0.375rem; cursor: pointer; transition: all 0.2s; }
 #settingsModal #import-button { background-color: #6f42c1; }
-#settingsModal #import-button:hover { background-color: #5a32a3; }
 #settingsModal #export-button { background-color: #28a745; }
-#settingsModal #export-button:hover { background-color: #218838; }
-
-#settingsModal .modal-header #closeSettingsBtn { font-size: 1.5rem; line-height: 1; color: #9ca3af; background: #e5e7eb; border: none; cursor: pointer; transition: all 0.2s; border-radius: 50%; width: 1.75rem; height: 1.75rem; display: flex; align-items: center; justify-content: center; }
-#settingsModal .modal-header #closeSettingsBtn:hover { color: #374151; background-color: #d1d5db; }
-#settingsModal .modal-body { padding: 0.75rem; }
-
-/* Notificaciones */
-#settingsModal .notification { padding: 0.8rem; margin-bottom: 1rem; border-radius: 0.5rem; font-weight: 500; display: none; border: 1px solid transparent; font-size: 0.9em; }
-#settingsModal .notification.show { display: block; }
-#settingsModal .notification.error { background-color: #fee2e2; color: #b91c1c; border-color: #fecaca; }
-#settingsModal .notification.success { background-color: #dcfce7; color: #166534; border-color: #bbf7d0; }
-
-/* Formulario */
-#settingsModal .form-section { background-color: #ffffff; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; margin-bottom: 0.5rem; }
-#settingsModal .form-section h4 { font-weight: 600; font-size: 1rem; margin: 0 0 1rem 0; margin-bottom: 5px; }
-#settingsModal #addShortcutForm { display: flex; gap: 0.75rem; }
-#settingsModal .input-with-prefix { display: flex; align-items: center; border: 1px solid #d1d5db; border-radius: 0.375rem; background-color: white; transition: border-color 0.2s, box-shadow 0.2s; height: 30.6px; }
-#settingsModal .input-with-prefix:focus-within { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
-#settingsModal .input-with-prefix span { padding: 0.3rem; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 1rem; color: #6b7280; border-right: 1px solid #d1d5db; }
-#settingsModal .input-with-prefix input { border: none; outline: none; background: transparent; padding: 0.6rem; width: 100%; font-size: 0.9rem; }
-#settingsModal #shortcutValueInput { width: 100%; padding: 0.3rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.9rem; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; height: 30.6px; }
-#settingsModal #shortcutValueInput:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
-#settingsModal .form-buttons { display: grid; grid-template-columns: 1fr auto; gap: 0.75rem; }
-#settingsModal #addShortcutForm button { color: white; font-weight: 600; font-size: 0.9rem; padding: 0.6rem; border: none; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; }
-/* Color restaurado */
-#settingsModal #submit-button { background-color: #28a745; }
-#settingsModal #submit-button:hover { background-color: #218838; }
-#settingsModal .cancel-button { background-color: #6b7280; }
-#settingsModal .cancel-button:hover { background-color: #4b5563; }
-#settingsModal .hidden { display: none; }
-
-/* Lista y Acciones */
-#settingsModal .list-section h4 { font-weight: 600; font-size: 1rem; margin-top: 0px; margin-bottom: 5px; margin-left: 5px; }
-#settingsModal .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-#settingsModal #shortcutsList { max-height: 18rem; overflow-y: auto; padding-right: 0.5rem; }
-#settingsModal .shortcut-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.75rem; background-color: white; border: 1px solid #e5e7eb; padding: 0.2rem 0.8rem; border-radius: 0.5rem; margin-bottom: 0.5rem; transition: all 0.2s; }
-#settingsModal .shortcut-item.highlight { background-color: #fef9c3; border-color: #fde047; }
-#settingsModal .shortcut-details { display: flex; align-items: center; min-width: 0; }
+#settingsModal .modal-header #closeSettingsBtn { font-size: 1.5rem; line-height: 1; color: #9ca3af; background: #e5e7eb; border: none; cursor: pointer; border-radius: 50%; width: 1.75rem; height: 1.75rem; display: flex; align-items: center; justify-content: center; }
+#settingsModal .modal-body { padding: 1.25rem; }
+#settingsModal .list-section h4 { font-weight: 600; font-size: 1rem; margin: 0; }
+#settingsModal .section-description { font-size: 0.85rem; color: #6b7280; margin: 0.25rem 0 1rem 0; }
+#settingsModal #shortcutsList { max-height: 24rem; overflow-y: auto; padding-right: 0.5rem; }
+#settingsModal .shortcut-item { background-color: white; border: 1px solid #e5e7eb; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; }
 #settingsModal .shortcut-key { font-family: 'JetBrains Mono', monospace; background-color: #dbeafe; color: #1e40af; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-weight: 500; font-size: 0.9em; }
-#settingsModal .shortcut-arrow { color: #9ca3af; margin: 0 0.75rem; font-weight: bold; }
-#settingsModal .shortcut-value { color: #374151; white-space: normal; word-break: break-word; min-width: 0; font-size: 0.9em; }
-#settingsModal .shortcut-actions { display: flex; align-items: center; }
-#settingsModal .action-btn { background: none; border: none; cursor: pointer; padding: 0.25rem; margin-left: 0.25rem; }
-#settingsModal .action-btn svg { width: 1rem; height: 1rem; color: #9ca3af; transition: color 0.2s; }
-/* Colores restaurados */
-#settingsModal .action-btn.edit-btn:hover svg { color: #3498db; }
-#settingsModal .action-btn.delete-btn:hover svg { color: #dc3545; }
-#settingsModal .delete-confirmation { grid-column: span 3; display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; padding: 0.5rem; }
-#settingsModal .delete-confirmation span { font-size: 0.85rem; font-weight: 500; color: #374151; }
-#settingsModal .delete-confirmation button { font-size: 0.75rem; font-weight: bold; padding: 0.3rem 0.6rem; border-radius: 0.375rem; cursor: pointer; border: 1px solid; transition: all 0.2s; }
-#settingsModal .confirm-yes { border-color: #dc2626; background-color: #fee2e2; color: #991b1b; }
-#settingsModal .confirm-yes:hover { background-color: #fecaca; }
-#settingsModal .confirm-no { border-color: #d1d5db; background-color: white; color: #4b5563; }
-#settingsModal .confirm-no:hover { background-color: #f9fafb; }
+#settingsModal .shortcut-description { font-size: 0.9em; color: #4b5563; margin-top: 0.5rem; padding-left: 0.25rem; border-left: 2px solid #e5e7eb; }
 
-/* Reordenación */
-#settingsModal .shortcut-reorder { display: flex; flex-direction: column; }
-#settingsModal .shortcut-reorder .action-btn { margin: 0; padding: 0.1rem; }
-#settingsModal .shortcut-reorder .action-btn:hover svg { color: #3b82f6; }
-#settingsModal .shortcut-reorder .action-btn:disabled svg { color: #d1d5db; cursor: not-allowed; }
-
-//@media (min-width: 640px) {
-   // #settingsModal #addShortcutForm { grid-template-columns: 1fr 2fr; }
-   // #settingsModal .form-buttons { grid-column: span 2; }
-//}
+/* --- NUEVO: Estilos para el Pop-up de Interacción --- */
+#shortkey-interaction-popup {
+    position: absolute;
+    z-index: 2000;
+    background-color: white;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    min-width: 180px;
+}
+#shortkey-interaction-popup.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+#shortkey-interaction-popup .popup-prompt {
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    color: #374151;
+}
+#shortkey-interaction-popup .popup-option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.6rem 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.1s;
+}
+#shortkey-interaction-popup .popup-option:hover,
+#shortkey-interaction-popup .popup-option.selected {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+}
