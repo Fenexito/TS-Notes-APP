@@ -1,201 +1,117 @@
 /*
  * Estilos personalizados para el componente Shortkey.
- * Versión 4: Escala general del modal reducida para un aspecto más compacto.
+ * Versión 9: Estilo visual restaurado a la versión aprobada, con escala general reducida.
  */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
 /* --- Estructura del Modal Flotante --- */
-/* Estas reglas solo se aplican al contenedor principal del modal y sus hijos directos */
-
 #settingsModal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    visibility: hidden;
-    font-family: 'Inter', sans-serif; /* Fuente base solo para el modal */
-    font-size: 15px; /* NUEVO: Reducir la fuente base para escalar todo el modal */
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 1000; display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden; font-family: 'Inter', sans-serif;
+    /* CAMBIO: Se establece una fuente base más pequeña para escalar todo el contenido */
+    font-size: 14px;
     transition: opacity 0.3s ease, visibility 0s linear 0.3s;
 }
-
-#settingsModal.visible {
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 0.3s ease;
+#settingsModal.visible { opacity: 1; visibility: visible; transition: opacity 0.3s ease; }
+#settingsModal #modalOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(17, 24, 39, 0.6); backdrop-filter: blur(4px); cursor: pointer; }
+#settingsModal .modal-container { 
+    position: relative; z-index: 1001; margin: 1rem; 
+    background-color: #f9fafb; color: #1f2937; 
+    border-radius: 0.75rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); 
+    width: 91.666667%; 
+    /* CAMBIO: Ancho máximo reducido para un modal más compacto */
+    max-width: 44rem; 
+    transform: scale(0.95); transition: transform 0.3s ease; 
 }
+#settingsModal.visible .modal-container { transform: scale(1); }
 
-#settingsModal #modalOverlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    cursor: pointer;
+/* --- Contenido del Modal --- */
+#settingsModal .modal-header { 
+    padding: 1rem 1.25rem; /* Padding reducido */
+    border-bottom: 1px solid #e5e7eb; 
+    display: flex; justify-content: space-between; align-items: center; gap: 1rem; 
 }
-
-#settingsModal .modal-container {
-    position: relative;
-    z-index: 1001;
-    margin: 1rem;
-    background-color: white;
-    color: #1f2937; /* Color de texto por defecto para el modal */
-    border-radius: 0.75rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    width: 91.666667%;
-    max-width: 38rem; /* CAMBIO: Reducido de 42rem para hacerlo más compacto */
-    transform: scale(0.95);
-    transition: transform 0.3s ease;
-}
-
-#settingsModal.visible .modal-container {
-    transform: scale(1);
-}
-
-/* --- Contenido del Modal (Todo con prefijo #settingsModal) --- */
-
-#settingsModal .modal-header {
-    padding: 1.25rem; /* CAMBIO: Reducido de 1.5rem */
-    border-bottom: 1px solid #e5e7eb;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-#settingsModal .modal-header h3 {
-    font-size: 1.25rem; /* CAMBIO: Reducido de 1.5rem */
+#settingsModal .modal-header h3 { font-size: 1.15rem; font-weight: 600; margin: 0; flex-grow: 1; }
+#settingsModal .modal-header .import-export-buttons { display: flex; gap: 0.5rem; }
+#settingsModal .modal-header .import-export-buttons button { 
+    font-size: 0.8rem; /* Tamaño de fuente reducido */
     font-weight: 600;
-    margin: 0; /* Reseteo de margen */
-}
-
-#settingsModal .modal-header button {
-    font-size: 1.75rem; /* CAMBIO: Reducido de 2rem */
-    line-height: 1;
-    color: #9ca3af;
-    background: none;
+    color: white;
+    padding: 0.35rem 0.7rem; /* Padding reducido */
     border: none;
-    cursor: pointer;
-    transition: color 0.2s;
+    border-radius: 0.375rem; 
+    cursor: pointer; 
+    transition: all 0.2s; 
 }
-#settingsModal .modal-header button:hover {
-    color: #374151;
-}
+#settingsModal .modal-header .import-export-buttons button:hover { transform: translateY(-1px); }
 
-#settingsModal .modal-body {
-    padding: 1.25rem; /* CAMBIO: Reducido de 1.5rem */
-}
+/* Colores restaurados */
+#settingsModal #import-button { background-color: #6f42c1; }
+#settingsModal #import-button:hover { background-color: #5a32a3; }
+#settingsModal #export-button { background-color: #28a745; }
+#settingsModal #export-button:hover { background-color: #218838; }
 
-#settingsModal .form-section {
-    background-color: #f9fafb;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    margin-bottom: 1.25rem; /* CAMBIO: Reducido de 1.5rem */
-}
+#settingsModal .modal-header #closeSettingsBtn { font-size: 1.5rem; line-height: 1; color: #9ca3af; background: #e5e7eb; border: none; cursor: pointer; transition: all 0.2s; border-radius: 50%; width: 1.75rem; height: 1.75rem; display: flex; align-items: center; justify-content: center; }
+#settingsModal .modal-header #closeSettingsBtn:hover { color: #374151; background-color: #d1d5db; }
+#settingsModal .modal-body { padding: 1.25rem; }
 
-#settingsModal .form-section h4, 
-#settingsModal .list-section h4 {
-    font-weight: 600;
-    font-size: 1.1rem; /* CAMBIO: Reducido de 1.125rem */
-    margin: 0 0 0.75rem 0; /* Reseteo y margen inferior */
-}
+/* Notificaciones */
+#settingsModal .notification { padding: 0.8rem; margin-bottom: 1rem; border-radius: 0.5rem; font-weight: 500; display: none; border: 1px solid transparent; font-size: 0.9em; }
+#settingsModal .notification.show { display: block; }
+#settingsModal .notification.error { background-color: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+#settingsModal .notification.success { background-color: #dcfce7; color: #166534; border-color: #bbf7d0; }
 
-#settingsModal #addShortcutForm {
-    display: grid;
-    gap: 0.75rem; /* CAMBIO: Reducido de 1rem */
-}
+/* Formulario */
+#settingsModal .form-section { background-color: #ffffff; padding: 1.25rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; margin-bottom: 1.25rem; }
+#settingsModal .form-section h4 { font-weight: 600; font-size: 1rem; margin: 0 0 1rem 0; }
+#settingsModal #addShortcutForm { display: grid; gap: 0.75rem; }
+#settingsModal .input-with-prefix { display: flex; align-items: center; border: 1px solid #d1d5db; border-radius: 0.375rem; background-color: white; transition: border-color 0.2s, box-shadow 0.2s; }
+#settingsModal .input-with-prefix:focus-within { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+#settingsModal .input-with-prefix span { padding: 0.6rem; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 1rem; color: #6b7280; border-right: 1px solid #d1d5db; }
+#settingsModal .input-with-prefix input { border: none; outline: none; background: transparent; padding: 0.6rem; width: 100%; font-size: 0.9rem; }
+#settingsModal #shortcutValueInput { width: 100%; padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.9rem; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; }
+#settingsModal #shortcutValueInput:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+#settingsModal .form-buttons { display: grid; grid-template-columns: 1fr auto; gap: 0.75rem; }
+#settingsModal #addShortcutForm button { color: white; font-weight: 600; font-size: 0.9rem; padding: 0.6rem; border: none; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; }
+/* Color restaurado */
+#settingsModal #submit-button { background-color: #28a745; }
+#settingsModal #submit-button:hover { background-color: #218838; }
+#settingsModal .cancel-button { background-color: #6b7280; }
+#settingsModal .cancel-button:hover { background-color: #4b5563; }
+#settingsModal .hidden { display: none; }
+
+/* Lista y Acciones */
+#settingsModal .list-section h4 { font-weight: 600; font-size: 1rem; margin: 0; }
+#settingsModal .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+#settingsModal #shortcutsList { max-height: 18rem; overflow-y: auto; padding-right: 0.5rem; }
+#settingsModal .shortcut-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.75rem; background-color: white; border: 1px solid #e5e7eb; padding: 0.6rem 0.8rem; border-radius: 0.5rem; margin-bottom: 0.5rem; transition: all 0.2s; }
+#settingsModal .shortcut-item.highlight { background-color: #fef9c3; border-color: #fde047; }
+#settingsModal .shortcut-details { display: flex; align-items: center; min-width: 0; }
+#settingsModal .shortcut-key { font-family: 'JetBrains Mono', monospace; background-color: #dbeafe; color: #1e40af; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-weight: 500; font-size: 0.9em; }
+#settingsModal .shortcut-arrow { color: #9ca3af; margin: 0 0.75rem; font-weight: bold; }
+#settingsModal .shortcut-value { color: #374151; white-space: normal; word-break: break-word; min-width: 0; font-size: 0.9em; }
+#settingsModal .shortcut-actions { display: flex; align-items: center; }
+#settingsModal .action-btn { background: none; border: none; cursor: pointer; padding: 0.25rem; margin-left: 0.25rem; }
+#settingsModal .action-btn svg { width: 1rem; height: 1rem; color: #9ca3af; transition: color 0.2s; }
+/* Colores restaurados */
+#settingsModal .action-btn.edit-btn:hover svg { color: #3498db; }
+#settingsModal .action-btn.delete-btn:hover svg { color: #dc3545; }
+#settingsModal .delete-confirmation { grid-column: span 3; display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; padding: 0.5rem; }
+#settingsModal .delete-confirmation span { font-size: 0.85rem; font-weight: 500; color: #374151; }
+#settingsModal .delete-confirmation button { font-size: 0.75rem; font-weight: bold; padding: 0.3rem 0.6rem; border-radius: 0.375rem; cursor: pointer; border: 1px solid; transition: all 0.2s; }
+#settingsModal .confirm-yes { border-color: #dc2626; background-color: #fee2e2; color: #991b1b; }
+#settingsModal .confirm-yes:hover { background-color: #fecaca; }
+#settingsModal .confirm-no { border-color: #d1d5db; background-color: white; color: #4b5563; }
+#settingsModal .confirm-no:hover { background-color: #f9fafb; }
+
+/* Reordenación */
+#settingsModal .shortcut-reorder { display: flex; flex-direction: column; }
+#settingsModal .shortcut-reorder .action-btn { margin: 0; padding: 0.1rem; }
+#settingsModal .shortcut-reorder .action-btn:hover svg { color: #3b82f6; }
+#settingsModal .shortcut-reorder .action-btn:disabled svg { color: #d1d5db; cursor: not-allowed; }
 
 @media (min-width: 640px) {
-    #settingsModal #addShortcutForm {
-        grid-template-columns: 1fr 2fr;
-    }
-    #settingsModal #addShortcutForm button {
-        grid-column: span 2;
-    }
-}
-
-#settingsModal #addShortcutForm input {
-    width: 100%;
-    padding: 0.65rem; /* CAMBIO: Reducido de 0.75rem */
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    font-size: 0.95rem; /* CAMBIO: Reducido de 1rem */
-    box-sizing: border-box; /* Asegura que el padding no afecte el ancho */
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-#settingsModal #addShortcutForm input:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
-}
-
-#settingsModal #addShortcutForm button {
-    background-color: #22c55e;
-    color: white;
-    font-weight: 600;
-    font-size: 0.95rem; /* CAMBIO: Reducido de 1rem */
-    padding: 0.65rem; /* CAMBIO: Reducido de 0.75rem */
-    border: none;
-    border-radius: 0.375rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-#settingsModal #addShortcutForm button:hover {
-    background-color: #16a34a;
-}
-
-#settingsModal #shortcutsList {
-    max-height: 14rem; /* CAMBIO: Reducido de 16rem */
-    overflow-y: auto;
-    padding-right: 0.5rem;
-}
-
-#settingsModal .shortcut-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #f3f4f6;
-    padding: 0.65rem; /* CAMBIO: Reducido de 0.75rem */
-    border-radius: 0.375rem;
-    margin-bottom: 0.5rem;
-}
-
-#settingsModal .shortcut-key {
-    font-family: 'Fira Code', monospace;
-    background-color: #e5e7eb;
-    color: #374151;
-    padding: 0.2rem 0.4rem; /* CAMBIO: Reducido */
-    border-radius: 0.25rem;
-    font-size: 0.85em; /* CAMBIO: Reducido */
-}
-
-#settingsModal .shortcut-arrow {
-    color: #6b7280;
-    margin: 0 0.75rem;
-}
-
-#settingsModal .shortcut-value {
-    color: #1f2937;
-    word-break: break-all;
-}
-
-#settingsModal .delete-btn {
-    font-family: sans-serif;
-    font-size: 1.25rem; /* CAMBIO: Reducido */
-    font-weight: bold;
-    color: #ef4444;
-    background: none;
-    border: none;
-    cursor: pointer;
-    transition: color 0.2s;
-    line-height: 1;
-    padding: 0 0.5rem;
-}
-#settingsModal .delete-btn:hover {
-    color: #b91c1c;
+    #settingsModal #addShortcutForm { grid-template-columns: 1fr 2fr; }
+    #settingsModal .form-buttons { grid-column: span 2; }
 }
