@@ -3,11 +3,12 @@
  */
 class PopupManager {
     constructor(element, onSelect) {
-        this.element = element;
-        this.onSelect = onSelect;
-        this.popup = null;
-        this.items = [];
-        this.selectedIndex = -1;
+        this.element = element; // El textarea activo
+        this.onSelect = onSelect; // Callback al seleccionar
+        this.popup = null; // El elemento DOM del popup
+        this.items = []; // Los items a mostrar
+        this.selectedIndex = -1; // El índice del item seleccionado
+        // Bindeo de eventos para poder añadirlos y quitarlos correctamente
         this._boundHandleKeydown = this._handleKeydown.bind(this);
         this._boundHandleClick = this._handleClick.bind(this);
     }
@@ -17,6 +18,7 @@ class PopupManager {
         this.selectedIndex = 0;
         this.popup = document.getElementById(type === 'search' ? 'shortkey-search-popup' : 'shortkey-interaction-popup');
         
+        // Construye el HTML interno del popup
         let content = prompt ? `<div class="popup-prompt">${prompt}</div>` : '';
         items.forEach((item, index) => {
             if (type === 'search') {
@@ -34,6 +36,7 @@ class PopupManager {
         this.popup.classList.add('visible');
         this.updateSelected();
         
+        // Añade listeners globales para manejar la interacción
         document.addEventListener('keydown', this._boundHandleKeydown, true);
         document.addEventListener('click', this._boundHandleClick, true);
     }
@@ -43,41 +46,50 @@ class PopupManager {
         this.popup.classList.remove('visible');
         this.popup.innerHTML = '';
         this.popup = null;
+        // Limpia los listeners para evitar memory leaks
         document.removeEventListener('keydown', this._boundHandleKeydown, true);
         document.removeEventListener('click', this._boundHandleClick, true);
     }
 
+    // CORRECCIÓN: Lógica de posicionamiento revisada para ser más precisa.
     positionPopup() {
-        // Lógica de posicionamiento robusta
         const textarea = this.element;
-        const text = textarea.value;
         const cursorPosition = textarea.selectionStart;
 
+        // Crea un div fantasma para calcular la posición del cursor
         const div = document.createElement('div');
+        document.body.appendChild(div);
+        
+        // Copia los estilos relevantes del textarea al div
         const style = window.getComputedStyle(textarea);
-        ['font', 'padding', 'width', 'height', 'border', 'lineHeight', 'letterSpacing', 'textIndent'].forEach(prop => div.style[prop] = style[prop]);
-        div.style.position = 'absolute';
-        div.style.visibility = 'hidden';
         div.style.whiteSpace = 'pre-wrap';
         div.style.wordWrap = 'break-word';
-        div.textContent = text.substring(0, cursorPosition);
-        
+        div.style.position = 'absolute';
+        div.style.visibility = 'hidden';
+        ['fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'letterSpacing', 'lineHeight', 'textTransform', 'wordSpacing', 'paddingLeft', 'paddingTop', 'borderLeftWidth', 'borderTopWidth'].forEach(prop => {
+            div.style[prop] = style[prop];
+        });
+        div.style.width = style.width;
+
+        // Inserta el texto hasta el cursor y un span en la posición del cursor
+        div.textContent = textarea.value.substring(0, cursorPosition);
         const span = document.createElement('span');
-        span.textContent = text.substring(cursorPosition) || '.';
+        span.textContent = '.'; // Caracter placeholder para que el span tenga dimensiones
         div.appendChild(span);
-        
-        document.body.appendChild(div);
-        const { offsetLeft: spanLeft, offsetTop: spanTop, offsetHeight: spanHeight } = span;
-        document.body.removeChild(div);
-        
+
         const { left: areaLeft, top: areaTop } = textarea.getBoundingClientRect();
+        const { offsetLeft: spanLeft, offsetTop: spanTop, offsetHeight: spanHeight } = span;
         
+        document.body.removeChild(div); // Limpia el div fantasma
+
+        // Calcula la posición final del popup
         this.popup.style.top = `${areaTop + spanTop + spanHeight + window.scrollY}px`;
         this.popup.style.left = `${areaLeft + spanLeft + window.scrollX}px`;
     }
 
     _handleKeydown(event) {
-        if (this.items.length === 0) return;
+        if (!this.popup || this.items.length === 0) return;
+        
         switch (event.key) {
             case 'ArrowDown':
                 event.preventDefault(); event.stopPropagation();
@@ -93,7 +105,7 @@ class PopupManager {
             case 'Tab':
                 event.preventDefault(); event.stopPropagation();
                 this.onSelect(this.items[this.selectedIndex]);
-                this.destroy();
+                // No llamamos a destroy aquí, el controlador principal lo hará.
                 break;
             case 'Escape':
                 event.preventDefault(); event.stopPropagation();
@@ -103,16 +115,23 @@ class PopupManager {
     }
     
     _handleClick(event) {
+        if (!this.popup) return;
         const option = event.target.closest('.popup-option');
         if (option && this.popup.contains(option)) {
             this.onSelect(this.items[option.dataset.index]);
+        } else {
+            // Si se hace click fuera del popup, se destruye
+            this.destroy();
         }
-        this.destroy();
     }
 
     updateSelected() {
+        if (!this.popup) return;
         this.popup.querySelectorAll('.popup-option').forEach((opt, index) => {
             opt.classList.toggle('selected', index === this.selectedIndex);
+            if (index === this.selectedIndex) {
+                opt.scrollIntoView({ block: 'nearest' });
+            }
         });
     }
 }
@@ -123,9 +142,11 @@ class PopupManager {
 class Shortkey {
     constructor() {
         this._shortcuts = [];
-        this._popupManager = null;
+        this._activePopupManager = null; // Un único gestor de popups activo
+        this._currentElement = null; // El textarea que está siendo editado
         this._loadShortcuts();
     }
+    
     _loadShortcuts() {
         const saved = localStorage.getItem('userShortkeys');
         if (saved) { this._shortcuts = JSON.parse(saved); }
@@ -149,77 +170,117 @@ class Shortkey {
         else if (direction === 'down' && index < this._shortcuts.length - 1) { [this._shortcuts[index + 1], this._shortcuts[index]] = [this._shortcuts[index], this._shortcuts[index + 1]]; }
         this._saveShortcuts();
     }
-    attach(selectorOrElement) { const elements = typeof selectorOrElement === 'string' ? document.querySelectorAll(selectorOrElement) : [selectorOrElement]; elements.forEach(element => { if (element) element.addEventListener('input', this._handleInput.bind(this)); }); }
+    
+    attach(selectorOrElement) { 
+        const elements = typeof selectorOrElement === 'string' ? document.querySelectorAll(selectorOrElement) : [selectorOrElement]; 
+        elements.forEach(element => { 
+            if (element) {
+                element.addEventListener('input', this._handleInput.bind(this)); 
+                // CORRECCIÓN: Listener para limpiar el popup si el usuario hace click en el textarea
+                element.addEventListener('click', () => {
+                   if (this._activePopupManager) this._activePopupManager.destroy();
+                });
+            }
+        }); 
+    }
     
     _handleInput(event) {
-        const element = event.target;
-        const text = element.value;
-        const cursorPosition = element.selectionStart;
+        this._currentElement = event.target;
+        const text = this._currentElement.value;
+        const cursorPosition = this._currentElement.selectionStart;
         const textBeforeCursor = text.substring(0, cursorPosition);
         const lastAtIndex = textBeforeCursor.lastIndexOf('@');
 
-        if (this._popupManager) this._popupManager.destroy();
-
+        // Si hay un popup y ya no estamos en modo @, lo destruimos
         if (lastAtIndex === -1 || textBeforeCursor.substring(lastAtIndex).includes(' ')) {
+            if (this._activePopupManager) this._activePopupManager.destroy();
             return;
         }
 
         const query = textBeforeCursor.substring(lastAtIndex + 1).toLowerCase();
-        const filteredShortcuts = this._shortcuts.filter(s => s.key.startsWith(query));
+        const filteredShortcuts = this._shortcuts.filter(s => s.key.toLowerCase().startsWith(query));
 
         if (filteredShortcuts.length > 0) {
-            this._popupManager = new PopupManager(element, (selected) => this._triggerShortkey(selected.key));
-            this._popupManager.show(filteredShortcuts, 'search');
+            // Si ya hay un popup, no creamos uno nuevo, solo lo actualizamos (esto evita parpadeos)
+            if (!this._activePopupManager || !this._activePopupManager.popup) {
+                this._activePopupManager = new PopupManager(this._currentElement, (selected) => this._triggerShortkey(selected.key));
+            }
+            this._activePopupManager.show(filteredShortcuts, 'search');
+        } else {
+            if (this._activePopupManager) this._activePopupManager.destroy();
         }
     }
 
+    // CORRECCIÓN: Lógica de activación de shortkey refactorizada
     _triggerShortkey(key) {
+        if (this._activePopupManager) {
+            this._activePopupManager.destroy();
+            this._activePopupManager = null;
+        }
+
         const shortcutData = this._shortcuts.find(s => s.key === key);
         if (!shortcutData) return;
 
-        const element = document.activeElement;
-        const text = element.value;
-        const cursorPosition = element.selectionStart;
-        const textBeforeCursor = text.substring(0, cursorPosition);
-        const lastAtIndex = textBeforeCursor.lastIndexOf('@');
-
         const isDynamic = shortcutData.steps && shortcutData.steps.length > 0;
+
         if (isDynamic) {
-            this._popupManager = new PopupManager(element, (selectedOption) => {
-                this._runDynamicFlow(shortcutData, lastAtIndex, { [shortcutData.steps[0].id]: selectedOption.value }, selectedOption.nextStep);
-            });
-            this._popupManager.show(shortcutData.steps[0].options, 'interaction', shortcutData.steps[0].prompt);
+            // Para flujos dinámicos, primero limpiamos el @key y luego iniciamos el flujo
+            this._performReplacement(key, '');
+            this._runDynamicFlow(shortcutData, {}, shortcutData.steps[0]);
         } else {
-            this._performReplacement(lastAtIndex, key, shortcutData.description, {});
+            // Para shortkeys simples, simplemente reemplazamos
+            this._performReplacement(key, shortcutData.description + ' ');
         }
     }
 
-    _runDynamicFlow(shortkeyData, triggerPosition, variables, nextStepId) {
-        const nextStep = shortkeyData.steps.find(s => s.id === nextStepId);
-        if (nextStep && nextStep.type === 'select') {
-             this._popupManager = new PopupManager(document.activeElement, (selectedOption) => {
-                const newVariables = {...variables, [nextStep.id]: selectedOption.value };
-                this._runDynamicFlow(shortkeyData, triggerPosition, newVariables, selectedOption.nextStep);
+    _runDynamicFlow(shortkeyData, variables, currentStep) {
+        if (!currentStep) return;
+
+        if (currentStep.type === 'select') {
+            this._activePopupManager = new PopupManager(this._currentElement, (selectedOption) => {
+                if (this._activePopupManager) this._activePopupManager.destroy();
+                const newVariables = {...variables, [currentStep.id]: selectedOption.value };
+                const nextStep = shortkeyData.steps.find(s => s.id === selectedOption.nextStep);
+                this._runDynamicFlow(shortkeyData, newVariables, nextStep);
             });
-            this._popupManager.show(nextStep.options, 'interaction', nextStep.prompt);
-        } else if (nextStep && nextStep.type === 'template') {
-            this._performReplacement(triggerPosition, shortkeyData.key, nextStep.template, variables);
+            this._activePopupManager.show(currentStep.options, 'interaction', currentStep.prompt);
+        } else if (currentStep.type === 'template') {
+            let finalText = currentStep.template;
+            for (const varName in variables) {
+                finalText = finalText.replace(new RegExp(`{${varName}}`, 'g'), variables[varName]);
+            }
+            // Inserta el texto final en la posición actual del cursor
+            this._insertTextAtCursor(finalText + ' ');
         }
     }
     
-    _performReplacement(triggerPosition, key, template, variables) {
-        let final_text = template;
-        for (const varName in variables) {
-            final_text = final_text.replace(new RegExp(`{${varName}}`, 'g'), variables[varName]);
+    _performReplacement(keyToReplace, replacementText) {
+        const element = this._currentElement;
+        const text = element.value;
+        const cursorPosition = element.selectionStart;
+        const textBeforeCursor = text.substring(0, cursorPosition);
+        const triggerPosition = textBeforeCursor.lastIndexOf('@' + keyToReplace);
+        
+        if (triggerPosition === -1) { // Fallback por si no encuentra el texto exacto
+            this._insertTextAtCursor(replacementText);
+            return;
         }
-        final_text += ' ';
-        const element = document.activeElement;
-        const originalText = element.value;
-        const textAfterCursor = originalText.substring(triggerPosition + key.length + 1);
-        const newText = originalText.substring(0, triggerPosition) + final_text + textAfterCursor;
+
+        const newText = text.substring(0, triggerPosition) + replacementText + text.substring(cursorPosition);
         element.value = newText;
-        const newCursorPosition = triggerPosition + final_text.length;
+        const newCursorPosition = triggerPosition + replacementText.length;
         element.selectionStart = element.selectionEnd = newCursorPosition;
+        element.focus();
+    }
+
+    _insertTextAtCursor(textToInsert) {
+        const element = this._currentElement;
+        const start = element.selectionStart;
+        const end = element.selectionEnd;
+        const text = element.value;
+        element.value = text.substring(0, start) + textToInsert + text.substring(end);
+        element.selectionStart = element.selectionEnd = start + textToInsert.length;
+        element.focus();
     }
 }
 
@@ -232,7 +293,6 @@ document.addEventListener('DOMContentLoaded', () => {
     shortkeyManager.attach('.shortkey-enabled');
 
     const modal = document.getElementById('settingsModal');
-    const openBtn = document.getElementById('openSettingsBtn');
     const closeBtn = document.getElementById('closeSettingsBtn');
     const overlay = document.getElementById('modalOverlay');
     const viewList = document.getElementById('view-list');
@@ -250,6 +310,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let currentEditingKey = null;
 
+    // CORRECCIÓN: Funciones para abrir/cerrar modal
+    const openModal = () => {
+        showListView();
+        modal.classList.add('visible');
+    };
+    const closeModal = () => {
+        modal.classList.remove('visible');
+    };
+
     const showListView = () => {
         viewEditor.classList.add('hidden');
         viewList.classList.remove('hidden');
@@ -264,6 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const buildEditor = (key) => {
+        editorForm.reset();
         stepsContainer.innerHTML = '';
         templateStepContainer.innerHTML = '';
         const shortcut = key ? shortkeyManager.getShortcuts().find(s => s.key === key) : null;
@@ -271,15 +341,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (shortcut) {
             editorKeyInput.value = shortcut.key;
             editorDescInput.value = shortcut.description;
-            const selectSteps = shortcut.steps.filter(s => s.type === 'select');
-            const templateStep = shortcut.steps.find(s => s.type === 'template');
-            
-            if (selectSteps.length > 0) {
+            const hasSteps = shortcut.steps && shortcut.steps.length > 0;
+            if (hasSteps) {
+                const selectSteps = shortcut.steps.filter(s => s.type === 'select');
+                const templateStep = shortcut.steps.find(s => s.type === 'template');
                 selectSteps.forEach(step => addStepToDOM('select', step));
-                addStepToDOM('template', templateStep);
+                if (templateStep) addStepToDOM('template', templateStep);
             }
-        } else {
-            editorForm.reset();
         }
         toggleDynamicSection();
         updateLivePreview();
@@ -315,22 +383,27 @@ document.addEventListener('DOMContentLoaded', () => {
         container.appendChild(clone);
     };
     
+    // CORRECCIÓN: Lógica de visibilidad de la sección dinámica
     const toggleDynamicSection = () => {
         const hasSelectSteps = stepsContainer.children.length > 0;
         dynamicSection.classList.toggle('hidden', !hasSelectSteps);
         editorDescInput.disabled = hasSelectSteps;
+        if (hasSelectSteps) {
+            editorDescInput.value = "Shortkey dinámico. La descripción se genera a partir de los pasos."
+        }
     };
-
+    
     const parseEditor = () => {
         const key = editorKeyInput.value.trim().toLowerCase();
-        const description = editorDescInput.value.trim();
-        if (!key || !description) return null;
+        let description = editorDescInput.value.trim();
+        if (!key) return null;
 
         const steps = [];
-        const selectSteps = stepsContainer.querySelectorAll('.step-container');
+        const selectStepElements = stepsContainer.querySelectorAll('.step-container');
         
-        if (selectSteps.length > 0) {
-             selectSteps.forEach(stepEl => {
+        if (selectStepElements.length > 0) {
+            description = "Shortkey dinámico. La descripción se genera a partir de los pasos.";
+            selectStepElements.forEach(stepEl => {
                 const stepData = { type: 'select', options: [] };
                 stepEl.querySelectorAll('[data-config]').forEach(input => stepData[input.dataset.config] = input.value.trim());
                 stepEl.querySelectorAll('.option-item').forEach(optEl => {
@@ -347,24 +420,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 steps.push(templateData);
             }
         }
+        
+        if (!description && steps.length === 0) return null;
+
         return { key, description, steps };
     };
     
     const updateLivePreview = () => {
         const data = parseEditor();
         if (!data) { livePreviewOutput.textContent = ''; return; }
-        const hasDynamicSteps = stepsContainer.children.length > 0;
+        const hasDynamicSteps = data.steps.length > 0;
         if (!hasDynamicSteps) {
             livePreviewOutput.textContent = data.description;
             return;
         }
-        const templateStepEl = templateStepContainer.querySelector('[data-config="template"]');
-        if (!templateStepEl) { livePreviewOutput.textContent = 'Añade una Plantilla Final para ver la vista previa.'; return; }
-        let previewText = templateStepEl.value;
-        stepsContainer.querySelectorAll('.step-container').forEach(stepEl => {
-            const varName = stepEl.querySelector('[data-config="id"]').value || 'variable';
-            const firstOption = stepEl.querySelector('[data-config="label"]');
-            const exampleValue = firstOption && firstOption.value ? `[${firstOption.value}]` : `[ejemplo]`;
+        const templateStep = data.steps.find(s => s.type === 'template');
+        if (!templateStep || !templateStep.template) { livePreviewOutput.textContent = 'Añade una Plantilla Final para ver la vista previa.'; return; }
+        
+        let previewText = templateStep.template;
+        data.steps.filter(s => s.type === 'select').forEach(step => {
+            const varName = step.id || 'variable';
+            const firstOption = step.options.length > 0 ? step.options[0] : null;
+            const exampleValue = firstOption && firstOption.label ? `[${firstOption.label}]` : `[ejemplo]`;
             previewText = previewText.replace(new RegExp(`{${varName}}`, 'g'), exampleValue);
         });
         livePreviewOutput.textContent = previewText;
@@ -374,6 +451,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const listContainer = document.getElementById('shortcutsList');
         listContainer.innerHTML = '';
         const shortcuts = shortkeyManager.getShortcuts();
+        if (shortcuts.length === 0) {
+            listContainer.innerHTML = `<p style="text-align: center; color: #6b7280; padding: 1rem;">No tienes shortkeys. ¡Añade uno nuevo!</p>`;
+            return;
+        }
         shortcuts.forEach((shortcut, index) => {
             const isDynamic = shortcut.steps && shortcut.steps.length > 0;
             const item = document.createElement('div');
@@ -407,9 +488,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- Event Listeners ---
-    if (openBtn) openBtn.addEventListener('click', () => { showListView(); modal.classList.add('visible'); });
-    closeBtn.addEventListener('click', () => modal.classList.remove('visible'));
-    overlay.addEventListener('click', () => modal.classList.remove('visible'));
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', closeModal);
     addNewBtn.addEventListener('click', () => showEditorView());
     editorCancelBtn.addEventListener('click', showListView);
     
@@ -426,7 +506,14 @@ document.addEventListener('DOMContentLoaded', () => {
     editorForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const data = parseEditor();
-        if (!data) { alert('Por favor, completa la llave y la descripción.'); return; }
+        if (!data) { alert('Por favor, completa al menos la llave.'); return; }
+        
+        const existing = shortkeyManager.getShortcuts().find(s => s.key === data.key);
+        if (existing && data.key !== currentEditingKey) {
+            alert(`El shortkey "@${data.key}" ya existe. Por favor, elige otra llave.`);
+            return;
+        }
+
         if (currentEditingKey) {
             shortkeyManager.updateShortcut(currentEditingKey, data);
         } else {
@@ -446,6 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (e.target.classList.contains('remove-option-btn')) {
             e.target.closest('.option-item').remove();
+            updateLivePreview();
         }
     });
     
@@ -469,6 +557,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+    // CORRECCIÓN: Listener de teclado global mejorado
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modal.classList.contains('visible')) {
             closeModal();
