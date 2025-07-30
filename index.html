@@ -837,7 +837,6 @@
 
 <!-- Contenedor para los Pop-ups -->
     <div id="shortkey-popup-container">
-        <!-- CORRECCIÓN: Se añade el pop-up de búsqueda que faltaba -->
         <div id="shortkey-search-popup" class="shortkey-popup"></div>
         <div id="shortkey-interaction-popup" class="shortkey-popup"></div>
     </div>
@@ -869,10 +868,12 @@
                             <textarea id="editor-description" placeholder="Añade una descripción o el texto para un shortkey simple" required rows="1"></textarea>
                         </div>
                         
-                        <div id="dynamic-section">
-                             <div class="add-steps-buttons">
-                                <button type="button" id="add-select-step-btn">+ Añadir Variable (Paso de Selección)</button>
-                            </div>
+                        <!-- CORRECCIÓN: Botón movido fuera de la sección dinámica -->
+                        <div class="add-steps-buttons">
+                            <button type="button" id="add-select-step-btn">+ Añadir Variable (Paso de Selección)</button>
+                        </div>
+                        
+                        <div id="dynamic-section" class="hidden">
                             <h4 class="steps-title">Pasos de Selección</h4>
                             <div id="steps-container"></div>
                             <div id="template-step-container"></div>
