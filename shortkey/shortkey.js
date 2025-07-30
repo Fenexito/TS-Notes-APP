@@ -40,6 +40,16 @@ class Shortkey {
     addShortcut(shortcutData) { this._shortcuts.push(shortcutData); this._saveShortcuts(); }
     updateShortcut(oldKey, shortcutData) { const index = this._shortcuts.findIndex(s => s.key === oldKey); if (index > -1) { this._shortcuts[index] = shortcutData; } else { this.addShortcut(shortcutData); } this._saveShortcuts(); }
     removeShortcut(key) { this._shortcuts = this._shortcuts.filter(s => s.key !== key); this._saveShortcuts(); }
+    moveShortcut(key, direction) {
+        const index = this._shortcuts.findIndex(s => s.key === key);
+        if (index === -1) return;
+        if (direction === 'up' && index > 0) {
+            [this._shortcuts[index - 1], this._shortcuts[index]] = [this._shortcuts[index], this._shortcuts[index - 1]];
+        } else if (direction === 'down' && index < this._shortcuts.length - 1) {
+            [this._shortcuts[index + 1], this._shortcuts[index]] = [this._shortcuts[index], this._shortcuts[index + 1]];
+        }
+        this._saveShortcuts();
+    }
     attach(selectorOrElement) { const elements = typeof selectorOrElement === 'string' ? document.querySelectorAll(selectorOrElement) : [selectorOrElement]; elements.forEach(element => { if (element) element.addEventListener('keydown', this._handleKeydown.bind(this)); }); }
     
     _handleKeydown(event) {
@@ -134,16 +144,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const selectSteps = shortcut.steps.filter(s => s.type === 'select');
             const templateStep = shortcut.steps.find(s => s.type === 'template');
             
+            dynamicSection.classList.remove('hidden'); // Siempre visible en edición
             if (selectSteps.length > 0) {
-                dynamicSection.classList.remove('hidden');
                 selectSteps.forEach(step => addStepToDOM('select', step));
                 addStepToDOM('template', templateStep);
-            } else {
-                dynamicSection.classList.add('hidden');
             }
         } else {
             editorForm.reset();
-            dynamicSection.classList.add('hidden');
+            dynamicSection.classList.remove('hidden'); // Siempre visible al crear
         }
         updateLivePreview();
     };
@@ -184,8 +192,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!key || !description) return null;
 
         const steps = [];
-        if (!dynamicSection.classList.contains('hidden')) {
-            stepsContainer.querySelectorAll('.step-container').forEach(stepEl => {
+        const selectSteps = stepsContainer.querySelectorAll('.step-container');
+        
+        if (selectSteps.length > 0) {
+             selectSteps.forEach(stepEl => {
                 const stepData = { type: 'select', options: [] };
                 stepEl.querySelectorAll('[data-config]').forEach(input => stepData[input.dataset.config] = input.value.trim());
                 stepEl.querySelectorAll('.option-item').forEach(optEl => {
@@ -207,22 +217,28 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const updateLivePreview = () => {
         const data = parseEditor();
-        if (!data || data.steps.length === 0) {
-            livePreviewOutput.textContent = data ? data.description : '';
+        if (!data) {
+            livePreviewOutput.textContent = '';
+            return;
+        }
+
+        const hasDynamicSteps = stepsContainer.children.length > 0;
+        if (!hasDynamicSteps) {
+            livePreviewOutput.textContent = data.description;
             return;
         }
         
-        const templateStep = data.steps.find(s => s.type === 'template');
-        if (!templateStep) {
-            livePreviewOutput.textContent = 'Error: Falta la plantilla final.';
+        const templateStepEl = templateStepContainer.querySelector('[data-config="template"]');
+        if (!templateStepEl) {
+            livePreviewOutput.textContent = 'Añade una Plantilla Final para ver la vista previa.';
             return;
         }
         
-        let previewText = templateStep.template;
-        const selectSteps = data.steps.filter(s => s.type === 'select');
-        selectSteps.forEach(step => {
-            const varName = step.id || 'variable';
-            const exampleValue = step.options.length > 0 ? `[${step.options[0].label}]` : `[ejemplo]`;
+        let previewText = templateStepEl.value;
+        stepsContainer.querySelectorAll('.step-container').forEach(stepEl => {
+            const varName = stepEl.querySelector('[data-config="id"]').value || 'variable';
+            const firstOption = stepEl.querySelector('[data-config="label"]');
+            const exampleValue = firstOption && firstOption.value ? `[${firstOption.value}]` : `[ejemplo]`;
             previewText = previewText.replace(new RegExp(`{${varName}}`, 'g'), exampleValue);
         });
         livePreviewOutput.textContent = previewText;
@@ -232,20 +248,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const listContainer = document.getElementById('shortcutsList');
         listContainer.innerHTML = '';
         const shortcuts = shortkeyManager.getShortcuts();
-        shortcuts.forEach(shortcut => {
+        shortcuts.forEach((shortcut, index) => {
             const isDynamic = shortcut.steps && shortcut.steps.length > 0;
             const item = document.createElement('div');
             item.className = 'shortcut-item';
             item.innerHTML = `
+                <div class="shortcut-reorder">
+                    <button class="action-btn move-up-btn" data-key="${shortcut.key}" title="Mover arriba" ${index === 0 ? 'disabled' : ''}>
+                        <svg style="pointer-events: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+                    </button>
+                    <button class="action-btn move-down-btn" data-key="${shortcut.key}" title="Mover abajo" ${index === shortcuts.length - 1 ? 'disabled' : ''}>
+                        <svg style="pointer-events: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                    </button>
+                </div>
                 <div style="display: flex; align-items: center; min-width: 0;">
-                    ${isDynamic ? `<svg class="dynamic-indicator" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" /></svg>` : ''}
+                    ${isDynamic ? `<svg class="dynamic-indicator" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" /></svg>` : ''}
                     <div>
                         <span class="shortcut-key">@${shortcut.key}</span>
                         <p class="shortcut-description">${shortcut.description}</p>
                     </div>
                 </div>
                 <div class="shortcut-actions">
-                    <button class="action-btn edit-btn" data-key="${shortcut.key}">Editar</button>
+                    <button class="action-btn edit-btn" data-key="${shortcut.key}" title="Editar">
+                        <svg style="pointer-events: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" /></svg>
+                    </button>
+                    <button class="action-btn delete-btn" data-key="${shortcut.key}" title="Eliminar">
+                        <svg style="pointer-events: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                    </button>
                 </div>`;
             listContainer.appendChild(item);
         });
@@ -259,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
     editorCancelBtn.addEventListener('click', showListView);
     
     addSelectStepBtn.addEventListener('click', () => {
-        if (stepsContainer.children.length === 0) { // Si es el primer paso dinámico
+        if (templateStepContainer.children.length === 0) {
             addStepToDOM('template');
         }
         addStepToDOM('select');
@@ -285,7 +314,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     document.getElementById('shortcutsList').addEventListener('click', (e) => {
-        if (e.target.classList.contains('edit-btn')) showEditorView(e.target.dataset.key);
+        const button = e.target.closest('.action-btn');
+        if (!button) return;
+        const key = button.dataset.key;
+        if (button.classList.contains('edit-btn')) {
+            showEditorView(key);
+        } else if (button.classList.contains('move-up-btn')) {
+            shortkeyManager.moveShortcut(key, 'up');
+            renderShortcuts();
+        } else if (button.classList.contains('move-down-btn')) {
+            shortkeyManager.moveShortcut(key, 'down');
+            renderShortcuts();
+        } else if (button.classList.contains('delete-btn')) {
+            if (confirm(`¿Estás seguro de que quieres eliminar el shortkey "@${key}"?`)) {
+                shortkeyManager.removeShortcut(key);
+                renderShortcuts();
+            }
+        }
     });
     
     document.addEventListener('keydown', (e) => {
