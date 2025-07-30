@@ -860,7 +860,7 @@
 
                 <div id="view-editor" class="hidden">
                     <form id="shortkey-editor-form">
-                        <!-- Detalles Principales -->
+                        <!-- Detalles Principales (Siempre visibles) -->
                         <div class="editor-section">
                             <label for="editor-key">Activador</label>
                             <div class="input-with-prefix">
@@ -868,29 +868,36 @@
                                 <input type="text" id="editor-key" placeholder="nombre-del-shortkey" required>
                             </div>
                         </div>
-                        <div class="editor-section">
-                             <label for="editor-description">Descripción (para shortkeys simples)</label>
-                            <textarea id="editor-description" placeholder="Escribe el texto que se insertará..." required rows="2"></textarea>
-                        </div>
-                        
-                        <!-- Sección Dinámica -->
-                        <div class="dynamic-controls">
-                            <div id="steps-container"></div>
-                            <div id="template-step-container"></div>
-                             <div class="add-steps-buttons">
-                                <button type="button" id="add-select-step-btn" class="main-button">+ Añadir Variable</button>
-                            </div>
-                        </div>
 
-                        <!-- Vista Previa -->
-                        <div id="live-preview-container" class="hidden">
+                        <!-- Vista para Shortkey Simple -->
+                        <div id="simple-mode-view">
                             <div class="editor-section">
-                                <label>Vista Previa en Tiempo Real</label>
-                                <div id="live-preview-output" class="preview-output"></div>
+                                <label for="editor-description">Texto de reemplazo</label>
+                                <textarea id="editor-description" placeholder="Escribe el texto que se insertará..." rows="3"></textarea>
+                            </div>
+                            <div class="add-steps-buttons">
+                                <button type="button" id="go-to-dynamic-mode-btn" class="main-button">+ Añadir Variables (Modo Dinámico)</button>
                             </div>
                         </div>
 
-                        <!-- Acciones -->
+                        <!-- Vista para Shortkey Dinámico (con variables) -->
+                        <div id="dynamic-mode-view" class="hidden">
+                             <div class="dynamic-controls">
+                                <div id="steps-container"></div>
+                                <div id="template-step-container"></div>
+                                <div class="add-steps-buttons">
+                                    <button type="button" id="add-select-step-btn" class="main-button">+ Añadir Otra Variable</button>
+                                </div>
+                            </div>
+                            <div id="live-preview-container">
+                                <div class="editor-section">
+                                    <label>Vista Previa</label>
+                                    <div id="live-preview-output" class="preview-output"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Acciones (Siempre visibles) -->
                         <div class="editor-actions">
                             <button type="button" id="editor-cancel-btn">Cancelar</button>
                             <button type="submit" id="editor-save-btn">Guardar Shortkey</button>
