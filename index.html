@@ -859,17 +859,20 @@
                                 <span>@</span>
                                 <input type="text" id="editor-key" placeholder="nombre-del-shortkey" required>
                             </div>
-                            <input type="text" id="editor-description" placeholder="Añade una descripción" required>
+                            <textarea id="editor-description" placeholder="Añade una descripción o el texto para un shortkey simple" required rows="2"></textarea>
                         </div>
                         
-                        <h4 class="steps-title">Pasos del Flujo de Trabajo</h4>
-                        <div id="steps-container">
-                            <!-- Los pasos se insertarán aquí dinámicamente -->
-                        </div>
-
-                        <div class="add-steps-buttons">
-                            <button type="button" id="add-select-step-btn">+ Añadir Opción de Selección</button>
-                            <button type="button" id="add-template-step-btn">+ Añadir Plantilla Final</button>
+                        <div id="dynamic-section" class="hidden">
+                            <h4 class="steps-title">Pasos de Selección (Variables)</h4>
+                            <div id="steps-container"></div>
+                            <div class="add-steps-buttons">
+                                <button type="button" id="add-select-step-btn">+ Añadir Opción de Selección</button>
+                            </div>
+                            <div id="template-step-container"></div>
+                            <div id="live-preview-container">
+                                <h5>Vista Previa en Tiempo Real</h5>
+                                <div id="live-preview-output" class="preview-output"></div>
+                            </div>
                         </div>
 
                         <div class="editor-actions">
@@ -907,9 +910,9 @@
 
     <template id="template-step-template">
         <div class="step-container" data-step-type="template">
-            <div class="step-header"><span>Paso: Plantilla Final</span><button type="button" class="remove-step-btn">&times;</button></div>
+            <div class="step-header"><span>Plantilla Final</span></div>
             <div class="step-body">
-                <input type="text" class="step-input" data-config="id" placeholder="ID de este paso (ej. resultado_final)">
+                <input type="text" class="step-input" data-config="id" value="result" readonly>
                 <textarea class="step-textarea" data-config="template" placeholder="Escribe el texto final. Usa {id_variable} para insertar los valores."></textarea>
             </div>
         </div>
@@ -917,6 +920,7 @@
 
     <!-- Contenedor para el Pop-up de Interacción Dinámica -->
     <div id="shortkey-interaction-popup"></div>
+
 
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
     <script type="module" src="js/main.js"></script>
