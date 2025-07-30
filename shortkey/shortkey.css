@@ -1,6 +1,6 @@
 /*
  * Estilos personalizados para el componente Shortkey.
- * Versión 13: Escala reducida y botones de acción restaurados.
+ * Versión 14: Búsqueda inteligente, escala reducida y mejoras de UI.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
@@ -8,6 +8,9 @@
 .editor { width: 100%; height: 16rem; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 1rem; }
 .main-button { background-color: #2563eb; color: white; font-weight: 600; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; font-size: 13px; }
 .main-button:hover { background-color: #1d4ed8; }
+
+/* --- Contenedor de Pop-ups --- */
+#shortkey-popup-container { position: relative; z-index: 2000; }
 
 /* --- Estructura del Modal Flotante --- */
 #settingsModal {
@@ -47,6 +50,7 @@
 #settingsModal .input-with-prefix span { padding: 0.6rem; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 1rem; color: #6b7280; border-right: 1px solid #d1d5db; }
 #settingsModal .input-with-prefix input { border: none; outline: none; background: transparent; padding: 0.6rem; width: 100%; font-size: 0.9rem; }
 #settingsModal #editor-description { width: 100%; padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.9rem; box-sizing: border-box; resize: vertical; }
+#settingsModal #editor-description:disabled { background-color: #f3f4f6; color: #9ca3af; }
 #settingsModal #dynamic-section { border-top: 1px solid #e5e7eb; padding-top: 1rem; margin-top: 1rem; }
 #settingsModal .steps-title { font-weight: 600; font-size: 1rem; margin: 0 0 0.5rem 0; }
 #settingsModal #steps-container { display: flex; flex-direction: column; gap: 0.75rem; background-color: #f3f4f6; padding: 0.75rem; border-radius: 0.5rem; }
@@ -54,6 +58,7 @@
 #settingsModal .step-header { display: flex; justify-content: space-between; align-items: center; background-color: #f9fafb; padding: 0.4rem 0.6rem; border-bottom: 1px solid #e5e7eb; font-weight: 500; font-size: 0.85rem; }
 #settingsModal .remove-step-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: #9ca3af; }
 #settingsModal .step-body { padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; }
+#settingsModal .step-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
 #settingsModal .step-input, #settingsModal .step-textarea { width: 100%; padding: 0.4rem; border: 1px solid #d1d5db; border-radius: 0.25rem; font-size: 0.85rem; box-sizing: border-box; }
 #settingsModal .step-textarea { min-height: 70px; resize: vertical; font-family: 'JetBrains Mono', monospace; }
 #settingsModal .step-body h5 { font-weight: 500; margin: 0.5rem 0 0.25rem 0; font-size: 0.9rem; }
@@ -70,13 +75,17 @@
 #settingsModal #editor-cancel-btn { background-color: #6b7280; color: white; }
 #settingsModal #editor-save-btn { background-color: #28a745; color: white; }
 
-/* Pop-up de Interacción */
-#shortkey-interaction-popup {
+/* --- Pop-ups de Búsqueda e Interacción --- */
+.shortkey-popup {
     position: absolute; z-index: 2000; background-color: white; border: 1px solid #d1d5db;
     border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); font-family: 'Inter', sans-serif;
-    font-size: 13px; opacity: 0; transform: scale(0.95); transition: all 0.15s ease; min-width: 180px;
+    font-size: 13px; opacity: 0; transform: scale(0.95) translateY(-10px); transition: all 0.1s ease; min-width: 220px;
+    max-height: 250px; overflow-y: auto;
 }
-#shortkey-interaction-popup.visible { opacity: 1; transform: scale(1); }
-#shortkey-interaction-popup .popup-prompt { font-weight: 600; padding: 0.6rem 0.8rem; border-bottom: 1px solid #e5e7eb; color: #374151; }
-#shortkey-interaction-popup .popup-option { display: block; width: 100%; text-align: left; padding: 0.5rem 0.8rem; background: none; border: none; cursor: pointer; }
-#shortkey-interaction-popup .popup-option.selected { background-color: #eff6ff; color: #1d4ed8; }
+.shortkey-popup.visible { opacity: 1; transform: scale(1) translateY(0); }
+.shortkey-popup .popup-prompt { font-weight: 600; padding: 0.6rem 0.8rem; border-bottom: 1px solid #e5e7eb; color: #374151; }
+.shortkey-popup .popup-option { display: block; width: 100%; text-align: left; padding: 0.5rem 0.8rem; background: none; border: none; cursor: pointer; }
+.shortkey-popup .popup-option.selected { background-color: #eff6ff; color: #1d4ed8; }
+#shortkey-search-popup .popup-option { display: flex; flex-direction: column; }
+#shortkey-search-popup .search-key { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+#shortkey-search-popup .search-desc { font-size: 0.9em; color: #6b7280; }
