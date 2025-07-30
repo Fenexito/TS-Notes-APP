@@ -117,15 +117,15 @@
 .shortkey-popup {
     position: fixed; z-index: 2000; background-color: white; border: 1px solid var(--gray-300);
     border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); font-family: 'Inter', sans-serif;
-    font-size: 13px; opacity: 0; visibility: hidden; transform: scale(0.95) translateY(-10px); 
+    opacity: 0; visibility: hidden; transform: scale(0.95) translateY(-10px); 
     transition: opacity 0.1s ease, transform 0.1s ease, visibility 0s linear 0.1s; 
-    min-width: 240px; max-height: 250px; overflow-y: auto;
+    max-height: 250px; overflow-y: auto;
 }
 .shortkey-popup.visible { opacity: 1; visibility: visible; transform: scale(1) translateY(0); transition-delay: 0s; }
 .shortkey-popup .popup-prompt { font-weight: 600; padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--gray-200); color: var(--gray-700); }
 .shortkey-popup .popup-option { display: block; width: 100%; text-align: left; padding: 0.6rem 0.8rem; background: none; border: none; cursor: pointer; color: var(--gray-800); }
 .shortkey-popup .popup-option.selected { background-color: var(--brand-blue); color: white; }
-#shortkey-search-popup .popup-option { display: flex; flex-direction: column; gap: 0.1rem; color: var(--text-dark); }
+#shortkey-search-popup .popup-option { display: flex; flex-direction: column; gap: 0.1rem; }
 #shortkey-search-popup .search-key { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
 
 /* CORRECCIÓN: Color de texto oscuro para la descripción por defecto */
