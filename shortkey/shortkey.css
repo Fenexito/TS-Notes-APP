@@ -71,24 +71,8 @@
 #settingsModal .input-with-prefix:focus-within { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
 #settingsModal .input-with-prefix span { padding: 0.3rem; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 1rem; color: #6b7280; border-right: 1px solid #d1d5db; }
 #settingsModal .input-with-prefix input { border: none; outline: none; background: transparent; padding: 0.6rem; width: 100%; font-size: 0.9rem; }
-
-/* --- CAMBIO: Estilos para el campo de texto flexible --- */
-#settingsModal #shortcutValueInput {
-    width: 100%;
-    padding: 0.6rem; /* Ajustado para consistencia */
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    font-size: 0.9rem;
-    font-family: inherit; /* Hereda la fuente del modal */
-    box-sizing: border-box;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    /* Propiedades para hacerlo flexible */
-    resize: vertical; /* Permite al usuario redimensionar verticalmente */
-    min-height: 38px; /* Altura mínima para que coincida con el otro input */
-    line-height: 1.4; /* Mejora la legibilidad del texto multilínea */
-}
+#settingsModal #shortcutValueInput { width: 100%; padding: 0.3rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.9rem; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; height: 30.6px; }
 #settingsModal #shortcutValueInput:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
-
 #settingsModal .form-buttons { display: grid; grid-template-columns: 1fr auto; gap: 0.75rem; }
 #settingsModal #addShortcutForm button { color: white; font-weight: 600; font-size: 0.9rem; padding: 0.6rem; border: none; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; }
 /* Color restaurado */
