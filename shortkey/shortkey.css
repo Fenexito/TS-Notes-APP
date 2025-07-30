@@ -121,7 +121,9 @@
 .shortkey-popup .popup-option { display: block; width: 100%; text-align: left; padding: 0.6rem 0.8rem; background: none; border: none; cursor: pointer; }
 #shortkey-search-popup .popup-option { display: flex; flex-direction: column; gap: 0.1rem; }
 
-/* CORRECCIÓN: Colores para estado NO SELECCIONADO */
+/* --- REGLAS DE COLOR CORREGIDAS --- */
+
+/* 1. Estado por defecto (NO SELECCIONADO) */
 #shortkey-search-popup .search-key { 
     font-family: 'JetBrains Mono', monospace; 
     font-weight: 500; 
@@ -129,14 +131,14 @@
 }
 #shortkey-search-popup .search-desc { 
     font-size: 0.9em; 
-    color: var(--text-dark); /* Texto oscuro también para la descripción */
+    color: var(--text-light); /* Texto gris para la descripción */
 }
 
-/* CORRECCIÓN: Estilos para estado SELECCIONADO */
+/* 2. Estado SELECCIONADO */
 .shortkey-popup .popup-option.selected { 
     background-color: var(--brand-blue); 
 }
-/* Ambos textos se vuelven blancos al seleccionar */
+/* Forzamos que AMBOS textos internos sean blancos cuando la opción está seleccionada */
 .shortkey-popup .popup-option.selected .search-key,
 .shortkey-popup .popup-option.selected .search-desc {
     color: white;
