@@ -51,7 +51,7 @@ class PopupManager {
         document.removeEventListener('click', this._boundHandleClick, true);
     }
 
-    // CORRECCIÓN: Lógica de posicionamiento revisada para ser más precisa.
+    // CORRECCIÓN: Lógica de posicionamiento revisada para 'position: fixed'.
     positionPopup() {
         const textarea = this.element;
         const cursorPosition = textarea.selectionStart;
@@ -60,7 +60,6 @@ class PopupManager {
         const div = document.createElement('div');
         document.body.appendChild(div);
         
-        // Copia los estilos relevantes del textarea al div
         const style = window.getComputedStyle(textarea);
         div.style.whiteSpace = 'pre-wrap';
         div.style.wordWrap = 'break-word';
@@ -71,20 +70,20 @@ class PopupManager {
         });
         div.style.width = style.width;
 
-        // Inserta el texto hasta el cursor y un span en la posición del cursor
         div.textContent = textarea.value.substring(0, cursorPosition);
         const span = document.createElement('span');
-        span.textContent = '.'; // Caracter placeholder para que el span tenga dimensiones
+        span.textContent = '.'; // Placeholder
         div.appendChild(span);
 
         const { left: areaLeft, top: areaTop } = textarea.getBoundingClientRect();
         const { offsetLeft: spanLeft, offsetTop: spanTop, offsetHeight: spanHeight } = span;
         
-        document.body.removeChild(div); // Limpia el div fantasma
+        document.body.removeChild(div);
 
-        // Calcula la posición final del popup
-        this.popup.style.top = `${areaTop + spanTop + spanHeight + window.scrollY}px`;
-        this.popup.style.left = `${areaLeft + spanLeft + window.scrollX}px`;
+        // Calcula la posición final del popup usando coordenadas relativas al viewport.
+        // Se quita window.scrollY y window.scrollX porque la posición es fija.
+        this.popup.style.top = `${areaTop + spanTop + spanHeight}px`;
+        this.popup.style.left = `${areaLeft + spanLeft}px`;
     }
 
     _handleKeydown(event) {
@@ -105,7 +104,6 @@ class PopupManager {
             case 'Tab':
                 event.preventDefault(); event.stopPropagation();
                 this.onSelect(this.items[this.selectedIndex]);
-                // No llamamos a destroy aquí, el controlador principal lo hará.
                 break;
             case 'Escape':
                 event.preventDefault(); event.stopPropagation();
@@ -120,7 +118,6 @@ class PopupManager {
         if (option && this.popup.contains(option)) {
             this.onSelect(this.items[option.dataset.index]);
         } else {
-            // Si se hace click fuera del popup, se destruye
             this.destroy();
         }
     }
@@ -142,8 +139,8 @@ class PopupManager {
 class Shortkey {
     constructor() {
         this._shortcuts = [];
-        this._activePopupManager = null; // Un único gestor de popups activo
-        this._currentElement = null; // El textarea que está siendo editado
+        this._activePopupManager = null;
+        this._currentElement = null;
         this._loadShortcuts();
     }
     
@@ -176,7 +173,6 @@ class Shortkey {
         elements.forEach(element => { 
             if (element) {
                 element.addEventListener('input', this._handleInput.bind(this)); 
-                // CORRECCIÓN: Listener para limpiar el popup si el usuario hace click en el textarea
                 element.addEventListener('click', () => {
                    if (this._activePopupManager) this._activePopupManager.destroy();
                 });
@@ -191,7 +187,6 @@ class Shortkey {
         const textBeforeCursor = text.substring(0, cursorPosition);
         const lastAtIndex = textBeforeCursor.lastIndexOf('@');
 
-        // Si hay un popup y ya no estamos en modo @, lo destruimos
         if (lastAtIndex === -1 || textBeforeCursor.substring(lastAtIndex).includes(' ')) {
             if (this._activePopupManager) this._activePopupManager.destroy();
             return;
@@ -201,7 +196,6 @@ class Shortkey {
         const filteredShortcuts = this._shortcuts.filter(s => s.key.toLowerCase().startsWith(query));
 
         if (filteredShortcuts.length > 0) {
-            // Si ya hay un popup, no creamos uno nuevo, solo lo actualizamos (esto evita parpadeos)
             if (!this._activePopupManager || !this._activePopupManager.popup) {
                 this._activePopupManager = new PopupManager(this._currentElement, (selected) => this._triggerShortkey(selected.key));
             }
@@ -211,7 +205,6 @@ class Shortkey {
         }
     }
 
-    // CORRECCIÓN: Lógica de activación de shortkey refactorizada
     _triggerShortkey(key) {
         if (this._activePopupManager) {
             this._activePopupManager.destroy();
@@ -224,12 +217,12 @@ class Shortkey {
         const isDynamic = shortcutData.steps && shortcutData.steps.length > 0;
 
         if (isDynamic) {
-            // Para flujos dinámicos, primero limpiamos el @key y luego iniciamos el flujo
-            this._performReplacement(key, '');
+            // Para flujos dinámicos, primero limpiamos el @key... y luego iniciamos el flujo
+            this._performReplacement('');
             this._runDynamicFlow(shortcutData, {}, shortcutData.steps[0]);
         } else {
             // Para shortkeys simples, simplemente reemplazamos
-            this._performReplacement(key, shortcutData.description + ' ');
+            this._performReplacement(shortcutData.description + ' ');
         }
     }
 
@@ -249,26 +242,29 @@ class Shortkey {
             for (const varName in variables) {
                 finalText = finalText.replace(new RegExp(`{${varName}}`, 'g'), variables[varName]);
             }
-            // Inserta el texto final en la posición actual del cursor
             this._insertTextAtCursor(finalText + ' ');
         }
     }
     
-    _performReplacement(keyToReplace, replacementText) {
+    // CORRECCIÓN: Lógica de reemplazo de texto simplificada y robusta.
+    _performReplacement(replacementText) {
         const element = this._currentElement;
         const text = element.value;
         const cursorPosition = element.selectionStart;
+
+        // Encuentra el inicio del activador @ antes del cursor.
         const textBeforeCursor = text.substring(0, cursorPosition);
-        const triggerPosition = textBeforeCursor.lastIndexOf('@' + keyToReplace);
-        
-        if (triggerPosition === -1) { // Fallback por si no encuentra el texto exacto
-            this._insertTextAtCursor(replacementText);
+        const triggerAt = textBeforeCursor.lastIndexOf('@');
+
+        if (triggerAt === -1) {
+            this._insertTextAtCursor(replacementText); // Fallback si no se encuentra
             return;
         }
 
-        const newText = text.substring(0, triggerPosition) + replacementText + text.substring(cursorPosition);
+        // El texto a reemplazar va desde el @ hasta la posición actual del cursor.
+        const newText = text.substring(0, triggerAt) + replacementText + text.substring(cursorPosition);
         element.value = newText;
-        const newCursorPosition = triggerPosition + replacementText.length;
+        const newCursorPosition = triggerAt + replacementText.length;
         element.selectionStart = element.selectionEnd = newCursorPosition;
         element.focus();
     }
@@ -310,7 +306,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let currentEditingKey = null;
 
-    // CORRECCIÓN: Funciones para abrir/cerrar modal
     const openModal = () => {
         showListView();
         modal.classList.add('visible');
@@ -383,7 +378,6 @@ document.addEventListener('DOMContentLoaded', () => {
         container.appendChild(clone);
     };
     
-    // CORRECCIÓN: Lógica de visibilidad de la sección dinámica
     const toggleDynamicSection = () => {
         const hasSelectSteps = stepsContainer.children.length > 0;
         dynamicSection.classList.toggle('hidden', !hasSelectSteps);
@@ -557,7 +551,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // CORRECCIÓN: Listener de teclado global mejorado
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modal.classList.contains('visible')) {
             closeModal();
