@@ -1,17 +1,120 @@
 /**
- * Clase para manejar la interacción del usuario con los shortkeys dinámicos.
+ * Clase para manejar los pop-ups de interacción y búsqueda.
  */
-class InteractionManager {
-    // ... (El código de esta clase no cambia)
-    constructor(element, onComplete) { this.element = element; this.onComplete = onComplete; this.popup = document.getElementById('shortkey-interaction-popup'); this.variables = {}; this.currentStep = null; this.shortkeyData = null; this.triggerPosition = -1; this.selectedOptionIndex = -1; this._boundHandleKeydown = this._handleKeydown.bind(this); this._boundHandleClick = this._handleClick.bind(this); }
-    start(shortkeyData, triggerPosition) { this.shortkeyData = shortkeyData; this.triggerPosition = triggerPosition; this.variables = {}; this.currentStep = shortkeyData.steps[0]; this.showPopup(); document.addEventListener('keydown', this._boundHandleKeydown, true); document.addEventListener('click', this._boundHandleClick, true); }
-    showPopup() { if (!this.currentStep || this.currentStep.type !== 'select') { this.destroy(); return; } let content = `<div class="popup-prompt">${this.currentStep.prompt}</div>`; this.currentStep.options.forEach((opt, index) => { content += `<button class="popup-option" data-index="${index}" data-value="${opt.value}" data-next="${opt.nextStep}">${opt.label}</button>`; }); this.popup.innerHTML = content; this.positionPopup(); this.popup.classList.add('visible'); this.selectedOptionIndex = 0; this.updateSelectedOption(); }
-    positionPopup() { const rect = this.element.getBoundingClientRect(); const cursorPosition = this.element.selectionStart; const textBeforeCursor = this.element.value.substring(0, cursorPosition); const lines = textBeforeCursor.split('\n'); const lastLine = lines[lines.length - 1]; const lineHeight = parseFloat(getComputedStyle(this.element).lineHeight); const top = rect.top + (lines.length * lineHeight) + window.scrollY; const left = rect.left + (lastLine.length * 8) + window.scrollX; this.popup.style.top = `${top + 5}px`; this.popup.style.left = `${left}px`; }
-    destroy() { this.popup.classList.remove('visible'); this.popup.innerHTML = ''; document.removeEventListener('keydown', this._boundHandleKeydown, true); document.removeEventListener('click', this._boundHandleClick, true); }
-    _handleKeydown(event) { event.stopPropagation(); event.preventDefault(); const options = this.popup.querySelectorAll('.popup-option'); switch (event.key) { case 'ArrowDown': this.selectedOptionIndex = (this.selectedOptionIndex + 1) % options.length; this.updateSelectedOption(); break; case 'ArrowUp': this.selectedOptionIndex = (this.selectedOptionIndex - 1 + options.length) % options.length; this.updateSelectedOption(); break; case 'Enter': case 'Tab': this.selectOption(options[this.selectedOptionIndex]); break; case 'Escape': this.destroy(); break; } }
-    _handleClick(event) { const option = event.target.closest('.popup-option'); if (option && this.popup.contains(option)) { this.selectOption(option); } else { this.destroy(); } }
-    updateSelectedOption() { const options = this.popup.querySelectorAll('.popup-option'); options.forEach((opt, index) => { opt.classList.toggle('selected', index === this.selectedOptionIndex); }); }
-    selectOption(optionElement) { if (!optionElement) return; const value = optionElement.dataset.value; const nextStepId = optionElement.dataset.next; this.variables[this.currentStep.id] = value; const nextStep = this.shortkeyData.steps.find(s => s.id === nextStepId); if (nextStep && nextStep.type === 'select') { this.currentStep = nextStep; this.showPopup(); } else if (nextStep && nextStep.type === 'template') { this.onComplete(this.triggerPosition, this.shortkeyData.key, nextStep.template, this.variables); this.destroy(); } else { this.destroy(); } }
+class PopupManager {
+    constructor(element, onSelect) {
+        this.element = element;
+        this.onSelect = onSelect;
+        this.popup = null;
+        this.items = [];
+        this.selectedIndex = -1;
+        this._boundHandleKeydown = this._handleKeydown.bind(this);
+        this._boundHandleClick = this._handleClick.bind(this);
+    }
+
+    show(items, type, prompt = null) {
+        this.items = items;
+        this.selectedIndex = 0;
+        this.popup = document.getElementById(type === 'search' ? 'shortkey-search-popup' : 'shortkey-interaction-popup');
+        
+        let content = prompt ? `<div class="popup-prompt">${prompt}</div>` : '';
+        items.forEach((item, index) => {
+            if (type === 'search') {
+                content += `<button class="popup-option" data-index="${index}" data-key="${item.key}">
+                    <span class="search-key">@${item.key}</span>
+                    <span class="search-desc">${item.description}</span>
+                </button>`;
+            } else { // interaction
+                content += `<button class="popup-option" data-index="${index}" data-value="${item.value}" data-next="${item.nextStep}">${item.label}</button>`;
+            }
+        });
+        this.popup.innerHTML = content;
+        
+        this.positionPopup();
+        this.popup.classList.add('visible');
+        this.updateSelected();
+        
+        document.addEventListener('keydown', this._boundHandleKeydown, true);
+        document.addEventListener('click', this._boundHandleClick, true);
+    }
+
+    destroy() {
+        if (!this.popup) return;
+        this.popup.classList.remove('visible');
+        this.popup.innerHTML = '';
+        this.popup = null;
+        document.removeEventListener('keydown', this._boundHandleKeydown, true);
+        document.removeEventListener('click', this._boundHandleClick, true);
+    }
+
+    positionPopup() {
+        // Lógica de posicionamiento robusta
+        const textarea = this.element;
+        const text = textarea.value;
+        const cursorPosition = textarea.selectionStart;
+
+        const div = document.createElement('div');
+        const style = window.getComputedStyle(textarea);
+        ['font', 'padding', 'width', 'height', 'border', 'lineHeight', 'letterSpacing', 'textIndent'].forEach(prop => div.style[prop] = style[prop]);
+        div.style.position = 'absolute';
+        div.style.visibility = 'hidden';
+        div.style.whiteSpace = 'pre-wrap';
+        div.style.wordWrap = 'break-word';
+        div.textContent = text.substring(0, cursorPosition);
+        
+        const span = document.createElement('span');
+        span.textContent = text.substring(cursorPosition) || '.';
+        div.appendChild(span);
+        
+        document.body.appendChild(div);
+        const { offsetLeft: spanLeft, offsetTop: spanTop, offsetHeight: spanHeight } = span;
+        document.body.removeChild(div);
+        
+        const { left: areaLeft, top: areaTop } = textarea.getBoundingClientRect();
+        
+        this.popup.style.top = `${areaTop + spanTop + spanHeight + window.scrollY}px`;
+        this.popup.style.left = `${areaLeft + spanLeft + window.scrollX}px`;
+    }
+
+    _handleKeydown(event) {
+        if (this.items.length === 0) return;
+        switch (event.key) {
+            case 'ArrowDown':
+                event.preventDefault(); event.stopPropagation();
+                this.selectedIndex = (this.selectedIndex + 1) % this.items.length;
+                this.updateSelected();
+                break;
+            case 'ArrowUp':
+                event.preventDefault(); event.stopPropagation();
+                this.selectedIndex = (this.selectedIndex - 1 + this.items.length) % this.items.length;
+                this.updateSelected();
+                break;
+            case 'Enter':
+            case 'Tab':
+                event.preventDefault(); event.stopPropagation();
+                this.onSelect(this.items[this.selectedIndex]);
+                this.destroy();
+                break;
+            case 'Escape':
+                event.preventDefault(); event.stopPropagation();
+                this.destroy();
+                break;
+        }
+    }
+    
+    _handleClick(event) {
+        const option = event.target.closest('.popup-option');
+        if (option && this.popup.contains(option)) {
+            this.onSelect(this.items[option.dataset.index]);
+        }
+        this.destroy();
+    }
+
+    updateSelected() {
+        this.popup.querySelectorAll('.popup-option').forEach((opt, index) => {
+            opt.classList.toggle('selected', index === this.selectedIndex);
+        });
+    }
 }
 
 /**
@@ -20,14 +123,13 @@ class InteractionManager {
 class Shortkey {
     constructor() {
         this._shortcuts = [];
-        this._interactionManager = null;
+        this._popupManager = null;
         this._loadShortcuts();
     }
     _loadShortcuts() {
         const saved = localStorage.getItem('userShortkeys');
-        if (saved) {
-            this._shortcuts = JSON.parse(saved);
-        } else {
+        if (saved) { this._shortcuts = JSON.parse(saved); }
+        else {
             this._shortcuts = [
                 { key: 'sds', description: 'Saludos cordiales,', steps: [] },
                 { key: 'cxinternet', description: 'Reporte de problema de internet.', steps: [ { id: 'type', type: 'select', prompt: 'Tipo de conexión:', options: [ { label: 'Fibra Óptica', value: 'Fibra', nextStep: 'result' }, { label: 'Cobre', value: 'Cobre', nextStep: 'result' } ] }, { id: 'result', type: 'template', template: 'Cliente reporta inconvenientes con su servicio de internet tipo {type}. Se ha iniciado el proceso de diagnóstico.' } ] }
@@ -43,37 +145,65 @@ class Shortkey {
     moveShortcut(key, direction) {
         const index = this._shortcuts.findIndex(s => s.key === key);
         if (index === -1) return;
-        if (direction === 'up' && index > 0) {
-            [this._shortcuts[index - 1], this._shortcuts[index]] = [this._shortcuts[index], this._shortcuts[index - 1]];
-        } else if (direction === 'down' && index < this._shortcuts.length - 1) {
-            [this._shortcuts[index + 1], this._shortcuts[index]] = [this._shortcuts[index], this._shortcuts[index + 1]];
-        }
+        if (direction === 'up' && index > 0) { [this._shortcuts[index - 1], this._shortcuts[index]] = [this._shortcuts[index], this._shortcuts[index - 1]]; }
+        else if (direction === 'down' && index < this._shortcuts.length - 1) { [this._shortcuts[index + 1], this._shortcuts[index]] = [this._shortcuts[index], this._shortcuts[index + 1]]; }
         this._saveShortcuts();
     }
-    attach(selectorOrElement) { const elements = typeof selectorOrElement === 'string' ? document.querySelectorAll(selectorOrElement) : [selectorOrElement]; elements.forEach(element => { if (element) element.addEventListener('keydown', this._handleKeydown.bind(this)); }); }
+    attach(selectorOrElement) { const elements = typeof selectorOrElement === 'string' ? document.querySelectorAll(selectorOrElement) : [selectorOrElement]; elements.forEach(element => { if (element) element.addEventListener('input', this._handleInput.bind(this)); }); }
     
-    _handleKeydown(event) {
-        if (this._interactionManager && this._interactionManager.popup.classList.contains('visible')) return;
-        if (event.key !== ' ') return;
+    _handleInput(event) {
         const element = event.target;
+        const text = element.value;
         const cursorPosition = element.selectionStart;
-        if (cursorPosition === 0) return;
-        const textBeforeCursor = element.value.substring(0, cursorPosition);
+        const textBeforeCursor = text.substring(0, cursorPosition);
         const lastAtIndex = textBeforeCursor.lastIndexOf('@');
-        if (lastAtIndex === -1 || textBeforeCursor.substring(lastAtIndex).includes(' ')) return;
-        
-        const potentialShortcutKey = textBeforeCursor.substring(lastAtIndex + 1).toLowerCase();
-        const shortcutData = this._shortcuts.find(s => s.key === potentialShortcutKey);
 
-        if (shortcutData) {
-            event.preventDefault();
-            const isDynamic = shortcutData.steps && shortcutData.steps.length > 0;
-            if (isDynamic) {
-                this._interactionManager = new InteractionManager(element, this._performReplacement.bind(this));
-                this._interactionManager.start(shortcutData, lastAtIndex);
-            } else {
-                this._performReplacement(lastAtIndex, shortcutData.key, shortcutData.description, {});
-            }
+        if (this._popupManager) this._popupManager.destroy();
+
+        if (lastAtIndex === -1 || textBeforeCursor.substring(lastAtIndex).includes(' ')) {
+            return;
+        }
+
+        const query = textBeforeCursor.substring(lastAtIndex + 1).toLowerCase();
+        const filteredShortcuts = this._shortcuts.filter(s => s.key.startsWith(query));
+
+        if (filteredShortcuts.length > 0) {
+            this._popupManager = new PopupManager(element, (selected) => this._triggerShortkey(selected.key));
+            this._popupManager.show(filteredShortcuts, 'search');
+        }
+    }
+
+    _triggerShortkey(key) {
+        const shortcutData = this._shortcuts.find(s => s.key === key);
+        if (!shortcutData) return;
+
+        const element = document.activeElement;
+        const text = element.value;
+        const cursorPosition = element.selectionStart;
+        const textBeforeCursor = text.substring(0, cursorPosition);
+        const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+
+        const isDynamic = shortcutData.steps && shortcutData.steps.length > 0;
+        if (isDynamic) {
+            this._popupManager = new PopupManager(element, (selectedOption) => {
+                this._runDynamicFlow(shortcutData, lastAtIndex, { [shortcutData.steps[0].id]: selectedOption.value }, selectedOption.nextStep);
+            });
+            this._popupManager.show(shortcutData.steps[0].options, 'interaction', shortcutData.steps[0].prompt);
+        } else {
+            this._performReplacement(lastAtIndex, key, shortcutData.description, {});
+        }
+    }
+
+    _runDynamicFlow(shortkeyData, triggerPosition, variables, nextStepId) {
+        const nextStep = shortkeyData.steps.find(s => s.id === nextStepId);
+        if (nextStep && nextStep.type === 'select') {
+             this._popupManager = new PopupManager(document.activeElement, (selectedOption) => {
+                const newVariables = {...variables, [nextStep.id]: selectedOption.value };
+                this._runDynamicFlow(shortkeyData, triggerPosition, newVariables, selectedOption.nextStep);
+            });
+            this._popupManager.show(nextStep.options, 'interaction', nextStep.prompt);
+        } else if (nextStep && nextStep.type === 'template') {
+            this._performReplacement(triggerPosition, shortkeyData.key, nextStep.template, variables);
         }
     }
     
@@ -85,7 +215,7 @@ class Shortkey {
         final_text += ' ';
         const element = document.activeElement;
         const originalText = element.value;
-        const textAfterCursor = originalText.substring(triggerPosition + key.length + 2); // +2 for @ and space
+        const textAfterCursor = originalText.substring(triggerPosition + key.length + 1);
         const newText = originalText.substring(0, triggerPosition) + final_text + textAfterCursor;
         element.value = newText;
         const newCursorPosition = triggerPosition + final_text.length;
@@ -144,15 +274,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const selectSteps = shortcut.steps.filter(s => s.type === 'select');
             const templateStep = shortcut.steps.find(s => s.type === 'template');
             
-            dynamicSection.classList.remove('hidden'); // Siempre visible en edición
             if (selectSteps.length > 0) {
                 selectSteps.forEach(step => addStepToDOM('select', step));
                 addStepToDOM('template', templateStep);
             }
         } else {
             editorForm.reset();
-            dynamicSection.classList.remove('hidden'); // Siempre visible al crear
         }
+        toggleDynamicSection();
         updateLivePreview();
     };
 
@@ -184,6 +313,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         container.appendChild(clone);
+    };
+    
+    const toggleDynamicSection = () => {
+        const hasSelectSteps = stepsContainer.children.length > 0;
+        dynamicSection.classList.toggle('hidden', !hasSelectSteps);
+        editorDescInput.disabled = hasSelectSteps;
     };
 
     const parseEditor = () => {
@@ -217,23 +352,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const updateLivePreview = () => {
         const data = parseEditor();
-        if (!data) {
-            livePreviewOutput.textContent = '';
-            return;
-        }
-
+        if (!data) { livePreviewOutput.textContent = ''; return; }
         const hasDynamicSteps = stepsContainer.children.length > 0;
         if (!hasDynamicSteps) {
             livePreviewOutput.textContent = data.description;
             return;
         }
-        
         const templateStepEl = templateStepContainer.querySelector('[data-config="template"]');
-        if (!templateStepEl) {
-            livePreviewOutput.textContent = 'Añade una Plantilla Final para ver la vista previa.';
-            return;
-        }
-        
+        if (!templateStepEl) { livePreviewOutput.textContent = 'Añade una Plantilla Final para ver la vista previa.'; return; }
         let previewText = templateStepEl.value;
         stepsContainer.querySelectorAll('.step-container').forEach(stepEl => {
             const varName = stepEl.querySelector('[data-config="id"]').value || 'variable';
@@ -292,6 +418,8 @@ document.addEventListener('DOMContentLoaded', () => {
             addStepToDOM('template');
         }
         addStepToDOM('select');
+        toggleDynamicSection();
+        updateLivePreview();
     });
 
     editorForm.addEventListener('input', updateLivePreview);
@@ -307,10 +435,18 @@ document.addEventListener('DOMContentLoaded', () => {
         showListView();
     });
 
-    stepsContainer.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remove-step-btn')) e.target.closest('.step-container').remove();
-        if (e.target.classList.contains('add-option-btn')) addOptionToDOM(e.target.previousElementSibling);
-        if (e.target.classList.contains('remove-option-btn')) e.target.closest('.option-item').remove();
+    dynamicSection.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-step-btn')) {
+            e.target.closest('.step-container').remove();
+            toggleDynamicSection();
+            updateLivePreview();
+        }
+        if (e.target.classList.contains('add-option-btn')) {
+            addOptionToDOM(e.target.previousElementSibling);
+        }
+        if (e.target.classList.contains('remove-option-btn')) {
+            e.target.closest('.option-item').remove();
+        }
     });
     
     document.getElementById('shortcutsList').addEventListener('click', (e) => {
@@ -334,7 +470,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.classList.contains('visible')) closeModal();
+        if (e.key === 'Escape' && modal.classList.contains('visible')) {
+            closeModal();
+        }
         if (e.ctrlKey && e.shiftKey && (e.key === 'S' || e.key === 's')) {
             e.preventDefault();
             modal.classList.contains('visible') ? closeModal() : openModal();
