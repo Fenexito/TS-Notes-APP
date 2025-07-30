@@ -860,29 +860,37 @@
 
                 <div id="view-editor" class="hidden">
                     <form id="shortkey-editor-form">
-                        <div class="editor-main-details">
+                        <!-- Detalles Principales -->
+                        <div class="editor-section">
+                            <label for="editor-key">Activador</label>
                             <div class="input-with-prefix">
                                 <span>@</span>
                                 <input type="text" id="editor-key" placeholder="nombre-del-shortkey" required>
                             </div>
-                            <textarea id="editor-description" placeholder="Añade una descripción o el texto para un shortkey simple" required rows="1"></textarea>
+                        </div>
+                        <div class="editor-section">
+                             <label for="editor-description">Descripción (para shortkeys simples)</label>
+                            <textarea id="editor-description" placeholder="Escribe el texto que se insertará..." required rows="2"></textarea>
                         </div>
                         
-                        <!-- CORRECCIÓN: Botón movido fuera de la sección dinámica -->
-                        <div class="add-steps-buttons">
-                            <button type="button" id="add-select-step-btn">+ Añadir Variable (Paso de Selección)</button>
-                        </div>
-                        
-                        <div id="dynamic-section" class="hidden">
-                            <h4 class="steps-title">Pasos de Selección</h4>
+                        <!-- Sección Dinámica -->
+                        <div class="dynamic-controls">
                             <div id="steps-container"></div>
                             <div id="template-step-container"></div>
-                            <div id="live-preview-container">
-                                <h5>Vista Previa en Tiempo Real</h5>
+                             <div class="add-steps-buttons">
+                                <button type="button" id="add-select-step-btn" class="main-button">+ Añadir Variable</button>
+                            </div>
+                        </div>
+
+                        <!-- Vista Previa -->
+                        <div id="live-preview-container" class="hidden">
+                            <div class="editor-section">
+                                <label>Vista Previa en Tiempo Real</label>
                                 <div id="live-preview-output" class="preview-output"></div>
                             </div>
                         </div>
 
+                        <!-- Acciones -->
                         <div class="editor-actions">
                             <button type="button" id="editor-cancel-btn">Cancelar</button>
                             <button type="submit" id="editor-save-btn">Guardar Shortkey</button>
@@ -896,13 +904,15 @@
     <!-- Plantillas para los pasos del editor -->
     <template id="template-step-select">
         <div class="step-container" data-step-type="select">
-            <div class="step-header"><span>Paso: Selección</span><button type="button" class="remove-step-btn">&times;</button></div>
+            <div class="step-header">
+                <span class="step-title">Paso de Selección</span>
+                <button type="button" class="remove-step-btn" title="Eliminar paso">&times;</button>
+            </div>
             <div class="step-body">
                 <div class="step-grid">
                     <input type="text" class="step-input" data-config="id" placeholder="ID de la variable (ej. tipo_servicio)">
                     <input type="text" class="step-input" data-config="prompt" placeholder="Pregunta para el usuario (ej. ¿Tipo de conexión?)">
                 </div>
-                <h5>Opciones</h5>
                 <div class="options-container"></div>
                 <button type="button" class="add-option-btn">+ Añadir opción</button>
             </div>
@@ -913,17 +923,19 @@
         <div class="option-item">
             <input type="text" class="step-input" data-config="label" placeholder="Texto a mostrar">
             <input type="text" class="step-input" data-config="value" placeholder="Valor a guardar">
-            <input type="text" class="step-input" data-config="nextStep" placeholder="ID del siguiente paso">
-            <button type="button" class="remove-option-btn">&times;</button>
+            <input type="text" class="step-input" data-config="nextStep" placeholder="Siguiente paso (ID o 'result')">
+            <button type="button" class="remove-option-btn" title="Eliminar opción">&times;</button>
         </div>
     </template>
 
     <template id="template-step-template">
         <div class="step-container" data-step-type="template">
-            <div class="step-header"><span>Plantilla Final</span></div>
+             <div class="step-header">
+                <span class="step-title">Plantilla de Texto Final</span>
+            </div>
             <div class="step-body">
-                <input type="text" class="step-input" data-config="id" value="result" readonly>
-                <textarea class="step-textarea" data-config="template" placeholder="Escribe el texto final. Usa {id_variable} para insertar los valores."></textarea>
+                <input type="hidden" class="step-input" data-config="id" value="result" readonly>
+                <textarea class="step-textarea" data-config="template" placeholder="Texto final. Usa {id_variable} para insertar valores."></textarea>
             </div>
         </div>
     </template>
