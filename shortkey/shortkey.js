@@ -8,7 +8,6 @@ class PopupManager {
         this.popup = null; // El elemento DOM del popup
         this.items = []; // Los items a mostrar
         this.selectedIndex = -1; // El índice del item seleccionado
-        // Bindeo de eventos para poder añadirlos y quitarlos correctamente
         this._boundHandleKeydown = this._handleKeydown.bind(this);
         this._boundHandleClick = this._handleClick.bind(this);
     }
@@ -18,7 +17,6 @@ class PopupManager {
         this.selectedIndex = 0;
         this.popup = document.getElementById(type === 'search' ? 'shortkey-search-popup' : 'shortkey-interaction-popup');
         
-        // Construye el HTML interno del popup
         let content = prompt ? `<div class="popup-prompt">${prompt}</div>` : '';
         items.forEach((item, index) => {
             if (type === 'search') {
@@ -36,7 +34,6 @@ class PopupManager {
         this.popup.classList.add('visible');
         this.updateSelected();
         
-        // Añade listeners globales para manejar la interacción
         document.addEventListener('keydown', this._boundHandleKeydown, true);
         document.addEventListener('click', this._boundHandleClick, true);
     }
@@ -46,12 +43,10 @@ class PopupManager {
         this.popup.classList.remove('visible');
         this.popup.innerHTML = '';
         this.popup = null;
-        // Limpia los listeners para evitar memory leaks
         document.removeEventListener('keydown', this._boundHandleKeydown, true);
         document.removeEventListener('click', this._boundHandleClick, true);
     }
 
-    // CORRECCIÓN: Lógica de posicionamiento inteligente para evitar desbordamiento.
     positionPopup() {
         const textarea = this.element;
         const cursorPosition = textarea.selectionStart;
@@ -82,11 +77,10 @@ class PopupManager {
         const popupTop = areaTop + spanTop + spanHeight;
         let popupLeft = areaLeft + spanLeft;
 
-        // Lógica de posicionamiento inteligente
-        const popupWidth = this.popup.offsetWidth;
+        const popupWidth = this.popup.offsetWidth || 240;
         const windowWidth = window.innerWidth;
 
-        if (popupLeft + popupWidth > windowWidth - 10) { // 10px de margen
+        if (popupLeft + popupWidth > windowWidth - 10) { 
             popupLeft = windowWidth - popupWidth - 10;
         }
 
@@ -290,6 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const shortkeyManager = new Shortkey();
     shortkeyManager.attach('.shortkey-enabled');
 
+    // --- Selectores del DOM ---
     const modal = document.getElementById('settingsModal');
     const closeBtn = document.getElementById('closeSettingsBtn');
     const overlay = document.getElementById('modalOverlay');
@@ -298,17 +293,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const addNewBtn = document.getElementById('add-new-shortkey-btn');
     const editorForm = document.getElementById('shortkey-editor-form');
     const editorKeyInput = document.getElementById('editor-key');
+    const editorCancelBtn = document.getElementById('editor-cancel-btn');
+    
+    // Vistas del editor
+    const simpleModeView = document.getElementById('simple-mode-view');
+    const dynamicModeView = document.getElementById('dynamic-mode-view');
     const editorDescInput = document.getElementById('editor-description');
-    const dynamicControls = document.querySelector('.dynamic-controls');
+    const goToDynamicBtn = document.getElementById('go-to-dynamic-mode-btn');
+    
+    // Controles dinámicos
     const stepsContainer = document.getElementById('steps-container');
     const templateStepContainer = document.getElementById('template-step-container');
     const addSelectStepBtn = document.getElementById('add-select-step-btn');
-    const editorCancelBtn = document.getElementById('editor-cancel-btn');
     const livePreviewContainer = document.getElementById('live-preview-container');
     const livePreviewOutput = document.getElementById('live-preview-output');
     
     let currentEditingKey = null;
 
+    // --- Funciones de control de UI ---
     const openModal = () => {
         showListView();
         modal.classList.add('visible');
@@ -330,6 +332,17 @@ document.addEventListener('DOMContentLoaded', () => {
         buildEditor(shortcutKey);
     };
 
+    // CORRECCIÓN: Función para cambiar entre modo simple y dinámico
+    const setEditorMode = (mode) => {
+        if (mode === 'dynamic') {
+            simpleModeView.classList.add('hidden');
+            dynamicModeView.classList.remove('hidden');
+        } else {
+            dynamicModeView.classList.add('hidden');
+            simpleModeView.classList.remove('hidden');
+        }
+    };
+
     const buildEditor = (key) => {
         editorForm.reset();
         stepsContainer.innerHTML = '';
@@ -340,15 +353,18 @@ document.addEventListener('DOMContentLoaded', () => {
             editorKeyInput.value = shortcut.key;
             const hasSteps = shortcut.steps && shortcut.steps.length > 0;
             if (hasSteps) {
+                setEditorMode('dynamic');
                 const selectSteps = shortcut.steps.filter(s => s.type === 'select');
                 const templateStep = shortcut.steps.find(s => s.type === 'template');
                 selectSteps.forEach(step => addStepToDOM('select', step));
                 if (templateStep) addStepToDOM('template', templateStep);
             } else {
+                setEditorMode('simple');
                 editorDescInput.value = shortcut.description;
             }
+        } else {
+            setEditorMode('simple');
         }
-        toggleDynamicSection();
         updateLivePreview();
     };
 
@@ -382,25 +398,17 @@ document.addEventListener('DOMContentLoaded', () => {
         container.appendChild(clone);
     };
     
-    const toggleDynamicSection = () => {
-        const hasSelectSteps = stepsContainer.children.length > 0;
-        dynamicControls.style.display = hasSelectSteps ? 'flex' : 'none';
-        editorDescInput.disabled = hasSelectSteps;
-        editorDescInput.closest('.editor-section').style.display = hasSelectSteps ? 'none' : 'flex';
-        livePreviewContainer.classList.toggle('hidden', !hasSelectSteps);
-    };
-    
     const parseEditor = () => {
         const key = editorKeyInput.value.trim().toLowerCase();
-        let description = editorDescInput.value.trim();
         if (!key) return null;
 
+        const isDynamicMode = !dynamicModeView.classList.contains('hidden');
+        let description = '';
         const steps = [];
-        const selectStepElements = stepsContainer.querySelectorAll('.step-container');
-        
-        if (selectStepElements.length > 0) {
+
+        if (isDynamicMode) {
             description = "Shortkey dinámico con variables.";
-            selectStepElements.forEach(stepEl => {
+            stepsContainer.querySelectorAll('.step-container').forEach(stepEl => {
                 const stepData = { type: 'select', options: [] };
                 stepEl.querySelectorAll('[data-config]').forEach(input => stepData[input.dataset.config] = input.value.trim());
                 stepEl.querySelectorAll('.option-item').forEach(optEl => {
@@ -416,6 +424,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 templateStep.querySelectorAll('[data-config]').forEach(input => templateData[input.dataset.config] = input.value);
                 steps.push(templateData);
             }
+        } else {
+            description = editorDescInput.value.trim();
         }
         
         if (!description && steps.length === 0) return null;
@@ -426,7 +436,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateLivePreview = () => {
         const data = parseEditor();
         if (!data || data.steps.length === 0) {
-            livePreviewOutput.textContent = '';
             livePreviewContainer.classList.add('hidden');
             return;
         }
@@ -494,19 +503,20 @@ document.addEventListener('DOMContentLoaded', () => {
     addNewBtn.addEventListener('click', () => showEditorView());
     editorCancelBtn.addEventListener('click', showListView);
     
-    addSelectStepBtn.addEventListener('click', () => {
+    goToDynamicBtn.addEventListener('click', () => {
+        setEditorMode('dynamic');
         if (stepsContainer.children.length === 0) {
-            // Si es la primera vez, muestra la sección y añade la plantilla final
-            dynamicControls.style.display = 'flex';
-            editorDescInput.disabled = true;
-            editorDescInput.closest('.editor-section').style.display = 'none';
             addStepToDOM('template');
+            addStepToDOM('select');
         }
+        updateLivePreview();
+    });
+
+    addSelectStepBtn.addEventListener('click', () => {
         addStepToDOM('select');
         updateLivePreview();
     });
 
-    editorForm.addEventListener('input', updateLivePreview);
     editorForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const data = parseEditor();
@@ -526,13 +536,12 @@ document.addEventListener('DOMContentLoaded', () => {
         showListView();
     });
 
-    dynamicControls.addEventListener('click', (e) => {
+    dynamicModeView.addEventListener('click', (e) => {
         if (e.target.classList.contains('remove-step-btn')) {
             e.target.closest('.step-container').remove();
             if (stepsContainer.children.length === 0) {
-                // Si no quedan pasos, oculta toda la sección dinámica
                 templateStepContainer.innerHTML = '';
-                toggleDynamicSection();
+                setEditorMode('simple');
             }
             updateLivePreview();
         }
