@@ -1,12 +1,12 @@
 /*
  * Estilos personalizados para el componente Shortkey.
- * Versión 11: Añade estilos para el Editor de Flujos de Trabajo.
+ * Versión 12: Rediseño completo del editor y la lista.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
 /* Estilos de la página de demo */
 .editor { width: 100%; height: 16rem; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 1rem; }
-.main-button { background-color: #2563eb; color: white; font-weight: 600; padding: 0.75rem 1.5rem; border: none; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; }
+.main-button { background-color: #2563eb; color: white; font-weight: 600; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; font-size: 14px; }
 .main-button:hover { background-color: #1d4ed8; }
 
 /* --- Estructura del Modal Flotante --- */
@@ -29,33 +29,43 @@
 #settingsModal .modal-body { padding: 1.25rem; max-height: 85vh; overflow-y: auto; }
 #settingsModal .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
 #settingsModal .list-section h4 { font-weight: 600; font-size: 1rem; margin: 0; }
-#settingsModal #shortcutsList { max-height: 24rem; overflow-y: auto; padding-right: 0.5rem; }
-#settingsModal .shortcut-item { display: flex; justify-content: space-between; align-items: center; background-color: white; border: 1px solid #e5e7eb; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; }
+#settingsModal #shortcutsList { display: flex; flex-direction: column; gap: 0.5rem; }
+#settingsModal .shortcut-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.75rem; background-color: white; border: 1px solid #e5e7eb; padding: 0.75rem 1rem; border-radius: 0.5rem; }
 #settingsModal .shortcut-key { font-family: 'JetBrains Mono', monospace; background-color: #dbeafe; color: #1e40af; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-weight: 500; font-size: 0.9em; }
 #settingsModal .shortcut-description { font-size: 0.9em; color: #4b5563; margin-top: 0.25rem; }
+#settingsModal .dynamic-indicator { width: 1.25rem; height: 1.25rem; color: #6b7280; margin-right: 0.5rem; }
+#settingsModal .shortcut-actions { display: flex; }
+#settingsModal .action-btn { background: none; border: none; cursor: pointer; padding: 0.25rem; }
+#settingsModal .action-btn svg { width: 1rem; height: 1rem; color: #9ca3af; }
+#settingsModal .action-btn:hover svg { color: #374151; }
 
 /* --- Editor de Flujos de Trabajo --- */
 #settingsModal .hidden { display: none; }
-#settingsModal .editor-main-details { display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; margin-bottom: 1.5rem; }
+#settingsModal .editor-main-details { display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; margin-bottom: 1rem; }
 #settingsModal .input-with-prefix { display: flex; align-items: center; border: 1px solid #d1d5db; border-radius: 0.375rem; background-color: white; }
 #settingsModal .input-with-prefix span { padding: 0.75rem; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 1.1rem; color: #6b7280; border-right: 1px solid #d1d5db; }
 #settingsModal .input-with-prefix input { border: none; outline: none; background: transparent; padding: 0.75rem; width: 100%; font-size: 1rem; }
-#settingsModal #editor-description { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 1rem; box-sizing: border-box; }
-#settingsModal .steps-title { font-weight: 600; font-size: 1rem; margin: 0 0 0.5rem 0; border-top: 1px solid #e5e7eb; padding-top: 1.5rem; }
-#settingsModal #steps-container { display: flex; flex-direction: column; gap: 1rem; background-color: #f3f4f6; padding: 1rem; border-radius: 0.5rem; min-height: 100px; }
+#settingsModal #editor-description { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 1rem; box-sizing: border-box; resize: vertical; min-height: 42px; }
+#settingsModal #dynamic-section { border-top: 1px solid #e5e7eb; padding-top: 1rem; margin-top: 1rem; }
+#settingsModal .steps-title { font-weight: 600; font-size: 1rem; margin: 0 0 0.5rem 0; }
+#settingsModal #steps-container { display: flex; flex-direction: column; gap: 1rem; background-color: #f3f4f6; padding: 1rem; border-radius: 0.5rem; }
 #settingsModal .step-container { background-color: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; }
 #settingsModal .step-header { display: flex; justify-content: space-between; align-items: center; background-color: #f9fafb; padding: 0.5rem 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 500; font-size: 0.9rem; }
 #settingsModal .remove-step-btn { background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #9ca3af; }
 #settingsModal .step-body { padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
 #settingsModal .step-input, #settingsModal .step-textarea { width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.25rem; font-size: 0.9rem; box-sizing: border-box; }
-#settingsModal .step-textarea { min-height: 80px; resize: vertical; }
+#settingsModal .step-textarea { min-height: 80px; resize: vertical; font-family: 'JetBrains Mono', monospace; }
 #settingsModal .step-body h5 { font-weight: 500; margin: 0.5rem 0 0.25rem 0; }
 #settingsModal .options-container { display: flex; flex-direction: column; gap: 0.5rem; }
 #settingsModal .option-item { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0.5rem; align-items: center; }
 #settingsModal .add-option-btn { background: none; border: 1px dashed #d1d5db; color: #6b7280; padding: 0.5rem; border-radius: 0.25rem; cursor: pointer; text-align: center; }
 #settingsModal .add-steps-buttons { display: flex; gap: 1rem; margin-top: 1rem; }
 #settingsModal .add-steps-buttons button { background-color: #e5e7eb; padding: 0.5rem 1rem; border: none; border-radius: 0.25rem; cursor: pointer; font-weight: 500; }
+#settingsModal #live-preview-container { margin-top: 1rem; }
+#settingsModal #live-preview-container h5 { font-weight: 500; margin-bottom: 0.5rem; }
+#settingsModal .preview-output { background-color: #f3f4f6; padding: 1rem; border-radius: 0.5rem; min-height: 50px; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: #4b5563; white-space: pre-wrap; }
 #settingsModal .editor-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; border-top: 1px solid #e5e7eb; padding-top: 1.5rem; }
+#settingsModal .editor-actions button { font-weight: 600; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; cursor: pointer; }
 #settingsModal #editor-cancel-btn { background-color: #6b7280; color: white; }
 #settingsModal #editor-save-btn { background-color: #28a745; color: white; }
 
