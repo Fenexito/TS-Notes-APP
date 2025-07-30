@@ -841,24 +841,82 @@
         <div class="modal-container">
             <div class="modal-header">
                 <h3>Configuración de Shortkeys</h3>
-                <div class="import-export-buttons">
-                    <button id="import-button" title="Importar">Importar</button>
-                    <button id="export-button" title="Exportar">Exportar</button>
-                    <input type="file" id="import-file-input" accept=".json" style="display: none;">
-                </div>
                 <button id="closeSettingsBtn" title="Cerrar">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="list-section">
-                    <h4>Shortkeys Guardados</h4>
-                    <p class="section-description">La edición de shortkeys dinámicos se implementará próximamente.</p>
-                    <div id="shortcutsList">
-                        <!-- Los shortkeys se insertarán aquí dinámicamente -->
+                <div id="view-list">
+                    <div class="list-header">
+                        <h4>Shortkeys Guardados</h4>
+                        <button id="add-new-shortkey-btn" class="main-button">Añadir Nuevo</button>
                     </div>
+                    <div id="shortcutsList"></div>
+                </div>
+
+                <div id="view-editor" class="hidden">
+                    <form id="shortkey-editor-form">
+                        <div class="editor-main-details">
+                            <div class="input-with-prefix">
+                                <span>@</span>
+                                <input type="text" id="editor-key" placeholder="nombre-del-shortkey" required>
+                            </div>
+                            <input type="text" id="editor-description" placeholder="Añade una descripción" required>
+                        </div>
+                        
+                        <h4 class="steps-title">Pasos del Flujo de Trabajo</h4>
+                        <div id="steps-container">
+                            <!-- Los pasos se insertarán aquí dinámicamente -->
+                        </div>
+
+                        <div class="add-steps-buttons">
+                            <button type="button" id="add-select-step-btn">+ Añadir Opción de Selección</button>
+                            <button type="button" id="add-template-step-btn">+ Añadir Plantilla Final</button>
+                        </div>
+
+                        <div class="editor-actions">
+                            <button type="button" id="editor-cancel-btn">Cancelar</button>
+                            <button type="submit" id="editor-save-btn">Guardar Shortkey</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Plantillas para los pasos del editor -->
+    <template id="template-step-select">
+        <div class="step-container" data-step-type="select">
+            <div class="step-header"><span>Paso: Selección</span><button type="button" class="remove-step-btn">&times;</button></div>
+            <div class="step-body">
+                <input type="text" class="step-input" data-config="id" placeholder="ID de la variable (ej. tipo_servicio)">
+                <input type="text" class="step-input" data-config="prompt" placeholder="Pregunta para el usuario (ej. ¿Tipo de conexión?)">
+                <h5>Opciones</h5>
+                <div class="options-container"></div>
+                <button type="button" class="add-option-btn">+ Añadir opción</button>
+            </div>
+        </div>
+    </template>
+    
+    <template id="template-step-option">
+        <div class="option-item">
+            <input type="text" class="step-input" data-config="label" placeholder="Texto a mostrar (ej. Fibra Óptica)">
+            <input type="text" class="step-input" data-config="value" placeholder="Valor a guardar (ej. Fibra)">
+            <input type="text" class="step-input" data-config="nextStep" placeholder="ID del siguiente paso">
+            <button type="button" class="remove-option-btn">&times;</button>
+        </div>
+    </template>
+
+    <template id="template-step-template">
+        <div class="step-container" data-step-type="template">
+            <div class="step-header"><span>Paso: Plantilla Final</span><button type="button" class="remove-step-btn">&times;</button></div>
+            <div class="step-body">
+                <input type="text" class="step-input" data-config="id" placeholder="ID de este paso (ej. resultado_final)">
+                <textarea class="step-textarea" data-config="template" placeholder="Escribe el texto final. Usa {id_variable} para insertar los valores."></textarea>
+            </div>
+        </div>
+    </template>
+
+    <!-- Contenedor para el Pop-up de Interacción Dinámica -->
+    <div id="shortkey-interaction-popup"></div>
 
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
     <script type="module" src="js/main.js"></script>
