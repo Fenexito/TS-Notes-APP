@@ -181,8 +181,8 @@ document.addEventListener('DOMContentLoaded', () => {
         shortkeyManager.setIsEditingKey(key);
         keyInput.value = shortcut.key;
         valueInput.value = shortcut.value;
-        formTitle.textContent = 'Editar Shortkey';
-        submitButton.textContent = 'Guardar Cambios';
+        formTitle.textContent = 'Edit';
+        submitButton.textContent = 'Save';
         cancelEditButton.classList.remove('hidden');
         keyInput.focus();
     };
@@ -190,8 +190,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelEditing = () => {
         shortkeyManager.setIsEditingKey(null);
         addForm.reset();
-        formTitle.textContent = 'Añadir Nuevo Shortkey';
-        submitButton.textContent = 'Añadir';
+        formTitle.textContent = 'Add New ShortKey';
+        submitButton.textContent = 'Add';
         cancelEditButton.classList.add('hidden');
     };
 
