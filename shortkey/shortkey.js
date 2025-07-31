@@ -377,10 +377,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const template = document.getElementById(templateId);
         const clone = template.content.cloneNode(true);
         const stepContainer = clone.querySelector('.step-container');
+        
+        // MODIFICACIÓN INICIA: Lógica de interactividad
+        if (type === 'select') {
+            const idInput = clone.querySelector('[data-config="id"]');
+            if (data) {
+                idInput.value = data.id;
+            } else {
+                const newId = `variable_${stepsContainer.children.length + 1}`;
+                idInput.value = newId;
+                updateTemplateOnIdChange('', newId); // Añadir nueva variable a la plantilla
+            }
+
+            idInput.addEventListener('focus', () => idInput.dataset.oldValue = idInput.value);
+            idInput.addEventListener('input', () => {
+                const oldValue = idInput.dataset.oldValue;
+                updateTemplateOnIdChange(oldValue, idInput.value);
+                idInput.dataset.oldValue = idInput.value;
+                updateLivePreview();
+            });
+        }
+        // MODIFICACIÓN TERMINA
 
         if (data) {
             stepContainer.querySelectorAll('[data-config]').forEach(input => {
-                if (data[input.dataset.config]) {
+                if (data[input.dataset.config] && input.dataset.config !== 'id') { // No sobreescribir el ID ya puesto
                     input.value = data[input.dataset.config];
                 }
             });
@@ -388,17 +409,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const optionsContainer = stepContainer.querySelector('.options-container');
                 data.options.forEach(opt => addOptionToDOM(optionsContainer, opt));
             }
-        } else if (type === 'select') {
-            // CORRECCIÓN: Auto-generar ID y añadir a la plantilla
-            const newId = `variable_${stepsContainer.children.length + 1}`;
-            clone.querySelector('[data-config="id"]').value = newId;
-            const templateTextarea = templateStepContainer.querySelector('[data-config="template"]');
-            if (templateTextarea) {
-                templateTextarea.value += ` {${newId}}`;
-            }
         }
+        
+        // MODIFICACIÓN: Listener en la plantilla de texto final
+        if (type === 'template') {
+            clone.querySelector('[data-config="template"]').addEventListener('input', updateLivePreview);
+        }
+
         container.appendChild(stepContainer);
         autoResizeTextareas();
+        updateLivePreview(); // Actualizar preview al añadir cualquier paso
     };
 
     const addOptionToDOM = (container, data = null) => {
@@ -409,9 +429,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data[input.dataset.config]) input.value = data[input.dataset.config];
             });
         } else {
-            // CORRECCIÓN: Rellenar 'nextStep' con 'result' por defecto
             clone.querySelector('[data-config="nextStep"]').value = 'result';
         }
+        
+        // MODIFICACIÓN: Listener para actualizar preview al cambiar opciones
+        clone.querySelectorAll('[data-config]').forEach(input => {
+            input.addEventListener('input', updateLivePreview);
+        });
+
         container.appendChild(clone);
         autoResizeTextareas();
     };
@@ -462,6 +487,29 @@ document.addEventListener('DOMContentLoaded', () => {
         return { key, description, steps };
     };
     
+    // MODIFICACIÓN INICIA: Nuevas funciones de interactividad
+    const updateTemplateOnIdChange = (oldId, newId) => {
+        const templateTextarea = templateStepContainer.querySelector('[data-config="template"]');
+        if (!templateTextarea) return;
+        
+        const currentTemplate = templateTextarea.value;
+        const sanitizedNewId = newId.trim().replace(/\s+/g, '_');
+
+        if (oldId && currentTemplate.includes(`{${oldId}}`)) {
+            templateTextarea.value = currentTemplate.replace(new RegExp(`{${oldId}}`, 'g'), `{${sanitizedNewId}}`);
+        } else if (sanitizedNewId && !currentTemplate.includes(`{${sanitizedNewId}}`)) {
+            templateTextarea.value = (templateTextarea.value ? templateTextarea.value + ' ' : '') + `{${sanitizedNewId}}`;
+        }
+    };
+
+    const updateTemplateOnDelete = (idToRemove) => {
+        const templateTextarea = templateStepContainer.querySelector('[data-config="template"]');
+        if (!templateTextarea || !idToRemove) return;
+        
+        templateTextarea.value = templateTextarea.value.replace(new RegExp(`\\s?{${idToRemove}}`, 'g'), '').trim();
+    };
+    // MODIFICACIÓN TERMINA
+
     const updateLivePreview = () => {
         const data = parseEditor();
         if (!data || data.steps.length === 0) {
@@ -536,14 +584,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const isSimpleMode = !simpleModeView.classList.contains('hidden');
         if (isSimpleMode) {
             setEditorMode('dynamic');
-            if (stepsContainer.children.length === 0) {
+            // Si es la primera vez, añadir plantilla y un paso
+            if (templateStepContainer.children.length === 0) {
                 addStepToDOM('template');
+            }
+            if (stepsContainer.children.length === 0) {
                 addStepToDOM('select');
             }
         } else {
             addStepToDOM('select');
         }
-        updateLivePreview();
     });
 
     editorForm.addEventListener('submit', (e) => {
@@ -566,8 +616,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     dynamicModeView.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remove-step-btn')) {
-            e.target.closest('.step-container').remove();
+        const removeStepBtn = e.target.closest('.remove-step-btn');
+        if (removeStepBtn) {
+            const stepContainer = removeStepBtn.closest('.step-container');
+            const idToRemove = stepContainer.querySelector('[data-config="id"]')?.value;
+            updateTemplateOnDelete(idToRemove); // MODIFICACIÓN
+            stepContainer.remove();
+            
             if (stepsContainer.children.length === 0) {
                 templateStepContainer.innerHTML = '';
                 setEditorMode('simple');
@@ -576,6 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (e.target.classList.contains('add-option-btn')) {
             addOptionToDOM(e.target.previousElementSibling);
+            updateLivePreview();
         }
         if (e.target.classList.contains('remove-option-btn')) {
             e.target.closest('.option-item').remove();
