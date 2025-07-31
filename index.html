@@ -907,38 +907,60 @@
             </div>
         </div>
     </div>
+    
+    <!-- NUEVO: Modal de Confirmación para Salir sin Guardar -->
+    <div id="confirm-modal" class="confirm-modal-overlay hidden">
+        <div class="confirm-modal-dialog">
+            <h4>Cambios sin guardar</h4>
+            <p>Parece que has hecho cambios. ¿Qué te gustaría hacer?</p>
+            <div class="confirm-modal-actions">
+                <button id="confirm-cancel-btn" class="modal-action-btn btn-secondary">Cancelar</button>
+                <button id="confirm-discard-btn" class="modal-action-btn btn-danger">Salir sin guardar</button>
+                <button id="confirm-save-btn" class="modal-action-btn btn-success">Guardar y Salir</button>
+            </div>
+        </div>
+    </div>
 
-    <!-- Plantillas para los pasos del editor -->
+
+        <!-- Plantilla para el paso de Selección (Variable) -->
     <template id="template-step-select">
         <div class="step-container" data-step-type="select">
             <div class="step-header">
-                <span class="step-title">Paso de Selección</span>
-                <button type="button" class="remove-step-btn" title="Eliminar paso">&times;</button>
+                <span class="step-title">Variable</span>
+                <button type="button" class="remove-step-btn" title="Eliminar variable">&times;</button>
             </div>
             <div class="step-body">
-                <div class="step-grid">
-                    <input type="text" class="step-input" data-config="id" placeholder="ID de la variable (ej. tipo_servicio)">
-                    <input type="text" class="step-input" data-config="prompt" placeholder="Pregunta para el usuario (ej. ¿Tipo de conexión?)">
-                </div>
+                <!-- CAMBIO: Se eliminó el campo "Pregunta para el usuario" -->
+                <input type="text" class="step-input no-spaces" data-config="id" placeholder="ID_de_la_variable">
                 <div class="options-container"></div>
                 <button type="button" class="add-option-btn">+ Añadir opción</button>
             </div>
         </div>
     </template>
-    
+        
+    <!-- Plantilla para una Opción dentro de una Variable -->
     <template id="template-step-option">
         <div class="option-item">
-            <input type="text" class="step-input" data-config="label" placeholder="Texto a mostrar">
-            <!-- CORRECCIÓN: Cambiado a textarea para flexibilidad -->
+            <!-- CAMBIO: Añadidos botones para reordenar -->
+            <div class="option-reorder">
+                <button type="button" class="action-btn move-option-up-btn" title="Mover opción arriba">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+                </button>
+                <button type="button" class="action-btn move-option-down-btn" title="Mover opción abajo">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                </button>
+            </div>
+            <input type="text" class="step-input no-spaces" data-config="label" placeholder="Texto_a_mostrar">
             <textarea class="step-input step-textarea-flexible" data-config="value" placeholder="Valor a guardar" rows="1"></textarea>
             <input type="text" class="step-input" data-config="nextStep" placeholder="Siguiente paso (ID o 'result')">
             <button type="button" class="remove-option-btn" title="Eliminar opción">&times;</button>
         </div>
     </template>
 
+    <!-- Plantilla para el Texto Final (Sin cambios) -->
     <template id="template-step-template">
         <div class="step-container" data-step-type="template">
-             <div class="step-header">
+            <div class="step-header">
                 <span class="step-title">Plantilla de Texto Final</span>
             </div>
             <div class="step-body">
