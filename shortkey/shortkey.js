@@ -156,7 +156,7 @@ class Shortkey {
         } else {
             this._shortcuts = [
                 { key: 'sds', description: 'Saludos cordiales,', steps: [], tags: ['general'] },
-                { key: 'cxtv', description: 'Flujo de TV.', steps: [ { id: 'issue', type: 'select', options: [ { label: 'stb_no_boot', value: 'tv is not powering on', nextStep: 'result' }, { label: 'recording', value: 'cx cannot record', nextStep: 'recordings' } ] }, { id: 'recordings', type: 'select', options: [ { label: 'rec_list', value: 'cannot see the recording list', nextStep: 'result' }, { label: 'play_rec', value: 'cx cannot play recordings', nextStep: 'result' } ] }, { id: 'result', type: 'template', template: '{issue} {recordings}.' } ], tags: ['tv', 'troubleshooting'] }
+                { key: 'cxtv', description: 'Flujo de TV.', steps: [ { id: 'issue', type: 'select', options: [ { label: 'stb_no_boot', value: 'tv is not powering on', nextStep: 'result' }, { label: 'recording', value: 'cx cannot record', nextStep: 'recordings' } ] }, { id: 'recordings', type: 'select', options: [ { label: 'rec_list', value: 'cannot see the recording list', nextStep: 'result' }, { label: 'play_rec', value: 'cx cannot play recordings', nextStep: 'result' } ] }, { id: 'result', type: 'template', template: '{issue} {recordings}.' } ], tags: ['cx_issue', 'troubleshooting'] }
             ];
             this._saveShortcuts();
         }
@@ -292,23 +292,6 @@ class Shortkey {
         element.selectionStart = element.selectionEnd = start + textToInsert.length;
         element.focus();
     }
-    
-    getAllTags() {
-        const allTags = new Set();
-        this._shortcuts.forEach(s => {
-            if (s.tags) s.tags.forEach(tag => allTags.add(tag));
-        });
-        return Array.from(allTags).sort();
-    }
-
-    deleteGlobalTag(tagToDelete) {
-        this._shortcuts.forEach(s => {
-            if (s.tags && s.tags.includes(tagToDelete)) {
-                s.tags = s.tags.filter(t => t !== tagToDelete);
-            }
-        });
-        this._saveShortcuts();
-    }
 }
 
 /**
@@ -316,7 +299,14 @@ class Shortkey {
  */
 document.addEventListener('DOMContentLoaded', () => {
     console.info('[Shortkey] Módulo dinámico cargado y listo.');
+    
+    // --- CONFIGURACIÓN DE ETIQUETAS ---
+    // Aquí defines las etiquetas fijas que el usuario podrá seleccionar.
+    const PREDEFINED_TAGS = ['cx_issue', 'ts_steps', 'general', 'billing', 'sales'];
+
     const shortkeyManager = new Shortkey();
+    // Adjunta el listener a todos los elementos con la clase.
+    // El filtrado se hará automáticamente si el elemento tiene el atributo `data-shortkey-tag`.
     shortkeyManager.attach('.shortkey-enabled');
 
     // --- Selectores del DOM ---
@@ -341,20 +331,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const livePreviewOutput = document.getElementById('live-preview-output');
 
     const tagsContainer = document.getElementById('tags-container');
-    const tagsInput = document.getElementById('editor-tags-input');
-    const existingTagsContainer = document.getElementById('existing-tags-container');
+    const availableTagsContainer = document.getElementById('available-tags-container');
 
     const confirmModal = document.getElementById('confirm-modal');
     const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
     const confirmDiscardBtn = document.getElementById('confirm-discard-btn');
     const confirmSaveBtn = document.getElementById('confirm-save-btn');
-
-    const manageTagsBtn = document.getElementById('manage-tags-btn');
-    const tagsAdminModal = document.getElementById('tags-admin-modal');
-    const tagsAdminList = document.getElementById('tags-admin-list');
-    const tagsAdminInput = document.getElementById('tags-admin-input');
-    const tagsAdminAddBtn = document.getElementById('tags-admin-add-btn');
-    const tagsAdminCloseBtn = document.getElementById('tags-admin-close-btn');
     
     let currentEditingKey = null;
     let isDirty = false;
@@ -442,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             setEditorMode('simple');
         }
-        renderExistingTags();
+        renderAvailableTags();
         updateLivePreview();
     };
 
@@ -728,11 +710,10 @@ document.addEventListener('DOMContentLoaded', () => {
         isDirty = true;
     };
 
-    const renderExistingTags = () => {
-        if (!existingTagsContainer) return;
-        existingTagsContainer.innerHTML = '<small>Etiquetas existentes:</small>';
-        const allTags = shortkeyManager.getAllTags();
-        allTags.forEach(tag => {
+    const renderAvailableTags = () => {
+        if (!availableTagsContainer) return;
+        availableTagsContainer.innerHTML = '<small>Etiquetas disponibles:</small>';
+        PREDEFINED_TAGS.forEach(tag => {
             const pill = document.createElement('span');
             pill.className = 'tag-pill';
             pill.textContent = tag;
@@ -740,35 +721,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pill.style.backgroundColor = colors.bg;
             pill.style.color = colors.text;
             pill.addEventListener('click', () => addTagToEditor(tag));
-            existingTagsContainer.appendChild(pill);
-        });
-    };
-
-    const renderTagsAdminModal = () => {
-        if (!tagsAdminList) return;
-        tagsAdminList.innerHTML = '';
-        const allTags = shortkeyManager.getAllTags();
-        if (allTags.length === 0) {
-            tagsAdminList.innerHTML = `<p style="text-align: center; color: var(--text-light);">No hay etiquetas guardadas.</p>`;
-            return;
-        }
-        allTags.forEach(tag => {
-            const item = document.createElement('div');
-            item.className = 'tags-admin-item';
-            const colors = getColorForTag(tag);
-            item.innerHTML = `
-                <span class="tag-pill" style="background-color: ${colors.bg}; color: ${colors.text};">${tag}</span>
-                <button type="button" class="remove-step-btn" data-tag="${tag}" title="Eliminar etiqueta">&times;</button>
-            `;
-            item.querySelector('.remove-step-btn').addEventListener('click', (e) => {
-                const tagToDelete = e.target.dataset.tag;
-                if (confirm(`¿Estás seguro de que quieres eliminar la etiqueta "${tagToDelete}"? Se quitará de todos los shortkeys que la usen.`)) {
-                    shortkeyManager.deleteGlobalTag(tagToDelete);
-                    renderTagsAdminModal(); // Re-render admin list
-                    renderShortcuts(); // Re-render main list
-                }
-            });
-            tagsAdminList.appendChild(item);
+            availableTagsContainer.appendChild(pill);
         });
     };
 
@@ -919,8 +872,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Escape' && modal && modal.classList.contains('visible')) {
             if (confirmModal && !confirmModal.classList.contains('hidden')) {
                 confirmModal.classList.add('hidden');
-            } else if (tagsAdminModal && !tagsAdminModal.classList.contains('hidden')) {
-                tagsAdminModal.classList.add('hidden');
             } else {
                 attemptClose();
             }
@@ -932,47 +883,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
-
-    if (tagsInput) {
-        tagsInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const newTag = tagsInput.value.trim().toLowerCase().replace(/\s/g, '_');
-                if (newTag) {
-                    addTagToEditor(newTag);
-                    tagsInput.value = '';
-                }
-            }
-        });
-    }
-
-    if (manageTagsBtn) {
-        manageTagsBtn.addEventListener('click', () => {
-            renderTagsAdminModal();
-            if (tagsAdminModal) tagsAdminModal.classList.remove('hidden');
-        });
-    }
-
-    if (tagsAdminCloseBtn) {
-        tagsAdminCloseBtn.addEventListener('click', () => {
-            if (tagsAdminModal) tagsAdminModal.classList.add('hidden');
-        });
-    }
-
-    if (tagsAdminAddBtn) {
-        tagsAdminAddBtn.addEventListener('click', () => {
-            if (tagsAdminInput) {
-                const newTag = tagsAdminInput.value.trim().toLowerCase().replace(/\s/g, '_');
-                if (newTag) {
-                    // Para añadir una etiqueta global, la guardamos en un shortkey temporal vacío
-                    // que no se mostrará pero registrará la etiqueta.
-                    shortkeyManager.addShortcut({ key: `_tag_${newTag}`, description: '', tags: [newTag] });
-                    tagsAdminInput.value = '';
-                    renderTagsAdminModal();
-                }
-            }
-        });
-    }
 
     // Carga inicial
     showListView();

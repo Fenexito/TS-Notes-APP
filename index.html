@@ -854,10 +854,7 @@
             <div id="view-list">
                 <div class="list-header">
                     <h4>Shortkeys Guardados</h4>
-                    <div>
-                        <button id="manage-tags-btn" class="secondary-button">Administrar Etiquetas</button>
-                        <button id="add-new-shortkey-btn" class="main-button">Añadir Nuevo</button>
-                    </div>
+                    <button id="add-new-shortkey-btn" class="main-button">Añadir Nuevo</button>
                 </div>
                 <div id="shortcutsList"></div>
             </div>
@@ -874,17 +871,16 @@
                             </div>
                         </div>
 
-                        <!-- Editor de Etiquetas -->
+                        <!-- Editor de Etiquetas Simplificado -->
                         <div class="editor-section">
-                            <label for="editor-tags-input">Etiquetas</label>
+                            <label>Etiquetas</label>
                             <div class="tags-editor-wrapper">
                                 <div id="tags-container" class="tags-container">
-                                    <!-- Las píldoras de etiquetas se insertarán aquí -->
+                                    <!-- Las píldoras de etiquetas asignadas se insertarán aquí -->
                                 </div>
-                                <input type="text" id="editor-tags-input" placeholder="Añade una etiqueta y presiona Enter">
-                                <div id="existing-tags-container" class="existing-tags">
-                                    <small>Etiquetas existentes:</small>
-                                    <!-- Las etiquetas existentes se mostrarán aquí -->
+                                <div id="available-tags-container" class="existing-tags">
+                                    <small>Etiquetas disponibles:</small>
+                                    <!-- Las etiquetas predefinidas se mostrarán aquí para ser seleccionadas -->
                                 </div>
                             </div>
                         </div>
@@ -935,25 +931,6 @@
             <button id="confirm-cancel-btn" class="modal-action-btn btn-secondary">Cancelar</button>
             <button id="confirm-discard-btn" class="modal-action-btn btn-danger">Salir sin guardar</button>
             <button id="confirm-save-btn" class="modal-action-btn btn-success">Guardar y Salir</button>
-        </div>
-    </div>
-</div>
-
-<!-- NUEVO: Modal de Administración de Etiquetas -->
-<div id="tags-admin-modal" class="confirm-modal-overlay hidden">
-    <div class="confirm-modal-dialog">
-        <h4>Administrar Etiquetas</h4>
-        <div class="tags-admin-content">
-            <div id="tags-admin-list" class="tags-admin-list">
-                <!-- Las etiquetas globales se listarán aquí -->
-            </div>
-            <div class="tags-admin-add">
-                <input type="text" id="tags-admin-input" placeholder="Crear nueva etiqueta">
-                <button id="tags-admin-add-btn" class="main-button">+</button>
-            </div>
-        </div>
-        <div class="confirm-modal-actions">
-            <button id="tags-admin-close-btn" class="modal-action-btn btn-secondary">Cerrar</button>
         </div>
     </div>
 </div>
@@ -1009,6 +986,7 @@
         </div>
     </div>
 </template>
+
 
 
 

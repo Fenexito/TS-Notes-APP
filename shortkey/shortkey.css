@@ -1,6 +1,6 @@
 /**
  * Estilos personalizados para el componente Shortkey.
- * Versión 23: Administración de Etiquetas UI.
+ * Versión 24: Sistema de Etiquetas Fijas.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
@@ -150,15 +150,6 @@
 .btn-secondary { background-color: var(--gray-200); color: var(--gray-800); }
 .btn-danger { background-color: var(--brand-red); color: white; }
 .btn-success { background-color: var(--brand-green); color: white; }
-
-/* Estilos para el Modal de Administración de Etiquetas */
-.tags-admin-content { margin: 1rem 0; }
-.tags-admin-list { max-height: 200px; overflow-y: auto; border: 1px solid var(--gray-200); border-radius: 0.5rem; padding: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-.tags-admin-item { display: flex; justify-content: space-between; align-items: center; background-color: var(--gray-100); padding: 0.5rem; border-radius: 0.375rem; }
-.tags-admin-add { display: flex; gap: 0.5rem; margin-top: 1rem; }
-.tags-admin-add input { flex-grow: 1; }
-.secondary-button { background-color: white; color: var(--text-dark); border: 1px solid var(--gray-300); font-weight: 600; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; font-size: 13px; }
-.secondary-button:hover { background-color: var(--gray-100); }
 
 .shortkey-popup {
     position: fixed; z-index: 2000; background-color: var(--gray-800); border: 1px solid var(--gray-300);
