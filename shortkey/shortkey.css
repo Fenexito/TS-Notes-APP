@@ -1,6 +1,6 @@
 /**
  * Estilos personalizados para el componente Shortkey.
- * Versión 21: Ajustes de espaciado en controles.
+ * Versión 22: Sistema de Etiquetas y correcciones de estilo.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
@@ -53,10 +53,9 @@
 #settingsModal .shortcut-actions { display: flex; align-items: center; gap: 0.5rem; }
 .shortcut-actions .dynamic-indicator { width: 1.2rem; height: 1.2rem; color: var(--brand-yellow); margin-right: 0.5rem; }
 #settingsModal .action-btn { background: none; border: none; cursor: pointer; padding: 0.35rem; }
-#settingsModal .action-btn svg { width: 1rem; height: 1rem; color: #0088ff; }
+#settingsModal .action-btn svg { width: 1rem; height: 1rem; }
 #settingsModal .action-btn:hover svg { filter: brightness(1.2); }
 #settingsModal .action-btn:disabled svg { color: var(--gray-300); cursor: not-allowed; }
-
 #settingsModal .edit-btn svg { color: var(--brand-blue); }
 #settingsModal .delete-btn svg { color: var(--brand-red); }
 
@@ -70,7 +69,7 @@
     position: sticky; top: -8px; background-color: #f9fafb; z-index: 10;
     padding: 0.75rem 0; margin-bottom: 0.5rem; border-bottom: 1px solid var(--gray-200);
 }
-.editor-section label { font-weight: 500; font-size: 0.85rem; color: var(--gray-700); width: 120px; margin: 15px; margin-bottom: 0px;}
+.editor-section label { font-weight: 500; font-size: 0.85rem; color: var(--gray-700); width: 120px; padding-top: 0.5rem; flex-shrink: 0; }
 .input-with-prefix { display: flex; align-items: center; border: 1px solid var(--gray-300); border-radius: 0.375rem; background-color: white; flex-grow: 1; }
 .input-with-prefix span { padding: 0.5rem; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 0.9rem; color: var(--gray-500); border-right: 1px solid var(--gray-300); }
 
@@ -90,51 +89,32 @@
 .step-input, .step-textarea { width: 100%; padding: 0.5rem; border: 1px solid var(--gray-300); border-radius: 0.25rem; font-size: 0.85rem; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 .step-textarea { min-height: 60px; resize: vertical; }
 .step-textarea-flexible { resize: vertical; min-height: 38px; }
-.options-container { display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.5rem; }
-.option-item { display: grid;     grid-template-columns: auto 0.8fr 2fr 0.5fr auto; gap: 0.5rem; align-items: stretch; }
+.options-container { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
+.option-item { display: grid; grid-template-columns: auto 1fr 1.5fr 1fr auto; gap: 0.5rem; align-items: center; }
 .add-option-btn { background: none; border: 1px dashed var(--gray-300); color: var(--gray-500); padding: 0.5rem; border-radius: 0.25rem; cursor: pointer; text-align: center; font-size: 0.8rem; margin-top: 0.5rem; }
 .add-option-btn:hover { background-color: var(--gray-100); border-style: solid; }
+.option-reorder { display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.option-reorder .action-btn { padding: 0; height: 14px; display: flex; align-items: center; justify-content: center; }
+.option-reorder .action-btn svg { width: 0.7rem; height: 0.7rem; }
 
-/* CAMBIO: Estilos para compactar las flechas de reordenar */
-.option-reorder {
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* Centra las flechas verticalmente */
-    gap: 2px; /* Reduce el espacio entre flechas */
-}
-.option-reorder .action-btn {
-    padding: 0; /* Elimina el padding del botón */
-    height: 14px; /* Altura fija para cada botón */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.option-reorder .action-btn svg {
-    width: 0.7rem; /* Reduce el tamaño del icono SVG */
-    height: 0.7rem;
-}
+/* Estilos para el Editor de Etiquetas */
+.tags-editor-wrapper { display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1; }
+.tags-container { display: flex; flex-wrap: wrap; gap: 0.5rem; background-color: white; border: 1px solid var(--gray-300); border-radius: 0.375rem; padding: 0.5rem; min-height: 38px; }
+.tag-pill { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.6rem; border-radius: 999px; font-weight: 500; font-size: 0.85rem; }
+.remove-tag-btn { all: unset; box-sizing: border-box; cursor: pointer; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; line-height: 1; background-color: rgba(0,0,0,0.1); }
+.remove-tag-btn:hover { background-color: rgba(0,0,0,0.2); }
+.existing-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.existing-tags small { color: var(--text-light); font-size: 0.8rem; }
+.existing-tags .tag-pill { cursor: pointer; transition: transform 0.1s; }
+.existing-tags .tag-pill:hover { transform: translateY(-1px); }
 
+/* Estilo unificado para botones de cierre (X) */
 #closeSettingsBtn, .remove-step-btn, .remove-option-btn {
-    all: unset;
-    box-sizing: border-box;
-    background-color: var(--gray-200);
-    color: var(--brand-red);
-    border-radius: 50%;
-    width: 22px;
-    height: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    font-weight: bold;
-    line-height: 1;
-    cursor: pointer;
-    transition: background-color 0.2s, transform 0.2s;
+    all: unset; box-sizing: border-box; background-color: var(--gray-200); color: var(--brand-red); border-radius: 50%;
+    width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: bold; line-height: 1; cursor: pointer; transition: background-color 0.2s, transform 0.2s;
 }
-#closeSettingsBtn:hover, .remove-step-btn:hover, .remove-option-btn:hover {
-    background-color: var(--gray-300);
-    transform: scale(1.1);
-}
+#closeSettingsBtn:hover, .remove-step-btn:hover, .remove-option-btn:hover { background-color: var(--gray-300); transform: scale(1.1); }
 #closeSettingsBtn { position: relative; top: -2px; }
 
 .editor-actions-sticky {

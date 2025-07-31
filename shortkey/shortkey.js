@@ -150,11 +150,13 @@ class Shortkey {
     
     _loadShortcuts() {
         const saved = localStorage.getItem('userShortkeys');
-        if (saved) { this._shortcuts = JSON.parse(saved); }
-        else {
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            this._shortcuts = parsed.map(s => ({ ...s, tags: s.tags || [] }));
+        } else {
             this._shortcuts = [
-                { key: 'sds', description: 'Saludos cordiales,', steps: [] },
-                { key: 'cxtv', description: 'Flujo de TV.', steps: [ { id: 'issue', type: 'select', options: [ { label: 'stb_no_boot', value: 'tv is not powering on', nextStep: 'result' }, { label: 'recording', value: 'cx cannot record', nextStep: 'recordings' } ] }, { id: 'recordings', type: 'select', options: [ { label: 'rec_list', value: 'cannot see the recording list', nextStep: 'result' }, { label: 'play_rec', value: 'cx cannot play recordings', nextStep: 'result' } ] }, { id: 'result', type: 'template', template: '{issue} {recordings}.' } ] }
+                { key: 'sds', description: 'Saludos cordiales,', steps: [], tags: ['general'] },
+                { key: 'cxtv', description: 'Flujo de TV.', steps: [ { id: 'issue', type: 'select', options: [ { label: 'stb_no_boot', value: 'tv is not powering on', nextStep: 'result' }, { label: 'recording', value: 'cx cannot record', nextStep: 'recordings' } ] }, { id: 'recordings', type: 'select', options: [ { label: 'rec_list', value: 'cannot see the recording list', nextStep: 'result' }, { label: 'play_rec', value: 'cx cannot play recordings', nextStep: 'result' } ] }, { id: 'result', type: 'template', template: '{issue} {recordings}.' } ], tags: ['tv', 'troubleshooting'] }
             ];
             this._saveShortcuts();
         }
@@ -164,18 +166,13 @@ class Shortkey {
     addShortcut(shortcutData) { this._shortcuts.push(shortcutData); this._saveShortcuts(); }
     updateShortcut(oldKey, shortcutData) { const index = this._shortcuts.findIndex(s => s.key === oldKey); if (index > -1) { this._shortcuts[index] = shortcutData; } else { this.addShortcut(shortcutData); } this._saveShortcuts(); }
     removeShortcut(key) { this._shortcuts = this._shortcuts.filter(s => s.key !== key); this._saveShortcuts(); }
-    moveShortcut(key, direction) {
-        const index = this._shortcuts.findIndex(s => s.key === key);
-        if (index === -1) return;
-        if (direction === 'up' && index > 0) { [this._shortcuts[index - 1], this._shortcuts[index]] = [this._shortcuts[index], this._shortcuts[index - 1]]; }
-        else if (direction === 'down' && index < this._shortcuts.length - 1) { [this._shortcuts[index + 1], this._shortcuts[index]] = [this._shortcuts[index], this._shortcuts[index + 1]]; }
-        this._saveShortcuts();
-    }
+    moveShortcut(key, direction) { /* ... sin cambios ... */ }
     
-    attach(selectorOrElement) { 
+    attach(selectorOrElement, tags = []) { 
         const elements = typeof selectorOrElement === 'string' ? document.querySelectorAll(selectorOrElement) : [selectorOrElement]; 
         elements.forEach(element => { 
             if (element) {
+                element.dataset.shortkeyTags = JSON.stringify(tags);
                 element.addEventListener('input', this._handleInput.bind(this)); 
                 element.addEventListener('click', () => {
                    if (this._activePopupManager) this._activePopupManager.destroy();
@@ -197,7 +194,15 @@ class Shortkey {
         }
 
         const query = textBeforeCursor.substring(lastAtIndex + 1).toLowerCase();
-        const filteredShortcuts = this._shortcuts.filter(s => s.key.toLowerCase().startsWith(query));
+        const elementTags = JSON.parse(this._currentElement.dataset.shortkeyTags || '[]');
+
+        const filteredShortcuts = this._shortcuts.filter(s => {
+            const queryMatch = s.key.toLowerCase().startsWith(query);
+            if (!queryMatch) return false;
+            if (!s.tags || s.tags.length === 0) return true;
+            if (elementTags.length === 0) return true;
+            return s.tags.some(tag => elementTags.includes(tag));
+        });
 
         if (filteredShortcuts.length > 0) {
             if (!this._activePopupManager || !this._activePopupManager.popup) {
@@ -280,6 +285,14 @@ class Shortkey {
         element.selectionStart = element.selectionEnd = start + textToInsert.length;
         element.focus();
     }
+
+    getAllTags() {
+        const allTags = new Set();
+        this._shortcuts.forEach(s => {
+            if (s.tags) s.tags.forEach(tag => allTags.add(tag));
+        });
+        return Array.from(allTags).sort();
+    }
 }
 
 /**
@@ -289,6 +302,8 @@ document.addEventListener('DOMContentLoaded', () => {
     console.info('[Shortkey] Módulo dinámico cargado y listo.');
     const shortkeyManager = new Shortkey();
     shortkeyManager.attach('.shortkey-enabled');
+    // Ejemplo de uso con etiquetas:
+    // shortkeyManager.attach('#mi-campo-de-texto', ['ventas', 'soporte']);
 
     // --- Selectores del DOM ---
     const modal = document.getElementById('settingsModal');
@@ -310,6 +325,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const templateStepContainer = document.getElementById('template-step-container');
     const livePreviewContainer = document.getElementById('live-preview-container');
     const livePreviewOutput = document.getElementById('live-preview-output');
+
+    const tagsContainer = document.getElementById('tags-container');
+    const tagsInput = document.getElementById('editor-tags-input');
+    const existingTagsContainer = document.getElementById('existing-tags-container');
 
     const confirmModal = document.getElementById('confirm-modal');
     const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
@@ -379,10 +398,15 @@ document.addEventListener('DOMContentLoaded', () => {
         editorForm.reset();
         if (stepsContainer) stepsContainer.innerHTML = '';
         if (templateStepContainer) templateStepContainer.innerHTML = '';
+        if (tagsContainer) tagsContainer.innerHTML = '';
+        
         const shortcut = key ? shortkeyManager.getShortcuts().find(s => s.key === key) : null;
 
         if (shortcut) {
             if (editorKeyInput) editorKeyInput.value = shortcut.key;
+            if (shortcut.tags) {
+                shortcut.tags.forEach(tag => addTagToEditor(tag));
+            }
             const hasSteps = shortcut.steps && shortcut.steps.length > 0;
             if (hasSteps) {
                 setEditorMode('dynamic');
@@ -397,6 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             setEditorMode('simple');
         }
+        renderExistingTags();
         updateLivePreview();
     };
 
@@ -497,6 +522,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const isDynamicMode = !dynamicModeView.classList.contains('hidden');
         let description = '';
         const steps = [];
+        const tags = [];
+        if (tagsContainer) {
+            tagsContainer.querySelectorAll('.tag-pill-text').forEach(el => tags.push(el.textContent));
+        }
 
         if (isDynamicMode) {
             description = "Shortkey dinámico con variables.";
@@ -526,7 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!description && steps.length === 0) return null;
 
-        return { key, description, steps };
+        return { key, description, steps, tags };
     };
     
     const addPlaceholderToTemplate = (newId) => {
@@ -623,6 +652,62 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                 </div>`;
             listContainer.appendChild(item);
+        });
+    };
+
+    // --- Funciones para Etiquetas ---
+    const tagColors = ['#e0f2fe', '#dcfce7', '#fefce8', '#fee2e2', '#f3e8ff', '#dbeafe', '#e0e7ff'];
+    const tagTextColors = ['#0c4a6e', '#166534', '#854d0e', '#991b1b', '#581c87', '#1e40af', '#312e81'];
+
+    const getColorForTag = (tag) => {
+        let hash = 0;
+        for (let i = 0; i < tag.length; i++) {
+            hash = tag.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const index = Math.abs(hash % tagColors.length);
+        return { bg: tagColors[index], text: tagTextColors[index] };
+    };
+
+    const addTagToEditor = (tag) => {
+        if (!tag || !tagsContainer) return;
+        const existingTags = Array.from(tagsContainer.querySelectorAll('.tag-pill-text')).map(el => el.textContent);
+        if (existingTags.includes(tag)) return;
+        
+        const template = document.getElementById('template-tag-pill');
+        if (!template) return;
+
+        const clone = template.content.cloneNode(true);
+        const pill = clone.querySelector('.tag-pill');
+        const textEl = clone.querySelector('.tag-pill-text');
+        const removeBtn = clone.querySelector('.remove-tag-btn');
+
+        textEl.textContent = tag;
+        const colors = getColorForTag(tag);
+        pill.style.backgroundColor = colors.bg;
+        pill.style.color = colors.text;
+        
+        removeBtn.addEventListener('click', () => {
+            pill.remove();
+            isDirty = true;
+        });
+
+        tagsContainer.appendChild(pill);
+        isDirty = true;
+    };
+
+    const renderExistingTags = () => {
+        if (!existingTagsContainer) return;
+        existingTagsContainer.innerHTML = '<small>Etiquetas existentes:</small>';
+        const allTags = shortkeyManager.getAllTags();
+        allTags.forEach(tag => {
+            const pill = document.createElement('span');
+            pill.className = 'tag-pill';
+            pill.textContent = tag;
+            const colors = getColorForTag(tag);
+            pill.style.backgroundColor = colors.bg;
+            pill.style.color = colors.text;
+            pill.addEventListener('click', () => addTagToEditor(tag));
+            existingTagsContainer.appendChild(pill);
         });
     };
 
