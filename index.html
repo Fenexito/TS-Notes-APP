@@ -835,117 +835,118 @@
     </div>
 
 
-<!-- Contenedor para los Pop-ups -->
-    <div id="shortkey-popup-container">
-        <div id="shortkey-search-popup" class="shortkey-popup"></div>
-        <div id="shortkey-interaction-popup" class="shortkey-popup"></div>
-    </div>
+<div id="shortkey-popup-container">
+	<div id="shortkey-search-popup" class="shortkey-popup"></div>
+	<div id="shortkey-interaction-popup" class="shortkey-popup"></div>
+</div>
 
-    <!-- Interfaz de usuario (Modal) para gestionar Shortkeys -->
-    <div id="settingsModal">
-        <div id="modalOverlay"></div>
-        <div class="modal-container">
-            <div class="modal-header">
-                <h3>Configuración de Shortkeys</h3>
-                <button id="closeSettingsBtn" title="Cerrar">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div id="view-list">
-                    <div class="list-header">
-                        <h4>Shortkeys Guardados</h4>
-                        <button id="add-new-shortkey-btn" class="main-button">Añadir Nuevo</button>
-                    </div>
-                    <div id="shortcutsList"></div>
-                </div>
+<div id="settingsModal">
+	<div id="modalOverlay"></div>
+	<div class="modal-container">
+		<div class="modal-header">
+			<h3>Configuración de Shortkeys</h3>
+			<button id="closeSettingsBtn" title="Cerrar">&times;</button>
+		</div>
+		<div class="modal-body">
+			<div id="view-list">
+				<div class="list-header">
+					<h4>Shortkeys Guardados</h4>
+					<button id="add-new-shortkey-btn" class="main-button">Añadir Nuevo</button>
+				</div>
+				<div id="shortcutsList"></div>
+			</div>
 
-                <div id="view-editor" class="hidden">
-                    <form id="shortkey-editor-form">
-                        <div class="editor-content">
-                            <!-- Detalles Principales (Siempre visibles) -->
-                            <div class="editor-section">
-                                <label for="editor-key">Activador</label>
-                                <div class="input-with-prefix">
-                                    <span>@</span>
-                                    <input type="text" id="editor-key" placeholder="nombre-del-shortkey" required>
-                                </div>
-                            </div>
+			<div id="view-editor" class="hidden">
+				<form id="shortkey-editor-form">
+					<div class="editor-content">
+						<div class="editor-section">
+							<label for="editor-key">Activador</label>
+							<div class="input-with-prefix">
+								<span>@</span>
+								<input type="text" id="editor-key" placeholder="nombre-del-shortkey" required>
+							</div>
+						</div>
 
-                            <!-- Vista para Shortkey Simple -->
-                            <div id="simple-mode-view">
-                                <div class="editor-section">
-                                    <label for="editor-description">Texto de reemplazo</label>
-                                    <textarea id="editor-description" placeholder="Escribe el texto que se insertará..." rows="3"></textarea>
-                                </div>
-                            </div>
+						<div id="simple-mode-view">
+							<div class="editor-section">
+								<label for="editor-description">Texto de reemplazo</label>
+								<textarea id="editor-description" placeholder="Escribe el texto que se insertará..." rows="3"></textarea>
+							</div>
+						</div>
 
-                            <!-- Vista para Shortkey Dinámico (con variables) -->
-                            <div id="dynamic-mode-view" class="hidden">
-                                 <div class="dynamic-controls">
-                                    <div id="steps-container"></div>
-                                    <div id="template-step-container"></div>
-                                </div>
-                                <div id="live-preview-container">
-                                    <div class="editor-section">
-                                        <label>Vista Previa</label>
-                                        <div id="live-preview-output" class="preview-output"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Acciones Fijas -->
-                        <div class="editor-actions-sticky">
-                             <button type="button" id="add-select-step-btn" class="main-button hidden">+ Añadir Variable</button>
-                             <div class="editor-actions-right">
-                                <button type="button" id="editor-cancel-btn">Cancelar</button>
-                                <button type="submit" id="editor-save-btn">Guardar Shortkey</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+						<div id="dynamic-mode-view" class="hidden">
+							<div class="dynamic-controls">
+								<div id="steps-container"></div>
+								<div id="template-step-container"></div>
+							</div>
+							<div id="live-preview-container">
+								<div class="editor-section">
+									<label>Vista Previa</label>
+									<div id="live-preview-output" class="preview-output"></div>
+								</div>
+							</div>
+						</div>
+					</div>
 
-    <!-- Plantillas para los pasos del editor -->
-    <template id="template-step-select">
-        <div class="step-container" data-step-type="select">
-            <div class="step-header">
-                <span class="step-title">Paso de Selección</span>
-                <button type="button" class="remove-step-btn" title="Eliminar paso">&times;</button>
-            </div>
-            <div class="step-body">
-                <div class="step-grid">
-                    <input type="text" class="step-input" data-config="id" placeholder="ID de la variable (ej. tipo_servicio)">
-                    <input type="text" class="step-input" data-config="prompt" placeholder="Pregunta para el usuario (ej. ¿Tipo de conexión?)">
-                </div>
-                <div class="options-container"></div>
-                <button type="button" class="add-option-btn">+ Añadir opción</button>
-            </div>
-        </div>
-    </template>
-    
-    <template id="template-step-option">
-        <div class="option-item">
-            <input type="text" class="step-input" data-config="label" placeholder="Texto a mostrar">
-            <!-- CORRECCIÓN: Cambiado a textarea para flexibilidad -->
-            <textarea class="step-input step-textarea-flexible" data-config="value" placeholder="Valor a guardar" rows="1"></textarea>
-            <input type="text" class="step-input" data-config="nextStep" placeholder="Siguiente paso (ID o 'result')">
-            <button type="button" class="remove-option-btn" title="Eliminar opción">&times;</button>
-        </div>
-    </template>
+					<div class="editor-actions-sticky">
+						<button type="button" id="add-select-step-btn" class="main-button hidden">+ Añadir Variable</button>
+						<div class="editor-actions-right">
+							<button type="button" id="editor-cancel-btn">Cancelar</button>
+							<button type="submit" id="editor-save-btn">Guardar Shortkey</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
 
-    <template id="template-step-template">
-        <div class="step-container" data-step-type="template">
-             <div class="step-header">
-                <span class="step-title">Plantilla de Texto Final</span>
-            </div>
-            <div class="step-body">
-                <input type="hidden" class="step-input" data-config="id" value="result" readonly>
-                <textarea class="step-textarea" data-config="template" placeholder="Texto final. Usa {id_variable} para insertar valores."></textarea>
-            </div>
-        </div>
-    </template>
+<template id="template-step-select">
+	<div class="step-container" data-step-type="select">
+		<div class="step-header">
+			<span class="step-title">Paso de Selección</span>
+			<button type="button" class="remove-step-btn" title="Eliminar paso">&times;</button>
+		</div>
+		<div class="step-body">
+			<div class="step-grid">
+				<input type="text" class="step-input variable-id-input" data-config="id" placeholder="ID de la variable (ej. tipo_servicio)">
+			</div>
+			<div class="options-container"></div>
+			<button type="button" class="add-option-btn">+ Añadir opción</button>
+		</div>
+	</div>
+</template>
+
+<template id="template-step-option">
+	<div class="option-item">
+		<div class="option-reorder-controls">
+			<button type="button" class="action-btn move-option-up" title="Mover arriba">
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+			</button>
+			<button type="button" class="action-btn move-option-down" title="Mover abajo">
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+			</button>
+		</div>
+		<div class="option-inputs">
+			<input type="text" class="step-input" data-config="label" placeholder="Texto a mostrar">
+			<textarea class="step-input step-textarea-flexible" data-config="value" placeholder="Valor a guardar" rows="1"></textarea>
+			<input type="text" class="step-input" data-config="nextStep" placeholder="Siguiente paso (ID o 'result')">
+		</div>
+		<button type="button" class="remove-option-btn" title="Eliminar opción">&times;</button>
+	</div>
+</template>
+
+<template id="template-step-template">
+	<div class="step-container" data-step-type="template">
+		<div class="step-header">
+			<span class="step-title">Plantilla de Texto Final</span>
+		</div>
+		<div class="step-body">
+			<input type="hidden" class="step-input" data-config="id" value="result" readonly>
+			<textarea class="step-textarea final-template-textarea" data-config="template" placeholder="Texto final. Usa {id_variable} para insertar valores."></textarea>
+		</div>
+	</div>
+</template>
 
 
 
