@@ -53,7 +53,7 @@
 #settingsModal .shortcut-actions { display: flex; align-items: center; gap: 0.5rem; }
 .shortcut-actions .dynamic-indicator { width: 1.2rem; height: 1.2rem; color: var(--brand-yellow); margin-right: 0.5rem; }
 #settingsModal .action-btn { background: none; border: none; cursor: pointer; padding: 0.35rem; }
-#settingsModal .action-btn svg { width: 1rem; height: 1rem; }
+#settingsModal .action-btn svg { width: 1rem; height: 1rem; color: #0088ff; }
 #settingsModal .action-btn:hover svg { filter: brightness(1.2); }
 #settingsModal .action-btn:disabled svg { color: var(--gray-300); cursor: not-allowed; }
 
@@ -70,7 +70,7 @@
     position: sticky; top: -8px; background-color: #f9fafb; z-index: 10;
     padding: 0.75rem 0; margin-bottom: 0.5rem; border-bottom: 1px solid var(--gray-200);
 }
-.editor-section label { font-weight: 500; font-size: 0.85rem; color: var(--gray-700); width: 120px; padding-top: 0.5rem; }
+.editor-section label { font-weight: 500; font-size: 0.85rem; color: var(--gray-700); width: 120px; margin: 15px; margin-bottom: 0px;}
 .input-with-prefix { display: flex; align-items: center; border: 1px solid var(--gray-300); border-radius: 0.375rem; background-color: white; flex-grow: 1; }
 .input-with-prefix span { padding: 0.5rem; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 0.9rem; color: var(--gray-500); border-right: 1px solid var(--gray-300); }
 
@@ -90,8 +90,8 @@
 .step-input, .step-textarea { width: 100%; padding: 0.5rem; border: 1px solid var(--gray-300); border-radius: 0.25rem; font-size: 0.85rem; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 .step-textarea { min-height: 60px; resize: vertical; }
 .step-textarea-flexible { resize: vertical; min-height: 38px; }
-.options-container { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
-.option-item { display: grid; grid-template-columns: auto 1fr 1.5fr 1fr auto; gap: 0.5rem; align-items: center; }
+.options-container { display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.5rem; }
+.option-item { display: grid;     grid-template-columns: auto 0.8fr 2fr 0.5fr auto; gap: 0.5rem; align-items: stretch; }
 .add-option-btn { background: none; border: 1px dashed var(--gray-300); color: var(--gray-500); padding: 0.5rem; border-radius: 0.25rem; cursor: pointer; text-align: center; font-size: 0.8rem; margin-top: 0.5rem; }
 .add-option-btn:hover { background-color: var(--gray-100); border-style: solid; }
 
