@@ -166,7 +166,13 @@ class Shortkey {
     addShortcut(shortcutData) { this._shortcuts.push(shortcutData); this._saveShortcuts(); }
     updateShortcut(oldKey, shortcutData) { const index = this._shortcuts.findIndex(s => s.key === oldKey); if (index > -1) { this._shortcuts[index] = shortcutData; } else { this.addShortcut(shortcutData); } this._saveShortcuts(); }
     removeShortcut(key) { this._shortcuts = this._shortcuts.filter(s => s.key !== key); this._saveShortcuts(); }
-    moveShortcut(key, direction) { /* ... sin cambios ... */ }
+    moveShortcut(key, direction) {
+        const index = this._shortcuts.findIndex(s => s.key === key);
+        if (index === -1) return;
+        if (direction === 'up' && index > 0) { [this._shortcuts[index - 1], this._shortcuts[index]] = [this._shortcuts[index], this._shortcuts[index - 1]]; }
+        else if (direction === 'down' && index < this._shortcuts.length - 1) { [this._shortcuts[index + 1], this._shortcuts[index]] = [this._shortcuts[index], this._shortcuts[index + 1]]; }
+        this._saveShortcuts();
+    }
     
     attach(selectorOrElement, tags = []) { 
         const elements = typeof selectorOrElement === 'string' ? document.querySelectorAll(selectorOrElement) : [selectorOrElement]; 
@@ -285,7 +291,7 @@ class Shortkey {
         element.selectionStart = element.selectionEnd = start + textToInsert.length;
         element.focus();
     }
-
+    
     getAllTags() {
         const allTags = new Set();
         this._shortcuts.forEach(s => {
@@ -302,8 +308,6 @@ document.addEventListener('DOMContentLoaded', () => {
     console.info('[Shortkey] Módulo dinámico cargado y listo.');
     const shortkeyManager = new Shortkey();
     shortkeyManager.attach('.shortkey-enabled');
-    // Ejemplo de uso con etiquetas:
-    // shortkeyManager.attach('#mi-campo-de-texto', ['ventas', 'soporte']);
 
     // --- Selectores del DOM ---
     const modal = document.getElementById('settingsModal');
@@ -717,22 +721,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addNewBtn) addNewBtn.addEventListener('click', () => showEditorView());
     if (editorCancelBtn) editorCancelBtn.addEventListener('click', attemptClose);
 
-    // CAMBIO: Lógica de botones de confirmación corregida
     if (confirmCancelBtn) {
         confirmCancelBtn.addEventListener('click', () => {
             if (confirmModal) confirmModal.classList.add('hidden');
         });
     }
     if (confirmDiscardBtn) {
-        confirmDiscardBtn.addEventListener('click', () => {
-            // La función showListView ya se encarga de ocultar el modal de confirmación
-            showListView();
-        });
+        confirmDiscardBtn.addEventListener('click', showListView);
     }
     if (confirmSaveBtn) {
         confirmSaveBtn.addEventListener('click', () => {
-            // La función de guardado (submit) llama a showListView al terminar,
-            // que a su vez oculta el modal de confirmación.
             if (editorForm) editorForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
         });
     }
@@ -875,6 +873,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    if (tagsInput) {
+        tagsInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const newTag = tagsInput.value.trim().toLowerCase().replace(/\s/g, '_');
+                if (newTag) {
+                    addTagToEditor(newTag);
+                    tagsInput.value = '';
+                }
+            }
+        });
+    }
 
     // Carga inicial
     showListView();
