@@ -854,7 +854,10 @@
             <div id="view-list">
                 <div class="list-header">
                     <h4>Shortkeys Guardados</h4>
-                    <button id="add-new-shortkey-btn" class="main-button">Añadir Nuevo</button>
+                    <div>
+                        <button id="manage-tags-btn" class="secondary-button">Administrar Etiquetas</button>
+                        <button id="add-new-shortkey-btn" class="main-button">Añadir Nuevo</button>
+                    </div>
                 </div>
                 <div id="shortcutsList"></div>
             </div>
@@ -936,9 +939,27 @@
     </div>
 </div>
 
+<!-- NUEVO: Modal de Administración de Etiquetas -->
+<div id="tags-admin-modal" class="confirm-modal-overlay hidden">
+    <div class="confirm-modal-dialog">
+        <h4>Administrar Etiquetas</h4>
+        <div class="tags-admin-content">
+            <div id="tags-admin-list" class="tags-admin-list">
+                <!-- Las etiquetas globales se listarán aquí -->
+            </div>
+            <div class="tags-admin-add">
+                <input type="text" id="tags-admin-input" placeholder="Crear nueva etiqueta">
+                <button id="tags-admin-add-btn" class="main-button">+</button>
+            </div>
+        </div>
+        <div class="confirm-modal-actions">
+            <button id="tags-admin-close-btn" class="modal-action-btn btn-secondary">Cerrar</button>
+        </div>
+    </div>
+</div>
+
 <!-- === SECCIÓN DE PLANTILLAS === -->
 
-<!-- Plantilla para una Píldora de Etiqueta -->
 <template id="template-tag-pill">
     <span class="tag-pill">
         <span class="tag-pill-text"></span>
@@ -946,7 +967,6 @@
     </span>
 </template>
 
-<!-- Plantilla para el paso de Selección (Variable) -->
 <template id="template-step-select">
     <div class="step-container" data-step-type="select">
         <div class="step-header">
@@ -961,7 +981,6 @@
     </div>
 </template>
     
-<!-- Plantilla para una Opción dentro de una Variable -->
 <template id="template-step-option">
     <div class="option-item">
         <div class="option-reorder">
@@ -979,7 +998,6 @@
     </div>
 </template>
 
-<!-- Plantilla para el Texto Final -->
 <template id="template-step-template">
     <div class="step-container" data-step-type="template">
         <div class="step-header">
@@ -991,6 +1009,7 @@
         </div>
     </div>
 </template>
+
 
 
 

@@ -174,11 +174,10 @@ class Shortkey {
         this._saveShortcuts();
     }
     
-    attach(selectorOrElement, tags = []) { 
+    attach(selectorOrElement) { 
         const elements = typeof selectorOrElement === 'string' ? document.querySelectorAll(selectorOrElement) : [selectorOrElement]; 
         elements.forEach(element => { 
             if (element) {
-                element.dataset.shortkeyTags = JSON.stringify(tags);
                 element.addEventListener('input', this._handleInput.bind(this)); 
                 element.addEventListener('click', () => {
                    if (this._activePopupManager) this._activePopupManager.destroy();
@@ -200,14 +199,16 @@ class Shortkey {
         }
 
         const query = textBeforeCursor.substring(lastAtIndex + 1).toLowerCase();
-        const elementTags = JSON.parse(this._currentElement.dataset.shortkeyTags || '[]');
+        const elementTag = this._currentElement.dataset.shortkeyTag || null;
 
         const filteredShortcuts = this._shortcuts.filter(s => {
             const queryMatch = s.key.toLowerCase().startsWith(query);
             if (!queryMatch) return false;
+            
             if (!s.tags || s.tags.length === 0) return true;
-            if (elementTags.length === 0) return true;
-            return s.tags.some(tag => elementTags.includes(tag));
+            if (!elementTag) return true;
+            
+            return s.tags.includes(elementTag);
         });
 
         if (filteredShortcuts.length > 0) {
@@ -299,6 +300,15 @@ class Shortkey {
         });
         return Array.from(allTags).sort();
     }
+
+    deleteGlobalTag(tagToDelete) {
+        this._shortcuts.forEach(s => {
+            if (s.tags && s.tags.includes(tagToDelete)) {
+                s.tags = s.tags.filter(t => t !== tagToDelete);
+            }
+        });
+        this._saveShortcuts();
+    }
 }
 
 /**
@@ -338,6 +348,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
     const confirmDiscardBtn = document.getElementById('confirm-discard-btn');
     const confirmSaveBtn = document.getElementById('confirm-save-btn');
+
+    const manageTagsBtn = document.getElementById('manage-tags-btn');
+    const tagsAdminModal = document.getElementById('tags-admin-modal');
+    const tagsAdminList = document.getElementById('tags-admin-list');
+    const tagsAdminInput = document.getElementById('tags-admin-input');
+    const tagsAdminAddBtn = document.getElementById('tags-admin-add-btn');
+    const tagsAdminCloseBtn = document.getElementById('tags-admin-close-btn');
     
     let currentEditingKey = null;
     let isDirty = false;
@@ -631,6 +648,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const isDynamic = shortcut.steps && shortcut.steps.length > 0;
             const item = document.createElement('div');
             item.className = 'shortcut-item';
+
+            let tagsHTML = '';
+            if (shortcut.tags && shortcut.tags.length > 0) {
+                tagsHTML = `<div class="shortcut-tags-list">
+                    ${shortcut.tags.map(tag => {
+                        const colors = getColorForTag(tag);
+                        return `<span class="tag-pill" style="background-color: ${colors.bg}; color: ${colors.text};">${tag}</span>`;
+                    }).join('')}
+                </div>`;
+            }
+
             item.innerHTML = `
                 <div class="shortcut-reorder">
                     <button class="action-btn move-up-btn" data-key="${shortcut.key}" title="Mover arriba" ${index === 0 ? 'disabled' : ''}>
@@ -640,11 +668,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         <svg style="pointer-events: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                     </button>
                 </div>
-                <div style="display: flex; align-items: center; min-width: 0;">
+                <div class="shortcut-details">
                     <div>
                         <span class="shortcut-key">@${shortcut.key}</span>
                         <p class="shortcut-description">${shortcut.description}</p>
                     </div>
+                    ${tagsHTML}
                 </div>
                 <div class="shortcut-actions">
                     ${isDynamic ? `<svg class="dynamic-indicator" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" /></svg>` : ''}
@@ -712,6 +741,34 @@ document.addEventListener('DOMContentLoaded', () => {
             pill.style.color = colors.text;
             pill.addEventListener('click', () => addTagToEditor(tag));
             existingTagsContainer.appendChild(pill);
+        });
+    };
+
+    const renderTagsAdminModal = () => {
+        if (!tagsAdminList) return;
+        tagsAdminList.innerHTML = '';
+        const allTags = shortkeyManager.getAllTags();
+        if (allTags.length === 0) {
+            tagsAdminList.innerHTML = `<p style="text-align: center; color: var(--text-light);">No hay etiquetas guardadas.</p>`;
+            return;
+        }
+        allTags.forEach(tag => {
+            const item = document.createElement('div');
+            item.className = 'tags-admin-item';
+            const colors = getColorForTag(tag);
+            item.innerHTML = `
+                <span class="tag-pill" style="background-color: ${colors.bg}; color: ${colors.text};">${tag}</span>
+                <button type="button" class="remove-step-btn" data-tag="${tag}" title="Eliminar etiqueta">&times;</button>
+            `;
+            item.querySelector('.remove-step-btn').addEventListener('click', (e) => {
+                const tagToDelete = e.target.dataset.tag;
+                if (confirm(`¿Estás seguro de que quieres eliminar la etiqueta "${tagToDelete}"? Se quitará de todos los shortkeys que la usen.`)) {
+                    shortkeyManager.deleteGlobalTag(tagToDelete);
+                    renderTagsAdminModal(); // Re-render admin list
+                    renderShortcuts(); // Re-render main list
+                }
+            });
+            tagsAdminList.appendChild(item);
         });
     };
 
@@ -862,6 +919,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Escape' && modal && modal.classList.contains('visible')) {
             if (confirmModal && !confirmModal.classList.contains('hidden')) {
                 confirmModal.classList.add('hidden');
+            } else if (tagsAdminModal && !tagsAdminModal.classList.contains('hidden')) {
+                tagsAdminModal.classList.add('hidden');
             } else {
                 attemptClose();
             }
@@ -882,6 +941,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (newTag) {
                     addTagToEditor(newTag);
                     tagsInput.value = '';
+                }
+            }
+        });
+    }
+
+    if (manageTagsBtn) {
+        manageTagsBtn.addEventListener('click', () => {
+            renderTagsAdminModal();
+            if (tagsAdminModal) tagsAdminModal.classList.remove('hidden');
+        });
+    }
+
+    if (tagsAdminCloseBtn) {
+        tagsAdminCloseBtn.addEventListener('click', () => {
+            if (tagsAdminModal) tagsAdminModal.classList.add('hidden');
+        });
+    }
+
+    if (tagsAdminAddBtn) {
+        tagsAdminAddBtn.addEventListener('click', () => {
+            if (tagsAdminInput) {
+                const newTag = tagsAdminInput.value.trim().toLowerCase().replace(/\s/g, '_');
+                if (newTag) {
+                    // Para añadir una etiqueta global, la guardamos en un shortkey temporal vacío
+                    // que no se mostrará pero registrará la etiqueta.
+                    shortkeyManager.addShortcut({ key: `_tag_${newTag}`, description: '', tags: [newTag] });
+                    tagsAdminInput.value = '';
+                    renderTagsAdminModal();
                 }
             }
         });
