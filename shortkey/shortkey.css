@@ -1,6 +1,6 @@
 /**
  * Estilos personalizados para el componente Shortkey.
- * Versión 22: Corrección definitiva de layout del modal y pie de página sticky.
+ * Versión 23: Corrección definitiva de layout del modal y pie de página sticky.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
@@ -49,7 +49,7 @@
 /* Contenido del Modal */
 #settingsModal .modal-header { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--gray-200); flex-shrink: 0; }
 #settingsModal .modal-header h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0px; }
-#settingsModal .modal-body { padding: 0.75rem; overflow-y: auto; flex-grow: 1; }
+#settingsModal .modal-body { padding: 0.75rem; overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; }
 #settingsModal .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 #settingsModal #shortcutsList { display: flex; flex-direction: column; gap: 0.5rem; }
 #settingsModal .shortcut-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.75rem; background-color: white; border: 1px solid var(--gray-200); padding: 0.2rem 0.8rem; border-radius: 0.5rem; }
@@ -66,21 +66,21 @@
 #settingsModal .hidden { display: none; }
 
 /* CORRECCIÓN: Layout del formulario usando Flexbox para un footer sticky seguro */
-#view-editor, #shortkey-editor-form {
+#view-editor { flex-grow: 1; }
+#shortkey-editor-form {
     display: flex;
     flex-direction: column;
-    height: 100%; /* Ocupa toda la altura disponible en modal-body */
+    height: 100%;
 }
 
 .editor-content {
-    flex-grow: 1; /* El contenido principal crece para ocupar el espacio disponible */
-    overflow-y: auto; /* El scroll aparece aquí si el contenido es muy largo */
+    flex-grow: 1;
+    overflow-y: auto;
     padding: 0.25rem;
-    margin: -0.25rem;
 }
 
 .editor-actions-sticky {
-    flex-shrink: 0; /* El footer no se encoge */
+    flex-shrink: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -88,7 +88,6 @@
     margin-top: 1rem;
     padding-top: 0.75rem;
     border-top: 1px solid var(--gray-200);
-    background-color: #f9fafb; /* Mismo fondo que el modal */
 }
 
 .editor-section { display: flex; flex-direction: row; gap: 0.25rem; align-items: flex-start; margin-bottom: 10px;}
