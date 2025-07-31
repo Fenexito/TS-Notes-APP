@@ -111,7 +111,7 @@
 
 /* --- Pop-ups de Búsqueda e Interacción --- */
 .shortkey-popup {
-    position: fixed; z-index: 2000; background-color: white; border: 1px solid var(--gray-300);
+    position: fixed; z-index: 2000; background-color: var(--gray-800); border: 1px solid var(--gray-300);
     border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); font-family: 'Inter', sans-serif;
     opacity: 0; visibility: hidden; transform: scale(0.95) translateY(-10px); 
     transition: opacity 0.1s ease, transform 0.1s ease, visibility 0s linear 0.1s; 
@@ -128,11 +128,11 @@
 #shortkey-search-popup .popup-option .search-key { 
     font-family: 'JetBrains Mono', monospace; 
     font-weight: 500; 
-    color: var(--text-dark); /* Texto oscuro para la llave */
+    color: var(--gray-100); /* Texto oscuro para la llave */
 }
 #shortkey-search-popup .popup-option .search-desc { 
     font-size: 0.9em; 
-    color: var(--text-light); /* Texto gris para la descripción */
+    color: var(--gray-100); /* Texto gris para la descripción */
 }
 
 /* 2. Estado SELECCIONADO */
