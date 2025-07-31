@@ -226,7 +226,6 @@ class Shortkey {
         }
     }
 
-    // CORRECCIÓN: Lógica de procesamiento de plantilla mejorada
     _runDynamicFlow(shortkeyData, variables, currentStep) {
         if (!currentStep) return;
 
@@ -241,12 +240,10 @@ class Shortkey {
         } else if (currentStep.type === 'template') {
             let finalText = currentStep.template;
             
-            // 1. Reemplaza las variables conocidas
             for (const varName in variables) {
                 finalText = finalText.replace(new RegExp(`{${varName}}`, 'g'), variables[varName]);
             }
             
-            // 2. (LA CORRECCIÓN) Limpia cualquier variable no asignada y los espacios extra
             finalText = finalText.replace(/ ?\{[a-zA-Z0-9_]+\}/g, '').trim();
 
             this._insertTextAtCursor(finalText + ' ');
@@ -302,16 +299,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const editorKeyInput = document.getElementById('editor-key');
     const editorCancelBtn = document.getElementById('editor-cancel-btn');
     
-    // Vistas del editor
     const simpleModeView = document.getElementById('simple-mode-view');
     const dynamicModeView = document.getElementById('dynamic-mode-view');
     const editorDescInput = document.getElementById('editor-description');
-    const goToDynamicBtn = document.getElementById('go-to-dynamic-mode-btn');
+    const addVarBtnContainer = document.getElementById('add-select-step-btn');
     
-    // Controles dinámicos
     const stepsContainer = document.getElementById('steps-container');
     const templateStepContainer = document.getElementById('template-step-container');
-    const addSelectStepBtn = document.getElementById('add-select-step-btn');
     const livePreviewContainer = document.getElementById('live-preview-container');
     const livePreviewOutput = document.getElementById('live-preview-output');
     
@@ -343,10 +337,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mode === 'dynamic') {
             simpleModeView.classList.add('hidden');
             dynamicModeView.classList.remove('hidden');
+            addVarBtnContainer.textContent = "+ Añadir Otra Variable";
         } else {
             dynamicModeView.classList.add('hidden');
             simpleModeView.classList.remove('hidden');
+            addVarBtnContainer.textContent = "+ Añadir Variables (Modo Dinámico)";
         }
+        addVarBtnContainer.classList.remove('hidden');
     };
 
     const buildEditor = (key) => {
@@ -383,14 +380,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (data) {
             stepContainer.querySelectorAll('[data-config]').forEach(input => {
-                if (data[input.dataset.config]) input.value = data[input.dataset.config];
+                if (data[input.dataset.config]) {
+                    input.value = data[input.dataset.config];
+                }
             });
             if (type === 'select' && data.options) {
                 const optionsContainer = stepContainer.querySelector('.options-container');
                 data.options.forEach(opt => addOptionToDOM(optionsContainer, opt));
             }
+        } else if (type === 'select') {
+            // CORRECCIÓN: Auto-generar ID y añadir a la plantilla
+            const newId = `variable_${stepsContainer.children.length + 1}`;
+            clone.querySelector('[data-config="id"]').value = newId;
+            const templateTextarea = templateStepContainer.querySelector('[data-config="template"]');
+            if (templateTextarea) {
+                templateTextarea.value += ` {${newId}}`;
+            }
         }
         container.appendChild(stepContainer);
+        autoResizeTextareas();
     };
 
     const addOptionToDOM = (container, data = null) => {
@@ -400,8 +408,23 @@ document.addEventListener('DOMContentLoaded', () => {
             clone.querySelectorAll('[data-config]').forEach(input => {
                 if (data[input.dataset.config]) input.value = data[input.dataset.config];
             });
+        } else {
+            // CORRECCIÓN: Rellenar 'nextStep' con 'result' por defecto
+            clone.querySelector('[data-config="nextStep"]').value = 'result';
         }
         container.appendChild(clone);
+        autoResizeTextareas();
+    };
+
+    const autoResizeTextareas = () => {
+        document.querySelectorAll('.step-textarea-flexible').forEach(textarea => {
+            textarea.style.height = 'auto';
+            textarea.style.height = `${textarea.scrollHeight}px`;
+            textarea.addEventListener('input', () => {
+                textarea.style.height = 'auto';
+                textarea.style.height = `${textarea.scrollHeight}px`;
+            });
+        });
     };
     
     const parseEditor = () => {
@@ -485,13 +508,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                 </div>
                 <div style="display: flex; align-items: center; min-width: 0;">
-                    ${isDynamic ? `<svg class="dynamic-indicator" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" /></svg>` : ''}
                     <div>
                         <span class="shortcut-key">@${shortcut.key}</span>
                         <p class="shortcut-description">${shortcut.description}</p>
                     </div>
                 </div>
                 <div class="shortcut-actions">
+                    ${isDynamic ? `<svg class="dynamic-indicator" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" /></svg>` : ''}
                     <button class="action-btn edit-btn" data-key="${shortcut.key}" title="Editar">
                         <svg style="pointer-events: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" /></svg>
                     </button>
@@ -509,17 +532,17 @@ document.addEventListener('DOMContentLoaded', () => {
     addNewBtn.addEventListener('click', () => showEditorView());
     editorCancelBtn.addEventListener('click', showListView);
     
-    goToDynamicBtn.addEventListener('click', () => {
-        setEditorMode('dynamic');
-        if (stepsContainer.children.length === 0) {
-            addStepToDOM('template');
+    addVarBtnContainer.addEventListener('click', () => {
+        const isSimpleMode = !simpleModeView.classList.contains('hidden');
+        if (isSimpleMode) {
+            setEditorMode('dynamic');
+            if (stepsContainer.children.length === 0) {
+                addStepToDOM('template');
+                addStepToDOM('select');
+            }
+        } else {
             addStepToDOM('select');
         }
-        updateLivePreview();
-    });
-
-    addSelectStepBtn.addEventListener('click', () => {
-        addStepToDOM('select');
         updateLivePreview();
     });
 
@@ -592,4 +615,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Carga inicial
     showListView();
+    autoResizeTextareas();
 });
