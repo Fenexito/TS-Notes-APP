@@ -1,6 +1,6 @@
 /**
  * Estilos personalizados para el componente Shortkey.
- * Versión 20: Mejoras de UI en el editor.
+ * Versión 21: Corrección de layout del modal y pie de página sticky.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
@@ -49,8 +49,7 @@
 /* Contenido del Modal */
 #settingsModal .modal-header { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--gray-200); flex-shrink: 0; }
 #settingsModal .modal-header h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0px; }
-/* MODIFICADO: Se añade padding-bottom para que el contenido no quede oculto por el footer sticky */
-#settingsModal .modal-body { padding: 0.75rem; overflow-y: auto; flex-grow: 1; padding-bottom: 5rem; }
+#settingsModal .modal-body { padding: 0.75rem; overflow-y: auto; flex-grow: 1; }
 #settingsModal .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 #settingsModal #shortcutsList { display: flex; flex-direction: column; gap: 0.5rem; }
 #settingsModal .shortcut-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.75rem; background-color: white; border: 1px solid var(--gray-200); padding: 0.2rem 0.8rem; border-radius: 0.5rem; }
@@ -59,15 +58,36 @@
 #settingsModal .shortcut-actions { display: flex; align-items: center; gap: 0.2rem; background-color: var(--gray-100); border-radius: 0.375rem; }
 .shortcut-actions .dynamic-indicator { width: 1.1rem; height: 1.1rem; color: var(--gray-500); margin-left: 0.3rem; }
 #settingsModal .action-btn { background: none; border: none; cursor: pointer; padding: 0.35rem; }
-#settingsModal .action-btn svg { width: 0.9rem; height: 0.9rem; color: var(--gray-500); pointer-events: none; } /* SVG no captura el evento */
+#settingsModal .action-btn svg { width: 0.9rem; height: 0.9rem; color: var(--gray-500); pointer-events: none; }
 #settingsModal .action-btn:hover svg { color: var(--gray-800); }
 #settingsModal .action-btn:disabled svg { color: var(--gray-300); cursor: not-allowed; }
 
 /* --- REDISEÑO DEL EDITOR DE SHORTKEYS --- */
 #settingsModal .hidden { display: none; }
-/* MODIFICADO: Formulario con flex para permitir footer sticky */
-#view-editor form { display: flex; flex-direction: column; position: relative; min-height: 450px; }
-.editor-content { flex-grow: 1; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; }
+
+/* CORRECCIÓN: Layout del formulario usando Flexbox para un footer sticky seguro */
+#view-editor { height: 100%; }
+#shortkey-editor-form {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* El formulario ocupa toda la altura de su contenedor */
+}
+.editor-content {
+    flex-grow: 1; /* El contenido principal crece para ocupar el espacio disponible */
+    overflow-y: auto; /* El scroll aparece aquí si el contenido es muy largo */
+    padding-bottom: 1rem; /* Espacio para que el último elemento no pegue con el footer */
+}
+.editor-actions-sticky {
+    flex-shrink: 0; /* El footer no se encoge */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--gray-200);
+    background-color: #f9fafb;
+}
+
 .editor-section { display: flex; flex-direction: row; gap: 0.25rem; align-items: flex-start; margin-bottom: 10px;}
 .editor-section label { font-weight: 500; font-size: 0.85rem; color: var(--gray-700); width: 120px; padding-top: 0.3rem; padding-left: 10px;}
 .input-with-prefix { display: flex; align-items: center; border: 1px solid var(--gray-300); border-radius: 0.375rem; background-color: white; flex-grow: 1; }
@@ -88,13 +108,11 @@
 .step-title { font-weight: 600; font-size: 0.85rem; color: var(--gray-700); }
 .remove-step-btn, .remove-option-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--gray-500); padding: 0 0.2rem; }
 .step-body { padding: 0.6rem; display: flex; flex-direction: column; gap: 0.2rem; }
-/* MODIFICADO: Grid de una sola columna al quitar el prompt */
 .step-grid { display: grid; grid-template-columns: 1fr; gap: 0.6rem; }
 .step-input, .step-textarea { width: 100%; padding: 0.5rem; border: 1px solid var(--gray-300); border-radius: 0.25rem; font-size: 0.85rem; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 .step-textarea { min-height: 50px; resize: vertical; }
 .step-textarea-flexible { resize: vertical; min-height: 28px; line-height: 1.4; }
 .options-container { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.5rem; }
-/* MODIFICADO: Grid para nuevo layout de opciones con botones de reordenar */
 .option-item { display: grid; grid-template-columns: auto 1fr auto; gap: 0.4rem; align-items: flex-start; }
 .option-reorder-controls { display: flex; flex-direction: column; gap: 0.2rem; align-items: center; }
 .option-reorder-controls .action-btn { padding: 0.1rem; }
@@ -105,14 +123,6 @@
 
 .preview-output { background-color: var(--gray-100); padding: 0.6rem; border-radius: 0.5rem; min-height: 35px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-light); white-space: pre-wrap; }
 
-/* MODIFICADO: Estilos para el footer de acciones pegajoso (sticky) */
-.editor-actions-sticky {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    display: flex; justify-content: space-between; align-items: center;
-    gap: 0.75rem; padding: 0.75rem; margin: 0;
-    border-top: 1px solid var(--gray-200);
-    background-color: #f9fafb; /* Mismo fondo que el modal */
-}
 .editor-actions-right { display: flex; gap: 0.75rem; }
 .editor-actions-sticky button { font-weight: 600; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; cursor: pointer; font-size: 0.9rem; }
 #editor-cancel-btn { background-color: var(--gray-500); color: white; }
