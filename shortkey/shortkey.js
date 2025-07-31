@@ -669,12 +669,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // If you have a dedicated button in your HTML, you can uncomment this:
-    /*
+    
     const openBtn = document.getElementById('open-settings-btn');
     if (openBtn) {
         openBtn.addEventListener('click', () => {
             shortkeyApp.openModal();
         });
     }
-    */
+    
 });
