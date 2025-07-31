@@ -1,6 +1,6 @@
 /**
  * Estilos personalizados para el componente Shortkey.
- * Versión 18: Corrección definitiva de especificidad de color en el pop-up.
+ * Versión 19: Botones de acción fijos y mejoras de UX.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
@@ -39,24 +39,24 @@
     position: relative; z-index: 1001; margin: 1rem; 
     background-color: #f9fafb; color: var(--gray-800); 
     border-radius: 0.75rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); 
-    width: 600px; max-width: 48rem; /* Tamaño reducido */
+    width: 600px; max-width: 48rem;
     transform: scale(0.95); transition: transform 0.3s ease; 
-    
+    display: flex; flex-direction: column;
+    max-height: 90vh;
 }
 #settingsModal.visible .modal-container { transform: scale(1); }
 
 /* Contenido del Modal */
-#settingsModal .modal-header { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 0px; }
-#settingsModal .modal-header h3 { font-size: 1.1rem; font-weight: 600; margin: 0; flex-grow: 1; }
-#settingsModal .modal-header #closeSettingsBtn { font-size: 1.5rem; line-height: 1; color: var(--gray-500); background: var(--gray-200); border: none; cursor: pointer; border-radius: 50%; width: 1.75rem; height: 1.75rem; display: flex; align-items: center; justify-content: center; }
-#settingsModal .modal-body { padding: 0.75rem; max-height: 85vh; overflow-y: auto; }
+#settingsModal .modal-header { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--gray-200); flex-shrink: 0; }
+#settingsModal .modal-header h3 { font-size: 1.1rem; font-weight: 600; margin: 0; }
+#settingsModal .modal-body { padding: 0.75rem; overflow-y: auto; flex-grow: 1; }
 #settingsModal .list-header { display: flex; justify-content: space-between; align-items: center; }
 #settingsModal #shortcutsList { display: flex; flex-direction: column; gap: 0.5rem; }
-#settingsModal .shortcut-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.75rem; background-color: white; border: 1px solid var(--gray-200); padding: 0.6rem 0.8rem; border-radius: 0.5rem; }
+#settingsModal .shortcut-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.75rem; background-color: white; border: 1px solid var(--gray-200); padding: 0.2rem 0.8rem; border-radius: 0.5rem; }
 #settingsModal .shortcut-key { font-family: 'JetBrains Mono', monospace; background-color: #dbeafe; color: #1e40af; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-weight: 500; font-size: 0.9em; }
-#settingsModal .shortcut-description { font-size: 0.9em; color: var(--text-light); margin-top: 0.25rem; margin-bottom: 4px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;}
-#settingsModal .dynamic-indicator { width: 1.1rem; height: 1.1rem; color: var(--gray-500); margin-right: 0.5rem; flex-shrink: 0; }
-#settingsModal .shortcut-actions { display: flex; align-items: center; background-color: var(--gray-100); border-radius: 0.375rem; }
+#settingsModal .shortcut-description { font-size: 0.9em; color: var(--text-light); margin-top: 0.25rem; margin-bottom: 4px; text-overflow: ellipsis; white-space: normal; overflow: hidden;}
+#settingsModal .shortcut-actions { display: flex; align-items: center; gap: 0.2rem; background-color: var(--gray-100); border-radius: 0.375rem; }
+.shortcut-actions .dynamic-indicator { width: 1.1rem; height: 1.1rem; color: var(--gray-500); margin-left: 0.3rem; }
 #settingsModal .action-btn { background: none; border: none; cursor: pointer; padding: 0.35rem; }
 #settingsModal .action-btn svg { width: 0.9rem; height: 0.9rem; color: var(--gray-500); }
 #settingsModal .action-btn:hover svg { color: var(--gray-800); }
@@ -64,10 +64,11 @@
 
 /* --- REDISEÑO DEL EDITOR DE SHORTKEYS (COMPACTO) --- */
 #settingsModal .hidden { display: none; }
-#view-editor { display: flex; flex-direction: column; gap: 1rem; }
-.editor-section { display: flex; flex-direction: row; gap: 0.25rem; align-items: center;}
-.editor-section label { font-weight: 500; font-size: 0.85rem; color: var(--gray-700); width: 120px; /* Ancho fijo para alinear */ }
-.input-with-prefix { margin-bottom: 10px; display: flex; align-items: center; border: 1px solid var(--gray-300); border-radius: 0.375rem; background-color: white; flex-grow: 1; }
+#view-editor form { display: flex; flex-direction: column; height: 100%; }
+.editor-content { flex-grow: 1; display: flex; flex-direction: column; gap: 1rem; }
+.editor-section { display: flex; flex-direction: row; gap: 0.25rem; align-items: flex-start; }
+.editor-section label { font-weight: 500; font-size: 0.85rem; color: var(--gray-700); width: 120px; padding-top: 0.3rem; }
+.input-with-prefix { display: flex; align-items: center; border: 1px solid var(--gray-300); border-radius: 0.375rem; background-color: white; flex-grow: 1; }
 .input-with-prefix span { padding: 0.3rem; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 0.9rem; color: var(--gray-500); border-right: 1px solid var(--gray-300); }
 
 #view-editor input[type="text"], #view-editor textarea {
@@ -79,33 +80,43 @@
     box-sizing: border-box;
     width: 100%;
 }
-#view-editor .input-with-prefix input {
-    border: none;
-    outline: none;
-    background: transparent;
-}
-#editor-description { resize: vertical; }
+#view-editor .input-with-prefix input { border: none; outline: none; background: transparent; }
+#editor-description { resize: vertical; flex-grow: 1; }
 #editor-description:disabled { background-color: var(--gray-100); color: var(--gray-500); cursor: not-allowed; }
 
-.dynamic-controls { border: 1px dashed var(--gray-300); border-radius: 0.5rem; padding: 0.3rem; display: flex; flex-direction: column; gap: 0.75rem; margin-top: 10px;}
-.add-steps-buttons { text-align: center; padding: 0.5rem 0; }
+.dynamic-controls { border: 1px dashed var(--gray-300); border-radius: 0.5rem; padding: 0.3rem; display: flex; flex-direction: column; gap: 0.3rem; }
+.add-steps-buttons { text-align: center; padding: 0.2rem 0.4rem; }
 #steps-container { display: flex; flex-direction: column; gap: 0.75rem; }
 .step-container { background-color: white; border: 1px solid var(--gray-200); border-radius: 0.5rem; }
-.step-header { display: flex; justify-content: space-between; align-items: center; background-color: var(--gray-100); padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--gray-200); }
+.step-header { display: flex; justify-content: space-between; align-items: center; background-color: var(--gray-100); padding: 0rem 0.6rem; border-bottom: 1px solid var(--gray-200); }
 .step-title { font-weight: 600; font-size: 0.85rem; color: var(--gray-700); }
 .remove-step-btn, .remove-option-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--gray-500); padding: 0 0.2rem; }
 .step-body { padding: 0.6rem; display: flex; flex-direction: column; gap: 0.2rem; }
 .step-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
 .step-input, .step-textarea { width: 100%; padding: 0.5rem; border: 1px solid var(--gray-300); border-radius: 0.25rem; font-size: 0.85rem; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-.step-textarea { min-height: 70px; resize: vertical; }
+.step-textarea { min-height: 50px; resize: vertical; } /* Altura reducida */
+.step-textarea-flexible { resize: vertical; min-height: 28px; } /* Para valor a guardar */
 .options-container { display: flex; flex-direction: column; gap: 0.4rem; padding-left: 0.75rem; border-left: 2px solid var(--gray-200); margin-top: 0.5rem; }
-.option-item { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0.4rem; align-items: center; }
+.option-item { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0.4rem; align-items: flex-start; }
 .add-option-btn { background: none; border: 1px solid var(--gray-200); color: var(--gray-500); padding: 0.3rem; border-radius: 0.25rem; cursor: pointer; text-align: center; font-size: 0.8rem; margin-top: 0.4rem; }
 .add-option-btn:hover { background-color: var(--gray-100); }
 
 .preview-output { background-color: var(--gray-100); padding: 0.6rem; border-radius: 0.5rem; min-height: 35px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-light); white-space: pre-wrap; }
-.editor-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; border-top: 1px solid var(--gray-200); padding-top: 1rem; }
-.editor-actions button { font-weight: 600; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; cursor: pointer; font-size: 0.9rem; }
+
+/* CORRECCIÓN: Estilos para los botones de acción fijos */
+.editor-actions-sticky {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    border-top: 1px solid var(--gray-200);
+    padding-top: 0.75rem;
+    background-color: #f9fafb; /* Mismo fondo que el modal */
+}
+.editor-actions-right { display: flex; gap: 0.75rem; }
+.editor-actions-sticky button { font-weight: 600; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; cursor: pointer; font-size: 0.9rem; }
 #editor-cancel-btn { background-color: var(--gray-500); color: white; }
 #editor-save-btn { background-color: #28a745; color: white; }
 
@@ -122,24 +133,19 @@
 .shortkey-popup .popup-option { display: block; width: 100%; text-align: left; padding: 0.6rem 0.8rem; background: none; border: none; cursor: pointer; }
 #shortkey-search-popup .popup-option { display: flex; flex-direction: column; gap: 0.1rem; }
 
-/* --- REGLAS DE COLOR CORREGIDAS Y DEFINITIVAS --- */
-
-/* 1. Estado por defecto (NO SELECCIONADO) */
 #shortkey-search-popup .popup-option .search-key { 
     font-family: 'JetBrains Mono', monospace; 
     font-weight: 500; 
-    color: var(--gray-100); /* Texto oscuro para la llave */
+    color: var(--gray-100);
 }
 #shortkey-search-popup .popup-option .search-desc { 
     font-size: 0.9em; 
-    color: var(--gray-100); /* Texto gris para la descripción */
+    color: var(--gray-100);
 }
 
-/* 2. Estado SELECCIONADO */
 .shortkey-popup .popup-option.selected { 
     background-color: var(--brand-blue); 
 }
-/* Se aplica SOLO a los elementos internos de un botón seleccionado */
 .shortkey-popup .popup-option.selected .search-key,
 .shortkey-popup .popup-option.selected .search-desc {
     color: white;
