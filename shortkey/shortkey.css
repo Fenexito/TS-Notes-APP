@@ -1,6 +1,6 @@
 /**
  * Estilos personalizados para el componente Shortkey.
- * Versión 21: Corrección de layout del modal y pie de página sticky.
+ * Versión 22: Corrección definitiva de layout del modal y pie de página sticky.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
@@ -66,26 +66,29 @@
 #settingsModal .hidden { display: none; }
 
 /* CORRECCIÓN: Layout del formulario usando Flexbox para un footer sticky seguro */
-#view-editor { height: 100%; }
-#shortkey-editor-form {
+#view-editor, #shortkey-editor-form {
     display: flex;
     flex-direction: column;
-    height: 100%; /* El formulario ocupa toda la altura de su contenedor */
+    height: 100%; /* Ocupa toda la altura disponible en modal-body */
 }
+
 .editor-content {
     flex-grow: 1; /* El contenido principal crece para ocupar el espacio disponible */
     overflow-y: auto; /* El scroll aparece aquí si el contenido es muy largo */
-    padding-bottom: 1rem; /* Espacio para que el último elemento no pegue con el footer */
+    padding: 0.25rem;
+    margin: -0.25rem;
 }
+
 .editor-actions-sticky {
     flex-shrink: 0; /* El footer no se encoge */
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 0.75rem;
+    margin-top: 1rem;
     padding-top: 0.75rem;
     border-top: 1px solid var(--gray-200);
-    background-color: #f9fafb;
+    background-color: #f9fafb; /* Mismo fondo que el modal */
 }
 
 .editor-section { display: flex; flex-direction: row; gap: 0.25rem; align-items: flex-start; margin-bottom: 10px;}
