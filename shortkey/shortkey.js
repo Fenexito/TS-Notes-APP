@@ -1,680 +1,619 @@
+/**
+ * Clase para manejar los pop-ups de interacción y búsqueda.
+ */
 class PopupManager {
-    constructor() {
-        this.searchPopup = document.getElementById('shortkey-search-popup');
-        this.interactionPopup = document.getElementById('shortkey-interaction-popup');
-        this.activePopup = null;
-        this.activeTextarea = null;
+    constructor(element, onSelect) {
+        this.element = element; // El textarea activo
+        this.onSelect = onSelect; // Callback al seleccionar
+        this.popup = null; // El elemento DOM del popup
+        this.items = []; // Los items a mostrar
+        this.selectedIndex = -1; // El índice del item seleccionado
+        this._boundHandleKeydown = this._handleKeydown.bind(this);
+        this._boundHandleClick = this._handleClick.bind(this);
+    }
+
+    show(items, type, prompt = null) {
+        this.items = items;
         this.selectedIndex = 0;
-    }
-
-    showSearch(textarea, content) {
-        this.activeTextarea = textarea;
-        this.show(this.searchPopup, content);
-    }
-
-    showInteraction(textarea, title, options, callback) {
-        this.activeTextarea = textarea;
-        const ul = document.createElement('ul');
-        options.forEach((option, index) => {
-            const li = document.createElement('li');
-            li.dataset.index = index;
-            li.innerHTML = `<span class="option-label">${option.label}</span>`;
-            li.addEventListener('click', () => callback(option));
-            ul.appendChild(li);
-        });
-        const content = `<h5>${title}</h5>`;
-        this.interactionPopup.innerHTML = content;
-        this.interactionPopup.appendChild(ul);
-        this.show(this.interactionPopup);
-    }
-
-    show(popup, content = null) {
-        if (content) {
-            popup.innerHTML = content;
-        }
-        const pos = this.getCursorPosition(this.activeTextarea);
-        popup.style.top = `${pos.top + 20}px`;
-        popup.style.left = `${pos.left}px`;
-        popup.style.display = 'block';
-        this.activePopup = popup;
-        this.selectedIndex = 0;
-        this.updateSelection();
-    }
-
-    hide() {
-        if (this.activePopup) {
-            this.activePopup.style.display = 'none';
-            this.activePopup.innerHTML = '';
-        }
-        this.activePopup = null;
-        this.activeTextarea = null;
-    }
-
-    getCursorPosition(textarea) {
-        const dummy = document.createElement('div');
-        const style = window.getComputedStyle(textarea);
-        ['font', 'letterSpacing', 'lineHeight', 'padding', 'textTransform', 'whiteSpace', 'wordBreak', 'wordSpacing', 'wordWrap'].forEach(prop => {
-            dummy.style[prop] = style[prop];
-        });
-        dummy.style.position = 'absolute';
-        dummy.style.visibility = 'hidden';
-        dummy.style.top = `${textarea.offsetTop}px`;
-        dummy.style.left = `${textarea.offsetLeft}px`;
-        dummy.style.width = `${textarea.clientWidth}px`;
-        document.body.appendChild(dummy);
-
-        const text = textarea.value.substring(0, textarea.selectionStart);
-        dummy.textContent = text;
+        this.popup = document.getElementById(type === 'search' ? 'shortkey-search-popup' : 'shortkey-interaction-popup');
         
+        let content = prompt ? `<div class="popup-prompt">${prompt}</div>` : '';
+        items.forEach((item, index) => {
+            if (type === 'search') {
+                content += `<button class="popup-option" data-index="${index}" data-key="${item.key}">
+                    <span class="search-key">@${item.key}</span>
+                    <span class="search-desc">${item.description}</span>
+                </button>`;
+            } else { // interaction
+                content += `<button class="popup-option" data-index="${index}" data-value="${item.value}" data-next="${item.nextStep}">${item.label}</button>`;
+            }
+        });
+        this.popup.innerHTML = content;
+        
+        this.positionPopup();
+        this.popup.classList.add('visible');
+        this.updateSelected();
+        
+        document.addEventListener('keydown', this._boundHandleKeydown, true);
+        document.addEventListener('click', this._boundHandleClick, true);
+    }
+
+    destroy() {
+        if (!this.popup) return;
+        this.popup.classList.remove('visible');
+        this.popup.innerHTML = '';
+        this.popup = null;
+        document.removeEventListener('keydown', this._boundHandleKeydown, true);
+        document.removeEventListener('click', this._boundHandleClick, true);
+    }
+
+    positionPopup() {
+        const textarea = this.element;
+        const cursorPosition = textarea.selectionStart;
+
+        const div = document.createElement('div');
+        document.body.appendChild(div);
+        
+        const style = window.getComputedStyle(textarea);
+        div.style.whiteSpace = 'pre-wrap';
+        div.style.wordWrap = 'break-word';
+        div.style.position = 'absolute';
+        div.style.visibility = 'hidden';
+        ['fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'letterSpacing', 'lineHeight', 'textTransform', 'wordSpacing', 'paddingLeft', 'paddingTop', 'borderLeftWidth', 'borderTopWidth'].forEach(prop => {
+            div.style[prop] = style[prop];
+        });
+        div.style.width = style.width;
+
+        div.textContent = textarea.value.substring(0, cursorPosition);
         const span = document.createElement('span');
         span.textContent = '.';
-        dummy.appendChild(span);
-        
-        const pos = {
-            top: span.offsetTop + textarea.offsetTop - textarea.scrollTop,
-            left: span.offsetLeft + textarea.offsetLeft - textarea.scrollLeft,
-        };
-        
-        document.body.removeChild(dummy);
-        return pos;
-    }
+        div.appendChild(span);
 
-    navigate(direction) {
-        if (!this.activePopup) return;
-        const items = this.activePopup.querySelectorAll('li');
-        if (items.length === 0) return;
+        const { left: areaLeft, top: areaTop } = textarea.getBoundingClientRect();
+        const { offsetLeft: spanLeft, offsetTop: spanTop, offsetHeight: spanHeight } = span;
         
-        this.selectedIndex += direction;
-        
-        if (this.selectedIndex < 0) this.selectedIndex = items.length - 1;
-        if (this.selectedIndex >= items.length) this.selectedIndex = 0;
-        
-        this.updateSelection();
-    }
+        document.body.removeChild(div);
 
-    selectItem() {
-        if (!this.activePopup) return false;
-        const items = this.activePopup.querySelectorAll('li');
-        if (items[this.selectedIndex]) {
-            items[this.selectedIndex].click();
-            return true;
+        const popupTop = areaTop + spanTop + spanHeight;
+        let popupLeft = areaLeft + spanLeft;
+
+        const popupWidth = this.popup.offsetWidth || 240;
+        const windowWidth = window.innerWidth;
+
+        if (popupLeft + popupWidth > windowWidth - 10) { 
+            popupLeft = windowWidth - popupWidth - 10;
         }
-        return false;
+
+        this.popup.style.top = `${popupTop}px`;
+        this.popup.style.left = `${popupLeft}px`;
     }
 
-    updateSelection() {
-        const items = this.activePopup.querySelectorAll('li');
-        items.forEach((item, index) => {
-            item.classList.toggle('selected', index === this.selectedIndex);
+    _handleKeydown(event) {
+        if (!this.popup || this.items.length === 0) return;
+        
+        switch (event.key) {
+            case 'ArrowDown':
+                event.preventDefault(); event.stopPropagation();
+                this.selectedIndex = (this.selectedIndex + 1) % this.items.length;
+                this.updateSelected();
+                break;
+            case 'ArrowUp':
+                event.preventDefault(); event.stopPropagation();
+                this.selectedIndex = (this.selectedIndex - 1 + this.items.length) % this.items.length;
+                this.updateSelected();
+                break;
+            case 'Enter':
+            case 'Tab':
+                event.preventDefault(); event.stopPropagation();
+                this.onSelect(this.items[this.selectedIndex]);
+                break;
+            case 'Escape':
+                event.preventDefault(); event.stopPropagation();
+                this.destroy();
+                break;
+        }
+    }
+    
+    _handleClick(event) {
+        if (!this.popup) return;
+        const option = event.target.closest('.popup-option');
+        if (option && this.popup.contains(option)) {
+            this.onSelect(this.items[option.dataset.index]);
+        } else {
+            this.destroy();
+        }
+    }
+
+    updateSelected() {
+        if (!this.popup) return;
+        this.popup.querySelectorAll('.popup-option').forEach((opt, index) => {
+            opt.classList.toggle('selected', index === this.selectedIndex);
+            if (index === this.selectedIndex) {
+                opt.scrollIntoView({ block: 'nearest' });
+            }
         });
     }
 }
 
+/**
+ * Clase principal Shortkey
+ */
 class Shortkey {
     constructor() {
-        this.storageKey = 'shortkeys';
-        this.shortkeys = this.loadShortkeys();
-        this.popupManager = new PopupManager();
-        this.dom = this.getDomElements();
-        this.currentDynamicState = null;
-        this.isModalOpen = false;
-        this.init();
+        this._shortcuts = [];
+        this._activePopupManager = null;
+        this._currentElement = null;
+        this._loadShortcuts();
     }
-
-    getDomElements() {
-        return {
-            settingsModal: document.getElementById('settingsModal'),
-            modalOverlay: document.getElementById('modalOverlay'),
-            closeSettingsBtn: document.getElementById('closeSettingsBtn'),
-            shortcutsList: document.getElementById('shortcutsList'),
-            addNewBtn: document.getElementById('add-new-shortkey-btn'),
-            viewList: document.getElementById('view-list'),
-            viewEditor: document.getElementById('view-editor'),
-            editorForm: document.getElementById('shortkey-editor-form'),
-            editorKey: document.getElementById('editor-key'),
-            editorDescription: document.getElementById('editor-description'),
-            simpleModeView: document.getElementById('simple-mode-view'),
-            dynamicModeView: document.getElementById('dynamic-mode-view'),
-            stepsContainer: document.getElementById('steps-container'),
-            templateStepContainer: document.getElementById('template-step-container'),
-            livePreviewOutput: document.getElementById('live-preview-output'),
-            addSelectStepBtn: document.getElementById('add-select-step-btn'),
-            editorCancelBtn: document.getElementById('editor-cancel-btn'),
-            editorSaveBtn: document.getElementById('editor-save-btn'),
-            templates: {
-                select: document.getElementById('template-step-select'),
-                option: document.getElementById('template-step-option'),
-                template: document.getElementById('template-step-template'),
-            },
-        };
-    }
-
-    init() {
-        this.attachToTextareas();
-        this.initEventListeners();
-        this.renderShortcutsList();
-    }
-
-    loadShortkeys() {
-        const data = localStorage.getItem(this.storageKey);
-        try {
-            return data ? JSON.parse(data) : [];
-        } catch (e) {
-            console.error("Error parsing shortkeys from localStorage", e);
-            return [];
+    
+    _loadShortcuts() {
+        const saved = localStorage.getItem('userShortkeys');
+        if (saved) { this._shortcuts = JSON.parse(saved); }
+        else {
+            this._shortcuts = [
+                { key: 'sds', description: 'Saludos cordiales,', steps: [] },
+                { key: 'cxtv', description: 'Flujo de TV.', steps: [ { id: 'issue', type: 'select', prompt: 'Selecciona el problema:', options: [ { label: 'stb no boot', value: 'tv is not powering on', nextStep: 'result' }, { label: 'recording', value: 'cx cannot record', nextStep: 'recordings' } ] }, { id: 'recordings', type: 'select', prompt: 'Problema de grabación:', options: [ { label: 'rec list', value: 'cannot see the recording list', nextStep: 'result' }, { label: 'play rec', value: 'cx cannot play recordings', nextStep: 'result' } ] }, { id: 'result', type: 'template', template: '{issue} {recordings}.' } ] }
+            ];
+            this._saveShortcuts();
         }
     }
-
-    saveShortkeys() {
-        localStorage.setItem(this.storageKey, JSON.stringify(this.shortkeys));
-        this.renderShortcutsList();
+    _saveShortcuts() { localStorage.setItem('userShortkeys', JSON.stringify(this._shortcuts)); }
+    getShortcuts() { return this._shortcuts; }
+    addShortcut(shortcutData) { this._shortcuts.push(shortcutData); this._saveShortcuts(); }
+    updateShortcut(oldKey, shortcutData) { const index = this._shortcuts.findIndex(s => s.key === oldKey); if (index > -1) { this._shortcuts[index] = shortcutData; } else { this.addShortcut(shortcutData); } this._saveShortcuts(); }
+    removeShortcut(key) { this._shortcuts = this._shortcuts.filter(s => s.key !== key); this._saveShortcuts(); }
+    moveShortcut(key, direction) {
+        const index = this._shortcuts.findIndex(s => s.key === key);
+        if (index === -1) return;
+        if (direction === 'up' && index > 0) { [this._shortcuts[index - 1], this._shortcuts[index]] = [this._shortcuts[index], this._shortcuts[index - 1]]; }
+        else if (direction === 'down' && index < this._shortcuts.length - 1) { [this._shortcuts[index + 1], this._shortcuts[index]] = [this._shortcuts[index], this._shortcuts[index + 1]]; }
+        this._saveShortcuts();
     }
-
-    attachToTextareas() {
-        document.querySelectorAll('textarea').forEach(textarea => {
-            if (!textarea.closest('#settingsModal')) {
-                textarea.addEventListener('input', (e) => this.handleTextareaInput(e));
-                textarea.addEventListener('keydown', (e) => this.handleTextareaKeydown(e));
-            }
-        });
-    }
-
-    handleTextareaInput(e) {
-        const textarea = e.target;
-        const text = textarea.value.substring(0, textarea.selectionStart);
-        const atMatch = text.match(/@(\w*)$/);
-
-        if (this.currentDynamicState) {
-            this.popupManager.hide();
-            return;
-        }
-
-        if (atMatch) {
-            const query = atMatch[1];
-            const filtered = this.shortkeys.filter(s => s.key.startsWith(query));
-            if (filtered.length > 0) {
-                const listHtml = `<ul>${filtered.map((s, i) => `<li data-key="${s.key}" data-index="${i}">
-                    <span class="shortkey-name">@${s.key}</span>
-                    <span class="shortkey-description">${s.mode === 'simple' ? s.description.substring(0, 30) : 'Dinámico'}</span>
-                </li>`).join('')}</ul>`;
-                this.popupManager.showSearch(textarea, listHtml);
-                this.popupManager.searchPopup.querySelectorAll('li').forEach(li => {
-                    li.addEventListener('click', () => this.triggerShortkey(textarea, li.dataset.key));
+    
+    attach(selectorOrElement) { 
+        const elements = typeof selectorOrElement === 'string' ? document.querySelectorAll(selectorOrElement) : [selectorOrElement]; 
+        elements.forEach(element => { 
+            if (element) {
+                element.addEventListener('input', this._handleInput.bind(this)); 
+                element.addEventListener('click', () => {
+                   if (this._activePopupManager) this._activePopupManager.destroy();
                 });
-            } else {
-                this.popupManager.hide();
             }
+        }); 
+    }
+    
+    _handleInput(event) {
+        this._currentElement = event.target;
+        const text = this._currentElement.value;
+        const cursorPosition = this._currentElement.selectionStart;
+        const textBeforeCursor = text.substring(0, cursorPosition);
+        const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+
+        if (lastAtIndex === -1 || textBeforeCursor.substring(lastAtIndex).includes(' ')) {
+            if (this._activePopupManager) this._activePopupManager.destroy();
+            return;
+        }
+
+        const query = textBeforeCursor.substring(lastAtIndex + 1).toLowerCase();
+        const filteredShortcuts = this._shortcuts.filter(s => s.key.toLowerCase().startsWith(query));
+
+        if (filteredShortcuts.length > 0) {
+            if (!this._activePopupManager || !this._activePopupManager.popup) {
+                this._activePopupManager = new PopupManager(this._currentElement, (selected) => this._triggerShortkey(selected.key));
+            }
+            this._activePopupManager.show(filteredShortcuts, 'search');
         } else {
-            this.popupManager.hide();
+            if (this._activePopupManager) this._activePopupManager.destroy();
         }
     }
 
-    handleTextareaKeydown(e) {
-        if (this.popupManager.activePopup) {
-            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-                e.preventDefault();
-                this.popupManager.navigate(e.key === 'ArrowDown' ? 1 : -1);
-            } else if (e.key === 'Enter' || e.key === 'Tab') {
-                e.preventDefault();
-                if (!this.popupManager.selectItem()) {
-                    this.popupManager.hide();
-                }
-            } else if (e.key === 'Escape') {
-                this.popupManager.hide();
-            }
-        }
-    }
-
-    triggerShortkey(textarea, key) {
-        const shortkey = this.shortkeys.find(s => s.key === key);
-        this.popupManager.hide();
-
-        if (shortkey.mode === 'simple') {
-            this.replaceText(textarea, `@${key}`, shortkey.description);
-        } else if (shortkey.mode === 'dynamic') {
-            this.startDynamicFlow(textarea, shortkey);
-        }
-    }
-
-    replaceText(textarea, find, replace) {
-        const text = textarea.value;
-        const cursorPos = textarea.selectionStart;
-        const textBefore = text.substring(0, cursorPos);
-        const lastAtIndex = textBefore.lastIndexOf(find);
-
-        if (lastAtIndex !== -1) {
-            const newText = text.substring(0, lastAtIndex) + replace + text.substring(cursorPos);
-            textarea.value = newText;
-            textarea.focus();
-            textarea.selectionStart = textarea.selectionEnd = lastAtIndex + replace.length;
-        }
-    }
-
-    startDynamicFlow(textarea, shortkey) {
-        this.currentDynamicState = {
-            textarea,
-            shortkey,
-            values: {},
-            currentStepId: shortkey.steps[0]?.id || 'result',
-        };
-        this.processDynamicStep();
-    }
-
-    processDynamicStep() {
-        const { shortkey, currentStepId } = this.currentDynamicState;
-
-        if (currentStepId === 'result') {
-            this.finishDynamicFlow();
-            return;
+    _triggerShortkey(key) {
+        if (this._activePopupManager) {
+            this._activePopupManager.destroy();
+            this._activePopupManager = null;
         }
 
-        const step = shortkey.steps.find(s => s.id === currentStepId);
-        if (step.type === 'select') {
-            this.popupManager.showInteraction(this.currentDynamicState.textarea, step.prompt, step.options, (selectedOption) => {
-                this.currentDynamicState.values[step.id] = selectedOption.value;
-                this.currentDynamicState.currentStepId = selectedOption.nextStep || 'result';
-                this.processDynamicStep();
-            });
-        }
-    }
+        const shortcutData = this._shortcuts.find(s => s.key === key);
+        if (!shortcutData) return;
 
-    finishDynamicFlow() {
-        let resultText = this.currentDynamicState.shortkey.resultTemplate;
-        for (const key in this.currentDynamicState.values) {
-            resultText = resultText.replace(new RegExp(`{${key}}`, 'g'), this.currentDynamicState.values[key]);
-        }
-        
-        this.replaceText(this.currentDynamicState.textarea, `@${this.currentDynamicState.shortkey.key}`, resultText);
-        this.currentDynamicState = null;
-    }
+        const isDynamic = shortcutData.steps && shortcutData.steps.length > 0;
 
-    initEventListeners() {
-        this.dom.closeSettingsBtn.addEventListener('click', () => this.closeModal());
-        this.dom.modalOverlay.addEventListener('click', () => this.closeModal());
-        this.dom.addNewBtn.addEventListener('click', () => this.showEditor());
-        this.dom.editorCancelBtn.addEventListener('click', () => this.showList());
-        this.dom.editorForm.addEventListener('submit', (e) => this.handleSave(e));
-
-        this.dom.addSelectStepBtn.addEventListener('click', () => this.addStep('select'));
-        
-        document.addEventListener('input', e => {
-            if (e.target.matches('.step-textarea-flexible')) {
-                e.target.style.height = 'auto';
-                e.target.style.height = e.target.scrollHeight + 'px';
-            }
-        });
-    }
-    
-    openModal() {
-        this.dom.settingsModal.style.display = 'block';
-        this.isModalOpen = true;
-        this.renderShortcutsList();
-        this.showList();
-    }
-
-    closeModal() {
-        this.dom.settingsModal.style.display = 'none';
-        this.isModalOpen = false;
-    }
-    
-    showList() {
-        this.dom.viewList.classList.remove('hidden');
-        this.dom.viewEditor.classList.add('hidden');
-    }
-
-    showEditor(shortkeyToEdit = null) {
-        this.dom.viewList.classList.add('hidden');
-        this.dom.viewEditor.classList.remove('hidden');
-        this.buildEditor(shortkeyToEdit);
-    }
-    
-    renderShortcutsList() {
-        const list = this.dom.shortcutsList;
-        list.innerHTML = '';
-        if (this.shortkeys.length === 0) {
-            list.innerHTML = '<div class="shortcut-item"><p>No hay shortkeys guardados.</p></div>';
-            return;
-        }
-
-        this.shortkeys.forEach((shortkey, index) => {
-            const item = document.createElement('div');
-            item.className = 'shortcut-item';
-            item.dataset.id = shortkey.id;
-            item.dataset.index = index;
-            item.draggable = true;
-            
-            let preview = shortkey.mode === 'simple'
-                ? shortkey.description
-                : `Dinámico: ${shortkey.resultTemplate}`;
-
-            item.innerHTML = `
-                <span class="drag-handle">::</span>
-                <div class="shortcut-details">
-                    <div class="shortcut-key">@${shortkey.key}</div>
-                    <div class="shortcut-preview">${preview.substring(0, 60)}${preview.length > 60 ? '...' : ''}</div>
-                </div>
-                <div class="shortcut-actions">
-                    <button class="edit-btn">Editar</button>
-                    <button class="delete-btn">Eliminar</button>
-                </div>
-            `;
-            list.appendChild(item);
-        });
-
-        list.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', e => {
-            const id = e.target.closest('.shortcut-item').dataset.id;
-            const sk = this.shortkeys.find(s => s.id === id);
-            this.showEditor(sk);
-        }));
-        list.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', e => {
-            const id = e.target.closest('.shortcut-item').dataset.id;
-            if (confirm('¿Estás seguro de que quieres eliminar este shortkey?')) {
-                this.shortkeys = this.shortkeys.filter(s => s.id !== id);
-                this.saveShortkeys();
-            }
-        }));
-        
-        let draggedItem = null;
-        list.addEventListener('dragstart', e => {
-            draggedItem = e.target;
-            e.target.classList.add('dragging');
-        });
-        list.addEventListener('dragend', e => {
-            if (draggedItem) {
-                draggedItem.classList.remove('dragging');
-                draggedItem = null;
-                this.updateOrderFromDOM();
-            }
-        });
-        list.addEventListener('dragover', e => {
-            e.preventDefault();
-            const afterElement = this.getDragAfterElement(list, e.clientY);
-            const currentElement = document.querySelector('.dragging');
-            if (afterElement == null) {
-                list.appendChild(currentElement);
-            } else {
-                list.insertBefore(currentElement, afterElement);
-            }
-        });
-    }
-
-    getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll('.shortcut-item:not(.dragging)')];
-        return draggableElements.reduce((closest, child) => {
-            const box = child.getBoundingClientRect();
-            const offset = y - box.top - box.height / 2;
-            if (offset < 0 && offset > closest.offset) {
-                return { offset: offset, element: child };
-            } else {
-                return closest;
-            }
-        }, { offset: Number.NEGATIVE_INFINITY }).element;
-    }
-
-    updateOrderFromDOM() {
-        const newOrder = [];
-        this.dom.shortcutsList.querySelectorAll('.shortcut-item').forEach(item => {
-            const id = item.dataset.id;
-            const shortkey = this.shortkeys.find(sk => sk.id === id);
-            if(shortkey) newOrder.push(shortkey);
-        });
-        this.shortkeys = newOrder;
-        this.saveShortkeys();
-    }
-    
-    buildEditor(shortkey) {
-        this.dom.editorForm.reset();
-        this.dom.editorForm.dataset.id = shortkey ? shortkey.id : '';
-        this.dom.stepsContainer.innerHTML = '';
-        this.dom.templateStepContainer.innerHTML = '';
-
-        const isDynamic = shortkey ? shortkey.mode === 'dynamic' : false;
-        
-        this.dom.simpleModeView.classList.toggle('hidden', isDynamic);
-        this.dom.dynamicModeView.classList.toggle('hidden', !isDynamic);
-        this.dom.addSelectStepBtn.classList.toggle('hidden', !isDynamic);
-        
-        if (shortkey) {
-            this.dom.editorKey.value = shortkey.key;
-            if (isDynamic) {
-                shortkey.steps.forEach(step => this.addStep(step.type, step));
-                this.addStep('template', { id: 'result', template: shortkey.resultTemplate });
-            } else {
-                this.dom.editorDescription.value = shortkey.description;
-            }
-        } else {
-            this.dom.simpleModeView.classList.remove('hidden');
-            this.dom.dynamicModeView.classList.add('hidden');
-            this.dom.addSelectStepBtn.classList.add('hidden');
-            // When creating a new one, if user wants dynamic, they must clear description
-            // and we will switch. A better UX would be a toggle button.
-        }
-
-        // This logic allows switching to dynamic mode by clearing the description
-        this.dom.editorDescription.addEventListener('input', () => {
-            const isDescriptionEmpty = this.dom.editorDescription.value.trim() === '';
-            if (isDescriptionEmpty && this.dom.dynamicModeView.classList.contains('hidden')) {
-                this.dom.dynamicModeView.classList.remove('hidden');
-                this.dom.addSelectStepBtn.classList.remove('hidden');
-                if (this.dom.templateStepContainer.innerHTML === '') {
-                    this.addStep('template', { id: 'result', template: '' });
-                }
-            }
-        });
-        
-        // MODIFICACIÓN: Listener para la plantilla final para actualizar la vista previa
-        const resultTextarea = this.dom.templateStepContainer.querySelector('[data-config="template"]');
-        if (resultTextarea) {
-            resultTextarea.addEventListener('input', () => this.updateLivePreview());
-        }
-        
-        this.updateLivePreview();
-    }
-
-    addStep(type, data = {}) {
-        const template = this.dom.templates[type];
-        if (!template) return;
-
-        const newStep = template.content.cloneNode(true).firstElementChild;
-        const container = type === 'template' ? this.dom.templateStepContainer : this.dom.stepsContainer;
-        
-        if (type === 'select') {
-            newStep.querySelector('.remove-step-btn').addEventListener('click', (e) => {
-                const stepElement = e.target.closest('.step-container');
-                const idToRemove = stepElement.querySelector('[data-config="id"]').value;
-                this.updateTemplateOnDelete(idToRemove); // MODIFICACIÓN
-                stepElement.remove();
-                this.updateLivePreview();
-            });
-
-            newStep.querySelector('.add-option-btn').addEventListener('click', (e) => {
-                const optionsContainer = e.target.previousElementSibling;
-                this.addOption(optionsContainer);
-                this.updateLivePreview(); // MODIFICACIÓN
-            });
-            
-            // MODIFICACIÓN: Listeners para sincronizar ID con la plantilla final
-            const idInput = newStep.querySelector('[data-config="id"]');
-            idInput.addEventListener('focus', () => { idInput.dataset.oldValue = idInput.value; });
-            idInput.addEventListener('input', () => {
-                const oldValue = idInput.dataset.oldValue || '';
-                this.updateTemplateOnIdChange(oldValue, idInput.value);
-                idInput.dataset.oldValue = idInput.value;
-            });
-
-            if (data.options) {
-                const optionsContainer = newStep.querySelector('.options-container');
-                data.options.forEach(opt => this.addOption(optionsContainer, opt));
-            }
-        } else if (type === 'template') {
-             newStep.querySelector('[data-config="template"]').addEventListener('input', () => this.updateLivePreview());
-        }
-        
-        // Populate data
-        Object.keys(data).forEach(key => {
-            const input = newStep.querySelector(`[data-config="${key}"]`);
-            if (input) input.value = data[key];
-        });
-
-        container.appendChild(newStep);
-    }
-    
-    addOption(container, data = {}) {
-        const template = this.dom.templates.option;
-        const newOption = template.content.cloneNode(true).firstElementChild;
-        newOption.querySelector('.remove-option-btn').addEventListener('click', (e) => {
-            e.target.closest('.option-item').remove();
-            this.updateLivePreview(); // MODIFICACIÓN
-        });
-        
-        // Add listeners to update preview when option values change
-        newOption.querySelectorAll('.step-input, .step-textarea-flexible').forEach(input => {
-            input.addEventListener('input', () => this.updateLivePreview());
-        });
-
-        Object.keys(data).forEach(key => {
-            const input = newOption.querySelector(`[data-config="${key}"]`);
-            if (input) input.value = data[key];
-        });
-
-        const textarea = newOption.querySelector('.step-textarea-flexible');
-        if (data.value) {
-             setTimeout(() => textarea.dispatchEvent(new Event('input')), 0);
-        }
-
-        container.appendChild(newOption);
-    }
-    
-    // MODIFICACIÓN: Nuevas funciones para interactividad
-    updateTemplateOnIdChange(oldId, newId) {
-        const resultTextarea = this.dom.templateStepContainer.querySelector('[data-config="template"]');
-        if (!resultTextarea) return;
-
-        const currentTemplate = resultTextarea.value;
-        // Sanitize newId to avoid empty or invalid placeholders
-        const sanitizedNewId = newId.trim().replace(/\s+/g, '_');
-
-        if (oldId && currentTemplate.includes(`{${oldId}}`)) {
-            resultTextarea.value = currentTemplate.replace(new RegExp(`{${oldId}}`, 'g'), `{${sanitizedNewId}}`);
-        } else if (sanitizedNewId && !currentTemplate.includes(`{${sanitizedNewId}}`)) {
-             // Add with a space unless the template is empty
-            resultTextarea.value = resultTextarea.value ? `${resultTextarea.value} {${sanitizedNewId}}` : `{${sanitizedNewId}}`;
-        }
-        this.updateLivePreview();
-    }
-    
-    updateTemplateOnDelete(idToRemove) {
-        if (!idToRemove) return;
-        const resultTextarea = this.dom.templateStepContainer.querySelector('[data-config="template"]');
-        if (!resultTextarea) return;
-        
-        // Regex to eliminate the variable and one space before or after it, cleaning up whitespace.
-        resultTextarea.value = resultTextarea.value.replace(new RegExp(`\\s?{${idToRemove}}\\s?`, 'g'), ' ').trim();
-    }
-
-    updateLivePreview() {
-        const shortkeyData = this.getShortkeyDataFromForm();
-        const previewContainer = this.dom.livePreviewOutput;
-
-        if (!shortkeyData || shortkeyData.mode !== 'dynamic') {
-            previewContainer.textContent = '';
-            return;
-        }
-
-        const sampleValues = {};
-        shortkeyData.steps.forEach(step => {
-            if (step.id && step.type === 'select') {
-                // Use the value of the first option as an example, or its label as fallback
-                const firstOption = step.options[0];
-                sampleValues[step.id] = firstOption ? (firstOption.value || `[${firstOption.label}]`) : `[${step.id}]`;
-            }
-        });
-
-        let previewText = shortkeyData.resultTemplate;
-        for (const id in sampleValues) {
-            previewText = previewText.replace(new RegExp(`{${id}}`, 'g'), sampleValues[id]);
-        }
-        
-        // Replace any remaining variable placeholders that didn't have a sample value
-        previewText = previewText.replace(/{([a-zA-Z0-9_]+)}/g, '[$1]');
-        
-        previewContainer.textContent = previewText;
-    }
-
-    handleSave(e) {
-        e.preventDefault();
-        const shortkeyData = this.getShortkeyDataFromForm();
-        
-        if (!shortkeyData.key) {
-            alert('El activador (key) es obligatorio.');
-            return;
-        }
-        
-        const existingId = this.dom.editorForm.dataset.id;
-        if (existingId) {
-            const index = this.shortkeys.findIndex(s => s.id === existingId);
-            this.shortkeys[index] = { ...this.shortkeys[index], ...shortkeyData };
-        } else {
-            if (this.shortkeys.some(s => s.key === shortkeyData.key)) {
-                alert('Ya existe un shortkey con este activador.');
-                return;
-            }
-            this.shortkeys.push({ id: `sk_${Date.now()}`, ...shortkeyData });
-        }
-        
-        this.saveShortkeys();
-        this.showList();
-    }
-
-    getShortkeyDataFromForm() {
-        const form = this.dom.editorForm;
-        const key = form.querySelector('#editor-key').value;
-        const description = form.querySelector('#editor-description').value;
-        const isDynamic = !this.dom.dynamicModeView.classList.contains('hidden');
-
-        const data = { key };
-        
         if (isDynamic) {
-            data.mode = 'dynamic';
-            data.steps = Array.from(this.dom.stepsContainer.querySelectorAll('.step-container')).map(stepEl => {
-                const stepData = {
-                    type: stepEl.dataset.stepType,
-                    id: stepEl.querySelector('[data-config="id"]')?.value,
-                    prompt: stepEl.querySelector('[data-config="prompt"]')?.value,
-                    options: Array.from(stepEl.querySelectorAll('.option-item')).map(optEl => ({
-                        label: optEl.querySelector('[data-config="label"]').value,
-                        value: optEl.querySelector('[data-config="value"]').value,
-                        nextStep: optEl.querySelector('[data-config="nextStep"]').value,
-                    }))
-                };
-                return stepData;
-            });
-            data.resultTemplate = this.dom.templateStepContainer.querySelector('[data-config="template"]')?.value || '';
+            this._performReplacement('');
+            this._runDynamicFlow(shortcutData, {}, shortcutData.steps[0]);
         } else {
-            data.mode = 'simple';
-            data.description = description;
+            this._performReplacement(shortcutData.description + ' ');
+        }
+    }
+
+    _runDynamicFlow(shortkeyData, variables, currentStep) {
+        if (!currentStep) return;
+
+        if (currentStep.type === 'select') {
+            this._activePopupManager = new PopupManager(this._currentElement, (selectedOption) => {
+                if (this._activePopupManager) this._activePopupManager.destroy();
+                const newVariables = {...variables, [currentStep.id]: selectedOption.value };
+                const nextStep = shortkeyData.steps.find(s => s.id === selectedOption.nextStep);
+                this._runDynamicFlow(shortkeyData, newVariables, nextStep);
+            });
+            this._activePopupManager.show(currentStep.options, 'interaction', currentStep.prompt);
+        } else if (currentStep.type === 'template') {
+            let finalText = currentStep.template;
+            
+            for (const varName in variables) {
+                finalText = finalText.replace(new RegExp(`{${varName}}`, 'g'), variables[varName]);
+            }
+            
+            finalText = finalText.replace(/ ?\{[a-zA-Z0-9_]+\}/g, '').trim();
+
+            this._insertTextAtCursor(finalText + ' ');
+        }
+    }
+    
+    _performReplacement(replacementText) {
+        const element = this._currentElement;
+        const text = element.value;
+        const cursorPosition = element.selectionStart;
+        const textBeforeCursor = text.substring(0, cursorPosition);
+        const triggerAt = textBeforeCursor.lastIndexOf('@');
+
+        if (triggerAt === -1) {
+            this._insertTextAtCursor(replacementText);
+            return;
         }
 
-        return data;
+        const newText = text.substring(0, triggerAt) + replacementText + text.substring(cursorPosition);
+        element.value = newText;
+        const newCursorPosition = triggerAt + replacementText.length;
+        element.selectionStart = element.selectionEnd = newCursorPosition;
+        element.focus();
+    }
+
+    _insertTextAtCursor(textToInsert) {
+        const element = this._currentElement;
+        const start = element.selectionStart;
+        const end = element.selectionEnd;
+        const text = element.value;
+        element.value = text.substring(0, start) + textToInsert + text.substring(end);
+        element.selectionStart = element.selectionEnd = start + textToInsert.length;
+        element.focus();
     }
 }
 
+/**
+ * Lógica de la Aplicación
+ */
 document.addEventListener('DOMContentLoaded', () => {
-    const shortkeyApp = new Shortkey();
+    console.info('[Shortkey] Módulo dinámico cargado y listo.');
+    const shortkeyManager = new Shortkey();
+    shortkeyManager.attach('.shortkey-enabled');
+
+    // --- Selectores del DOM ---
+    const modal = document.getElementById('settingsModal');
+    const closeBtn = document.getElementById('closeSettingsBtn');
+    const overlay = document.getElementById('modalOverlay');
+    const viewList = document.getElementById('view-list');
+    const viewEditor = document.getElementById('view-editor');
+    const addNewBtn = document.getElementById('add-new-shortkey-btn');
+    const editorForm = document.getElementById('shortkey-editor-form');
+    const editorKeyInput = document.getElementById('editor-key');
+    const editorCancelBtn = document.getElementById('editor-cancel-btn');
     
-    // This allows you to open the modal via the browser console for testing
-    // e.g., by typing: window.openShortkeySettings()
-    window.openShortkeySettings = () => {
-        shortkeyApp.openModal();
+    const simpleModeView = document.getElementById('simple-mode-view');
+    const dynamicModeView = document.getElementById('dynamic-mode-view');
+    const editorDescInput = document.getElementById('editor-description');
+    const addVarBtnContainer = document.getElementById('add-select-step-btn');
+    
+    const stepsContainer = document.getElementById('steps-container');
+    const templateStepContainer = document.getElementById('template-step-container');
+    const livePreviewContainer = document.getElementById('live-preview-container');
+    const livePreviewOutput = document.getElementById('live-preview-output');
+    
+    let currentEditingKey = null;
+
+    // --- Funciones de control de UI ---
+    const openModal = () => {
+        showListView();
+        modal.classList.add('visible');
+    };
+    const closeModal = () => {
+        modal.classList.remove('visible');
     };
 
-    // If you have a dedicated button in your HTML, you can uncomment this:
-    
-    const openBtn = document.getElementById('open-settings-btn');
-    if (openBtn) {
-        openBtn.addEventListener('click', () => {
-            shortkeyApp.openModal();
+    const showListView = () => {
+        viewEditor.classList.add('hidden');
+        viewList.classList.remove('hidden');
+        renderShortcuts();
+    };
+
+    const showEditorView = (shortcutKey = null) => {
+        viewList.classList.add('hidden');
+        viewEditor.classList.remove('hidden');
+        currentEditingKey = shortcutKey;
+        buildEditor(shortcutKey);
+    };
+
+    const setEditorMode = (mode) => {
+        if (mode === 'dynamic') {
+            simpleModeView.classList.add('hidden');
+            dynamicModeView.classList.remove('hidden');
+            addVarBtnContainer.textContent = "+ Añadir Otra Variable";
+        } else {
+            dynamicModeView.classList.add('hidden');
+            simpleModeView.classList.remove('hidden');
+            addVarBtnContainer.textContent = "+ Añadir Variables (Modo Dinámico)";
+        }
+        addVarBtnContainer.classList.remove('hidden');
+    };
+
+    const buildEditor = (key) => {
+        editorForm.reset();
+        stepsContainer.innerHTML = '';
+        templateStepContainer.innerHTML = '';
+        const shortcut = key ? shortkeyManager.getShortcuts().find(s => s.key === key) : null;
+
+        if (shortcut) {
+            editorKeyInput.value = shortcut.key;
+            const hasSteps = shortcut.steps && shortcut.steps.length > 0;
+            if (hasSteps) {
+                setEditorMode('dynamic');
+                const selectSteps = shortcut.steps.filter(s => s.type === 'select');
+                const templateStep = shortcut.steps.find(s => s.type === 'template');
+                selectSteps.forEach(step => addStepToDOM('select', step));
+                if (templateStep) addStepToDOM('template', templateStep);
+            } else {
+                setEditorMode('simple');
+                editorDescInput.value = shortcut.description;
+            }
+        } else {
+            setEditorMode('simple');
+        }
+        updateLivePreview();
+    };
+
+    const addStepToDOM = (type, data = null) => {
+        const container = type === 'template' ? templateStepContainer : stepsContainer;
+        const templateId = `template-step-${type}`;
+        const template = document.getElementById(templateId);
+        const clone = template.content.cloneNode(true);
+        const stepContainer = clone.querySelector('.step-container');
+
+        if (data) {
+            stepContainer.querySelectorAll('[data-config]').forEach(input => {
+                if (data[input.dataset.config]) {
+                    input.value = data[input.dataset.config];
+                }
+            });
+            if (type === 'select' && data.options) {
+                const optionsContainer = stepContainer.querySelector('.options-container');
+                data.options.forEach(opt => addOptionToDOM(optionsContainer, opt));
+            }
+        } else if (type === 'select') {
+            // CORRECCIÓN: Auto-generar ID y añadir a la plantilla
+            const newId = `variable_${stepsContainer.children.length + 1}`;
+            clone.querySelector('[data-config="id"]').value = newId;
+            const templateTextarea = templateStepContainer.querySelector('[data-config="template"]');
+            if (templateTextarea) {
+                templateTextarea.value += ` {${newId}}`;
+            }
+        }
+        container.appendChild(stepContainer);
+        autoResizeTextareas();
+    };
+
+    const addOptionToDOM = (container, data = null) => {
+        const template = document.getElementById('template-step-option');
+        const clone = template.content.cloneNode(true);
+        if (data) {
+            clone.querySelectorAll('[data-config]').forEach(input => {
+                if (data[input.dataset.config]) input.value = data[input.dataset.config];
+            });
+        } else {
+            // CORRECCIÓN: Rellenar 'nextStep' con 'result' por defecto
+            clone.querySelector('[data-config="nextStep"]').value = 'result';
+        }
+        container.appendChild(clone);
+        autoResizeTextareas();
+    };
+
+    const autoResizeTextareas = () => {
+        document.querySelectorAll('.step-textarea-flexible').forEach(textarea => {
+            textarea.style.height = 'auto';
+            textarea.style.height = `${textarea.scrollHeight}px`;
+            textarea.addEventListener('input', () => {
+                textarea.style.height = 'auto';
+                textarea.style.height = `${textarea.scrollHeight}px`;
+            });
         });
-    }
+    };
     
+    const parseEditor = () => {
+        const key = editorKeyInput.value.trim().toLowerCase();
+        if (!key) return null;
+
+        const isDynamicMode = !dynamicModeView.classList.contains('hidden');
+        let description = '';
+        const steps = [];
+
+        if (isDynamicMode) {
+            description = "Shortkey dinámico con variables.";
+            stepsContainer.querySelectorAll('.step-container').forEach(stepEl => {
+                const stepData = { type: 'select', options: [] };
+                stepEl.querySelectorAll('[data-config]').forEach(input => stepData[input.dataset.config] = input.value.trim());
+                stepEl.querySelectorAll('.option-item').forEach(optEl => {
+                    const optionData = {};
+                    optEl.querySelectorAll('[data-config]').forEach(input => optionData[input.dataset.config] = input.value.trim());
+                    stepData.options.push(optionData);
+                });
+                steps.push(stepData);
+            });
+            const templateStep = templateStepContainer.querySelector('.step-container');
+            if (templateStep) {
+                const templateData = { type: 'template' };
+                templateStep.querySelectorAll('[data-config]').forEach(input => templateData[input.dataset.config] = input.value);
+                steps.push(templateData);
+            }
+        } else {
+            description = editorDescInput.value.trim();
+        }
+        
+        if (!description && steps.length === 0) return null;
+
+        return { key, description, steps };
+    };
+    
+    const updateLivePreview = () => {
+        const data = parseEditor();
+        if (!data || data.steps.length === 0) {
+            livePreviewContainer.classList.add('hidden');
+            return;
+        }
+        livePreviewContainer.classList.remove('hidden');
+
+        const templateStep = data.steps.find(s => s.type === 'template');
+        if (!templateStep || !templateStep.template) {
+            livePreviewOutput.textContent = 'Escribe en la Plantilla Final para ver la vista previa.';
+            return;
+        }
+        
+        let previewText = templateStep.template;
+        data.steps.filter(s => s.type === 'select').forEach(step => {
+            const varName = step.id || 'variable';
+            const firstOption = step.options.length > 0 ? step.options[0] : null;
+            const exampleValue = firstOption && firstOption.label ? `[${firstOption.label}]` : `[ejemplo]`;
+            previewText = previewText.replace(new RegExp(`{${varName}}`, 'g'), exampleValue);
+        });
+        livePreviewOutput.textContent = previewText;
+    };
+
+    const renderShortcuts = () => {
+        const listContainer = document.getElementById('shortcutsList');
+        listContainer.innerHTML = '';
+        const shortcuts = shortkeyManager.getShortcuts();
+        if (shortcuts.length === 0) {
+            listContainer.innerHTML = `<p style="text-align: center; color: #6b7280; padding: 1rem;">No tienes shortkeys. ¡Añade uno nuevo!</p>`;
+            return;
+        }
+        shortcuts.forEach((shortcut, index) => {
+            const isDynamic = shortcut.steps && shortcut.steps.length > 0;
+            const item = document.createElement('div');
+            item.className = 'shortcut-item';
+            item.innerHTML = `
+                <div class="shortcut-reorder">
+                    <button class="action-btn move-up-btn" data-key="${shortcut.key}" title="Mover arriba" ${index === 0 ? 'disabled' : ''}>
+                        <svg style="pointer-events: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+                    </button>
+                    <button class="action-btn move-down-btn" data-key="${shortcut.key}" title="Mover abajo" ${index === shortcuts.length - 1 ? 'disabled' : ''}>
+                        <svg style="pointer-events: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                    </button>
+                </div>
+                <div style="display: flex; align-items: center; min-width: 0;">
+                    <div>
+                        <span class="shortcut-key">@${shortcut.key}</span>
+                        <p class="shortcut-description">${shortcut.description}</p>
+                    </div>
+                </div>
+                <div class="shortcut-actions">
+                    ${isDynamic ? `<svg class="dynamic-indicator" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" /></svg>` : ''}
+                    <button class="action-btn edit-btn" data-key="${shortcut.key}" title="Editar">
+                        <svg style="pointer-events: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" /></svg>
+                    </button>
+                    <button class="action-btn delete-btn" data-key="${shortcut.key}" title="Eliminar">
+                        <svg style="pointer-events: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                    </button>
+                </div>`;
+            listContainer.appendChild(item);
+        });
+    };
+
+    // --- Event Listeners ---
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', closeModal);
+    addNewBtn.addEventListener('click', () => showEditorView());
+    editorCancelBtn.addEventListener('click', showListView);
+    
+    addVarBtnContainer.addEventListener('click', () => {
+        const isSimpleMode = !simpleModeView.classList.contains('hidden');
+        if (isSimpleMode) {
+            setEditorMode('dynamic');
+            if (stepsContainer.children.length === 0) {
+                addStepToDOM('template');
+                addStepToDOM('select');
+            }
+        } else {
+            addStepToDOM('select');
+        }
+        updateLivePreview();
+    });
+
+    editorForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const data = parseEditor();
+        if (!data) { alert('Por favor, completa al menos la llave.'); return; }
+        
+        const existing = shortkeyManager.getShortcuts().find(s => s.key === data.key);
+        if (existing && data.key !== currentEditingKey) {
+            alert(`El shortkey "@${data.key}" ya existe. Por favor, elige otra llave.`);
+            return;
+        }
+
+        if (currentEditingKey) {
+            shortkeyManager.updateShortcut(currentEditingKey, data);
+        } else {
+            shortkeyManager.addShortcut(data);
+        }
+        showListView();
+    });
+
+    dynamicModeView.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-step-btn')) {
+            e.target.closest('.step-container').remove();
+            if (stepsContainer.children.length === 0) {
+                templateStepContainer.innerHTML = '';
+                setEditorMode('simple');
+            }
+            updateLivePreview();
+        }
+        if (e.target.classList.contains('add-option-btn')) {
+            addOptionToDOM(e.target.previousElementSibling);
+        }
+        if (e.target.classList.contains('remove-option-btn')) {
+            e.target.closest('.option-item').remove();
+            updateLivePreview();
+        }
+    });
+    
+    document.getElementById('shortcutsList').addEventListener('click', (e) => {
+        const button = e.target.closest('.action-btn');
+        if (!button) return;
+        const key = button.dataset.key;
+        if (button.classList.contains('edit-btn')) {
+            showEditorView(key);
+        } else if (button.classList.contains('move-up-btn')) {
+            shortkeyManager.moveShortcut(key, 'up');
+            renderShortcuts();
+        } else if (button.classList.contains('move-down-btn')) {
+            shortkeyManager.moveShortcut(key, 'down');
+            renderShortcuts();
+        } else if (button.classList.contains('delete-btn')) {
+            if (confirm(`¿Estás seguro de que quieres eliminar el shortkey "@${key}"?`)) {
+                shortkeyManager.removeShortcut(key);
+                renderShortcuts();
+            }
+        }
+    });
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('visible')) {
+            closeModal();
+        }
+        if (e.ctrlKey && e.shiftKey && (e.key === 'S' || e.key === 's')) {
+            e.preventDefault();
+            modal.classList.contains('visible') ? closeModal() : openModal();
+        }
+    });
+
+    // Carga inicial
+    showListView();
+    autoResizeTextareas();
 });
