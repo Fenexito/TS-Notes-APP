@@ -152,7 +152,7 @@ class Shortkey {
         else {
             this._shortcuts = [
                 { key: 'sds', description: 'Saludos cordiales,', steps: [] },
-                { key: 'cxinternet', description: 'Reporte de problema de internet.', steps: [ { id: 'type', type: 'select', prompt: 'Tipo de conexión:', options: [ { label: 'Fibra Óptica', value: 'Fibra', nextStep: 'result' }, { label: 'Cobre', value: 'Cobre', nextStep: 'result' } ] }, { id: 'result', type: 'template', template: 'Cliente reporta inconvenientes con su servicio de internet tipo {type}. Se ha iniciado el proceso de diagnóstico.' } ] }
+                { key: 'cxtv', description: 'Flujo de TV.', steps: [ { id: 'issue', type: 'select', prompt: 'Selecciona el problema:', options: [ { label: 'stb no boot', value: 'tv is not powering on', nextStep: 'result' }, { label: 'recording', value: 'cx cannot record', nextStep: 'recordings' } ] }, { id: 'recordings', type: 'select', prompt: 'Problema de grabación:', options: [ { label: 'rec list', value: 'cannot see the recording list', nextStep: 'result' }, { label: 'play rec', value: 'cx cannot play recordings', nextStep: 'result' } ] }, { id: 'result', type: 'template', template: '{issue} {recordings}.' } ] }
             ];
             this._saveShortcuts();
         }
@@ -226,6 +226,7 @@ class Shortkey {
         }
     }
 
+    // CORRECCIÓN: Lógica de procesamiento de plantilla mejorada
     _runDynamicFlow(shortkeyData, variables, currentStep) {
         if (!currentStep) return;
 
@@ -239,9 +240,15 @@ class Shortkey {
             this._activePopupManager.show(currentStep.options, 'interaction', currentStep.prompt);
         } else if (currentStep.type === 'template') {
             let finalText = currentStep.template;
+            
+            // 1. Reemplaza las variables conocidas
             for (const varName in variables) {
                 finalText = finalText.replace(new RegExp(`{${varName}}`, 'g'), variables[varName]);
             }
+            
+            // 2. (LA CORRECCIÓN) Limpia cualquier variable no asignada y los espacios extra
+            finalText = finalText.replace(/ ?\{[a-zA-Z0-9_]+\}/g, '').trim();
+
             this._insertTextAtCursor(finalText + ' ');
         }
     }
@@ -332,7 +339,6 @@ document.addEventListener('DOMContentLoaded', () => {
         buildEditor(shortcutKey);
     };
 
-    // CORRECCIÓN: Función para cambiar entre modo simple y dinámico
     const setEditorMode = (mode) => {
         if (mode === 'dynamic') {
             simpleModeView.classList.add('hidden');
