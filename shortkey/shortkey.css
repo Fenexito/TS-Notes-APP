@@ -112,13 +112,14 @@
 .preview-output { background-color: var(--gray-100); padding: 0.6rem; border-radius: 0.5rem; min-height: 35px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-light); white-space: pre-wrap; }
 
 /* CAMBIO: Estilo unificado para botones de cierre (X) */
-.close-button-style {
+#closeSettingsBtn, .remove-step-btn, .remove-option-btn {
+    all: unset; /* Resetea estilos previos */
+    box-sizing: border-box;
     background-color: var(--gray-200);
     color: var(--brand-red);
-    border: none;
     border-radius: 50%;
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -136,7 +137,7 @@
 #closeSettingsBtn { all: unset; } /* Resetear estilos previos */
 #closeSettingsBtn { position: relative; top: -4px; } /* Ajuste de posición */
 .remove-step-btn, .remove-option-btn, #closeSettingsBtn {
-    composes: close-button-style;
+    color-scheme: close-button-style;
 }
 
 /* CAMBIO: Estilos para reordenar opciones */

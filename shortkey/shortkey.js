@@ -326,19 +326,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const attemptClose = () => {
         if (!viewEditor) return;
         const isEditorVisible = !viewEditor.classList.contains('hidden');
-        if (isEditorVisible && isDirty) {
+        // Si estamos en la vista de lista, simplemente cerramos todo.
+        if (!isEditorVisible) {
+            closeModalCleanup();
+            return;
+        }
+        // Si estamos en el editor y hay cambios, mostramos confirmación.
+        if (isDirty) {
             if (confirmModal) confirmModal.classList.remove('hidden');
         } else {
-            closeModalCleanup();
+            // Si no hay cambios, volvemos a la lista.
+            showListView();
         }
     };
 
+    // Esta función ahora solo cierra el modal principal.
     const closeModalCleanup = () => {
         if (modal) modal.classList.remove('visible');
         if (confirmModal) confirmModal.classList.add('hidden');
-        if (viewEditor && !viewEditor.classList.contains('hidden')) {
-            showListView();
-        }
     };
 
     const showListView = () => {
@@ -413,7 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     const newId = `variable_${stepsContainer.children.length + 1}`;
                     idInput.value = newId;
-                    updateTemplateOnIdChange('', newId);
+                    addPlaceholderToTemplate(newId);
                 }
                 idInput.addEventListener('focus', () => idInput.dataset.oldValue = idInput.value);
                 idInput.addEventListener('input', () => {
@@ -525,18 +530,28 @@ document.addEventListener('DOMContentLoaded', () => {
         return { key, description, steps };
     };
     
+    // CAMBIO: Lógica de actualización de plantilla corregida
+    const addPlaceholderToTemplate = (newId) => {
+        if (!templateStepContainer) return;
+        const templateTextarea = templateStepContainer.querySelector('[data-config="template"]');
+        if (!templateTextarea) return;
+        const sanitizedNewId = newId.trim().replace(/\s/g, '_');
+        if (sanitizedNewId && !templateTextarea.value.includes(`{${sanitizedNewId}}`)) {
+            templateTextarea.value = (templateTextarea.value ? templateTextarea.value + ' ' : '') + `{${sanitizedNewId}}`;
+        }
+    };
+
     const updateTemplateOnIdChange = (oldId, newId) => {
         if (!templateStepContainer) return;
         const templateTextarea = templateStepContainer.querySelector('[data-config="template"]');
         if (!templateTextarea) return;
         
         const currentTemplate = templateTextarea.value;
-        const sanitizedNewId = newId.trim().replace(/\s/g, '_');
+        const sanitizedNewId = newId.trim().replace(/\s/g, '');
 
+        // Solo reemplaza, no añade.
         if (oldId && currentTemplate.includes(`{${oldId}}`)) {
             templateTextarea.value = currentTemplate.replace(new RegExp(`{${oldId}}`, 'g'), `{${sanitizedNewId}}`);
-        } else if (sanitizedNewId && !currentTemplate.includes(`{${sanitizedNewId}}`)) {
-            templateTextarea.value = (templateTextarea.value ? templateTextarea.value + ' ' : '') + `{${sanitizedNewId}}`;
         }
     };
 
@@ -621,7 +636,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (editorCancelBtn) editorCancelBtn.addEventListener('click', attemptClose);
 
     if (confirmCancelBtn) confirmCancelBtn.addEventListener('click', () => confirmModal.classList.add('hidden'));
-    if (confirmDiscardBtn) confirmDiscardBtn.addEventListener('click', closeModalCleanup);
+    if (confirmDiscardBtn) confirmDiscardBtn.addEventListener('click', showListView);
     if (confirmSaveBtn) confirmSaveBtn.addEventListener('click', () => {
         if (editorForm) editorForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
     });
@@ -641,7 +656,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    if (editorForm) {
+if (editorForm) {
         editorForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const data = parseEditor();
@@ -659,11 +674,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 shortkeyManager.addShortcut(data);
             }
             isDirty = false;
-            closeModalCleanup();
+            // CAMBIO: Volver a la lista en lugar de cerrar todo
+            showListView();
         });
 
-        editorForm.addEventListener('input', () => {
-            isDirty = true;
+        editorForm.addEventListener('input', () => { isDirty = true; });
+    }
+
+    // CAMBIO: Añadir restricción de espacios al activador principal
+    if (editorKeyInput) {
+        editorKeyInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\s/g, '');
         });
     }
 
@@ -743,7 +764,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modal && modal.classList.contains('visible')) {
-            attemptClose();
+            // El modal de confirmación tiene su propio escape implícito (se cierra al hacer clic fuera)
+            // Aquí manejamos el escape para el modal principal
+            if (confirmModal && !confirmModal.classList.contains('hidden')) {
+                confirmModal.classList.add('hidden');
+            } else {
+                attemptClose();
+            }
         }
         if (e.ctrlKey && e.shiftKey && (e.key === 'S' || e.key === 's')) {
             e.preventDefault();
