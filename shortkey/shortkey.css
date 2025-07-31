@@ -54,7 +54,7 @@
 #settingsModal #shortcutsList { display: flex; flex-direction: column; gap: 0.5rem; }
 #settingsModal .shortcut-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.75rem; background-color: white; border: 1px solid var(--gray-200); padding: 0.6rem 0.8rem; border-radius: 0.5rem; }
 #settingsModal .shortcut-key { font-family: 'JetBrains Mono', monospace; background-color: #dbeafe; color: #1e40af; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-weight: 500; font-size: 0.9em; }
-#settingsModal .shortcut-description { font-size: 0.9em; color: var(--text-light); margin-top: 0.25rem; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;}
+#settingsModal .shortcut-description { font-size: 0.9em; color: var(--text-light); margin-top: 0.25rem; margin-bottom: 4px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;}
 #settingsModal .dynamic-indicator { width: 1.1rem; height: 1.1rem; color: var(--gray-500); margin-right: 0.5rem; flex-shrink: 0; }
 #settingsModal .shortcut-actions { display: flex; align-items: center; background-color: var(--gray-100); border-radius: 0.375rem; }
 #settingsModal .action-btn { background: none; border: none; cursor: pointer; padding: 0.35rem; }
@@ -78,7 +78,6 @@
     border-radius: 0.375rem;
     box-sizing: border-box;
     width: 100%;
-    margin-bottom: 10px;
 }
 #view-editor .input-with-prefix input {
     border: none;
