@@ -1,456 +1,152 @@
-/* === Shortkey Global Styles === */
+/**
+ * Estilos personalizados para el componente Shortkey.
+ * Versión 19: Botones de acción fijos y mejoras de UX.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
+
 :root {
-    --primary-color: #007bff;
-    --primary-hover-color: #0056b3;
-    --danger-color: #dc3545;
-    --danger-hover-color: #c82333;
-    --light-bg-color: #f8f9fa;
-    --border-color: #dee2e6;
-    --text-color: #212529;
-    --modal-bg-color: #ffffff;
-    --modal-overlay-color: rgba(0, 0, 0, 0.5);
-    --input-focus-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --brand-blue: #2563eb;
+    --brand-blue-dark: #1d4ed8;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-500: #6b7280;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --text-dark: #374151; 
+    --text-light: #6b7280;
 }
 
-/* === Pop-up Styles === */
-#shortkey-popup-container {
-    position: relative;
-    z-index: 1050;
-}
+/* Estilos de la página de demo */
+.editor { width: 100%; height: 16rem; padding: 0.75rem; border: 1px solid var(--gray-300); border-radius: 0.375rem; font-size: 1rem; }
+.main-button { background-color: var(--brand-blue); color: white; font-weight: 600; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; font-size: 13px; }
+.main-button:hover { background-color: var(--brand-blue-dark); }
 
-.shortkey-popup {
-    position: absolute;
-    background-color: var(--modal-bg-color);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    font-family: var(--font-family);
-    font-size: 14px;
-    min-width: 250px;
-    max-height: 300px;
-    overflow-y: auto;
-}
+/* --- Contenedor de Pop-ups --- */
+#shortkey-popup-container { position: relative; z-index: 2000; }
 
-#shortkey-search-popup ul, #shortkey-interaction-popup ul {
-    list-style: none;
-    padding: 4px;
-    margin: 0;
-}
-
-#shortkey-search-popup li, #shortkey-interaction-popup li {
-    padding: 8px 12px;
-    cursor: pointer;
-    border-radius: 4px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-#shortkey-search-popup li:hover, #shortkey-interaction-popup li:hover,
-#shortkey-search-popup li.selected, #shortkey-interaction-popup li.selected {
-    background-color: var(--light-bg-color);
-}
-
-#shortkey-search-popup .shortkey-name, #shortkey-interaction-popup .option-label {
-    font-weight: 500;
-    color: var(--text-color);
-}
-
-#shortkey-search-popup .shortkey-description {
-    font-size: 12px;
-    color: #6c757d;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 200px; /* Adjust as needed */
-}
-
-/* === Modal Styles === */
+/* --- Estructura del Modal Flotante --- */
 #settingsModal {
-    display: none; /* Hidden by default */
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    font-family: var(--font-family);
-}
-
-#modalOverlay {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--modal-overlay-color);
-}
-
-.modal-container {
-    background-color: var(--modal-bg-color);
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    width: 90%;
-    max-width: 800px;
-    height: 85vh;
-    display: flex;
-    flex-direction: column;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 24px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.modal-header h3 {
-    margin: 0;
-    font-size: 20px;
-}
-
-#closeSettingsBtn {
-    background: none;
-    border: none;
-    font-size: 28px;
-    font-weight: bold;
-    color: #888;
-    cursor: pointer;
-    padding: 0 8px;
-}
-#closeSettingsBtn:hover {
-    color: #000;
-}
-
-.modal-body {
-    padding: 0 24px 24px;
-    overflow-y: auto;
-    flex-grow: 1;
-    position: relative;
-}
-
-.hidden {
-    display: none !important;
-}
-
-/* === Main List View Styles === */
-.list-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 0;
-}
-
-.list-header h4 {
-    margin: 0;
-    font-size: 18px;
-}
-
-#shortcutsList {
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    overflow: hidden;
-}
-
-.shortcut-item {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    border-bottom: 1px solid var(--border-color);
-    background-color: #fff;
-}
-.shortcut-item:last-child {
-    border-bottom: none;
-}
-
-.drag-handle {
-    cursor: grab;
-    color: #aaa;
-    margin-right: 12px;
-}
-.drag-handle:active {
-    cursor: grabbing;
-}
-
-.shortcut-details {
-    flex-grow: 1;
-}
-
-.shortcut-key {
-    font-weight: bold;
-    font-size: 16px;
-    color: var(--primary-color);
-}
-
-.shortcut-preview {
-    color: #666;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 1000; display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden; font-family: 'Inter', sans-serif;
     font-size: 14px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 500px; /* Adjust as needed */
-    margin-top: 4px;
+    transition: opacity 0.3s ease, visibility 0s linear 0.3s;
 }
+#settingsModal.visible { opacity: 1; visibility: visible; transition-delay: 0s; }
+#settingsModal #modalOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(17, 24, 39, 0.6); backdrop-filter: blur(4px); cursor: pointer; }
+#settingsModal .modal-container { 
+    position: relative; z-index: 1001; margin: 1rem; 
+    background-color: #f9fafb; color: var(--gray-800); 
+    border-radius: 0.75rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); 
+    width: 600px; max-width: 48rem;
+    transform: scale(0.95); transition: transform 0.3s ease; 
+    display: flex; flex-direction: column;
+    max-height: 90vh;
+}
+#settingsModal.visible .modal-container { transform: scale(1); }
 
-.shortcut-actions button {
-    background: none;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    padding: 4px 8px;
-    cursor: pointer;
-    margin-left: 8px;
-}
-.shortcut-actions button:hover {
-    border-color: var(--border-color);
-    background-color: var(--light-bg-color);
-}
+/* Contenido del Modal */
+#settingsModal .modal-header { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--gray-200); flex-shrink: 0; }
+#settingsModal .modal-header h3 { font-size: 1.1rem; font-weight: 600; margin: 0; }
+#settingsModal .modal-body { padding: 0.75rem; overflow-y: auto; flex-grow: 1; }
+#settingsModal .list-header { display: flex; justify-content: space-between; align-items: center; }
+#settingsModal #shortcutsList { display: flex; flex-direction: column; gap: 0.5rem; }
+#settingsModal .shortcut-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.75rem; background-color: white; border: 1px solid var(--gray-200); padding: 0.2rem 0.8rem; border-radius: 0.5rem; }
+#settingsModal .shortcut-key { font-family: 'JetBrains Mono', monospace; background-color: #dbeafe; color: #1e40af; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-weight: 500; font-size: 0.9em; }
+#settingsModal .shortcut-description { font-size: 0.9em; color: var(--text-light); margin-top: 0.25rem; margin-bottom: 4px; text-overflow: ellipsis; white-space: normal; overflow: hidden;}
+#settingsModal .shortcut-actions { display: flex; align-items: center; gap: 0.2rem; background-color: var(--gray-100); border-radius: 0.375rem; }
+.shortcut-actions .dynamic-indicator { width: 1.1rem; height: 1.1rem; color: var(--gray-500); margin-left: 0.3rem; }
+#settingsModal .action-btn { background: none; border: none; cursor: pointer; padding: 0.35rem; }
+#settingsModal .action-btn svg { width: 0.9rem; height: 0.9rem; color: var(--gray-500); }
+#settingsModal .action-btn:hover svg { color: var(--gray-800); }
+#settingsModal .action-btn:disabled svg { color: var(--gray-300); cursor: not-allowed; }
 
-.shortcut-item.dragging {
-    opacity: 0.5;
-    background: var(--light-bg-color);
-}
+/* --- REDISEÑO DEL EDITOR DE SHORTKEYS (COMPACTO) --- */
+#settingsModal .hidden { display: none; }
+#view-editor form { display: flex; flex-direction: column; height: 100%; }
+.editor-content { flex-grow: 1; display: flex; flex-direction: column; gap: 1rem; }
+.editor-section { display: flex; flex-direction: row; gap: 0.25rem; align-items: flex-start; }
+.editor-section label { font-weight: 500; font-size: 0.85rem; color: var(--gray-700); width: 120px; padding-top: 0.3rem; }
+.input-with-prefix { display: flex; align-items: center; border: 1px solid var(--gray-300); border-radius: 0.375rem; background-color: white; flex-grow: 1; }
+.input-with-prefix span { padding: 0.3rem; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 0.9rem; color: var(--gray-500); border-right: 1px solid var(--gray-300); }
 
-/* === Editor View Styles === */
-#shortkey-editor-form {
-    padding-top: 24px;
-}
-
-.editor-section {
-    margin-bottom: 20px;
-}
-
-.editor-section label {
-    display: block;
-    font-weight: 500;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-.input-with-prefix {
-    display: flex;
-    align-items: center;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-.input-with-prefix:focus-within {
-    border-color: var(--primary-color);
-    box-shadow: var(--input-focus-shadow);
-}
-.input-with-prefix span {
-    padding: 8px 12px;
-    background-color: var(--light-bg-color);
-    border-right: 1px solid var(--border-color);
-    font-size: 16px;
-    color: #888;
-}
-.input-with-prefix input {
-    border: none;
-    outline: none;
-    padding: 8px 12px;
-    flex-grow: 1;
-    background: transparent;
-    font-size: 16px;
-}
-
-input[type="text"],
-textarea {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 14px;
-    font-family: var(--font-family);
-    box-sizing: border-box; /* Important */
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-input[type="text"]:focus,
-textarea:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: var(--input-focus-shadow);
-}
-textarea {
-    resize: vertical;
-}
-
-/* === Dynamic Mode Styles === */
-#steps-container, #template-step-container {
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 16px;
-    margin-bottom: 16px;
-}
-
-.step-container {
-    background-color: var(--light-bg-color);
-    border: 1px solid #e9ecef;
-    border-radius: 4px;
-    margin-bottom: 16px;
-}
-.step-container:last-child {
-    margin-bottom: 0;
-}
-
-.step-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #e9ecef;
-    padding: 8px 12px;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.step-title {
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.step-body {
-    padding: 12px;
-}
-
-.step-grid {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 12px;
-    margin-bottom: 12px;
-}
-
-.remove-step-btn, .remove-option-btn {
-    background: none;
-    border: none;
-    color: var(--danger-color);
-    font-size: 20px;
-    font-weight: bold;
-    cursor: pointer;
-    padding: 0 4px;
-    line-height: 1;
-}
-.remove-step-btn:hover, .remove-option-btn:hover {
-    color: var(--danger-hover-color);
-}
-
-
-/* MODIFICACIÓN: Estilos para la fila de opciones */
-.option-item {
-    display: grid;
-    grid-template-columns: 1fr 1.5fr 1fr auto; /* 3 columnas para inputs, 1 para botón */
-    gap: 8px;
-    align-items: start; /* Alinear al inicio por si el textarea crece */
-    padding: 8px;
-    border-radius: 4px;
-    background: #fff;
-    border: 1px solid #e9ecef;
-    margin-bottom: 8px;
-}
-
-.step-input, .step-textarea-flexible {
-    font-size: 13px;
-    padding: 6px 8px;
+#view-editor input[type="text"], #view-editor textarea {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    padding: 0.3rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 0.375rem;
     box-sizing: border-box;
     width: 100%;
 }
+#view-editor .input-with-prefix input { border: none; outline: none; background: transparent; }
+#editor-description { resize: vertical; flex-grow: 1; }
+#editor-description:disabled { background-color: var(--gray-100); color: var(--gray-500); cursor: not-allowed; }
 
-.step-textarea-flexible {
-    resize: vertical;
-    min-height: 34px; /* Altura inicial similar a un input */
-}
+.dynamic-controls { border: 1px dashed var(--gray-300); border-radius: 0.5rem; padding: 0.3rem; display: flex; flex-direction: column; gap: 0.3rem; }
+.add-steps-buttons { text-align: center; padding: 0.2rem 0.4rem; }
+#steps-container { display: flex; flex-direction: column; gap: 0.75rem; }
+.step-container { background-color: white; border: 1px solid var(--gray-200); border-radius: 0.5rem; }
+.step-header { display: flex; justify-content: space-between; align-items: center; background-color: var(--gray-100); padding: 0rem 0.6rem; border-bottom: 1px solid var(--gray-200); }
+.step-title { font-weight: 600; font-size: 0.85rem; color: var(--gray-700); }
+.remove-step-btn, .remove-option-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--gray-500); padding: 0 0.2rem; }
+.step-body { padding: 0.6rem; display: flex; flex-direction: column; gap: 0.2rem; }
+.step-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.step-input, .step-textarea { width: 100%; padding: 0.5rem; border: 1px solid var(--gray-300); border-radius: 0.25rem; font-size: 0.85rem; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+.step-textarea { min-height: 50px; resize: vertical; } /* Altura reducida */
+.step-textarea-flexible { resize: vertical; min-height: 28px; } /* Para valor a guardar */
+.options-container { display: flex; flex-direction: column; gap: 0.4rem; padding-left: 0.75rem; border-left: 2px solid var(--gray-200); margin-top: 0.5rem; }
+.option-item { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0.4rem; align-items: flex-start; }
+.add-option-btn { background: none; border: 1px solid var(--gray-200); color: var(--gray-500); padding: 0.3rem; border-radius: 0.25rem; cursor: pointer; text-align: center; font-size: 0.8rem; margin-top: 0.4rem; }
+.add-option-btn:hover { background-color: var(--gray-100); }
 
-.add-option-btn {
-    margin-top: 8px;
-    background: none;
-    border: 1px dashed var(--primary-color);
-    color: var(--primary-color);
-    border-radius: 4px;
-    padding: 6px 12px;
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
-}
-.add-option-btn:hover {
-    background-color: var(--primary-color);
-    color: #fff;
-}
+.preview-output { background-color: var(--gray-100); padding: 0.6rem; border-radius: 0.5rem; min-height: 35px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-light); white-space: pre-wrap; }
 
-#template-step-container .step-textarea {
-    min-height: 100px;
-}
-
-/* Vista Previa */
-.preview-output {
-    background-color: var(--light-bg-color);
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    padding: 12px;
-    min-height: 50px;
-    font-family: monospace;
-    font-size: 14px;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-}
-
-/* === Editor Actions & Buttons === */
-.main-button {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-.main-button:hover {
-    background-color: var(--primary-hover-color);
-}
-
-/* MODIFICACIÓN: Contenedor de acciones fijo (sticky) */
+/* CORRECCIÓN: Estilos para los botones de acción fijos */
 .editor-actions-sticky {
+    flex-shrink: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    
-    /* Sticky positioning */
-    position: sticky;
-    bottom: 0;
-    
-    /* Estilos para que se vea bien */
-    background-color: var(--modal-bg-color);
-    padding: 16px 24px;
-    margin: 0 -24px -24px; /* Contrarresta el padding del modal-body */
-    border-top: 1px solid var(--border-color);
-    z-index: 10;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    border-top: 1px solid var(--gray-200);
+    padding-top: 0.75rem;
+    background-color: #f9fafb; /* Mismo fondo que el modal */
+}
+.editor-actions-right { display: flex; gap: 0.75rem; }
+.editor-actions-sticky button { font-weight: 600; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; cursor: pointer; font-size: 0.9rem; }
+#editor-cancel-btn { background-color: var(--gray-500); color: white; }
+#editor-save-btn { background-color: #28a745; color: white; }
+
+/* --- Pop-ups de Búsqueda e Interacción --- */
+.shortkey-popup {
+    position: fixed; z-index: 2000; background-color: var(--gray-800); border: 1px solid var(--gray-300);
+    border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); font-family: 'Inter', sans-serif;
+    opacity: 0; visibility: hidden; transform: scale(0.95) translateY(-10px); 
+    transition: opacity 0.1s ease, transform 0.1s ease, visibility 0s linear 0.1s; 
+    max-height: 250px; overflow-y: auto;
+}
+.shortkey-popup.visible { opacity: 1; visibility: visible; transform: scale(1) translateY(0); transition-delay: 0s; }
+.shortkey-popup .popup-prompt { font-weight: 600; padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--gray-200); color: var(--gray-700); }
+.shortkey-popup .popup-option { display: block; width: 100%; text-align: left; padding: 0.6rem 0.8rem; background: none; border: none; cursor: pointer; }
+#shortkey-search-popup .popup-option { display: flex; flex-direction: column; gap: 0.1rem; }
+
+#shortkey-search-popup .popup-option .search-key { 
+    font-family: 'JetBrains Mono', monospace; 
+    font-weight: 500; 
+    color: var(--gray-100);
+}
+#shortkey-search-popup .popup-option .search-desc { 
+    font-size: 0.9em; 
+    color: var(--gray-100);
 }
 
-
-.editor-actions-right button {
-    margin-left: 12px;
-    padding: 10px 16px;
-    border-radius: 4px;
-    font-size: 14px;
-    cursor: pointer;
-    border: 1px solid var(--border-color);
-    transition: background-color 0.2s;
+.shortkey-popup .popup-option.selected { 
+    background-color: var(--brand-blue); 
 }
-.editor-actions-right #editor-save-btn {
-    background-color: var(--primary-color);
+.shortkey-popup .popup-option.selected .search-key,
+.shortkey-popup .popup-option.selected .search-desc {
     color: white;
-    border-color: var(--primary-color);
-}
-.editor-actions-right #editor-save-btn:hover {
-    background-color: var(--primary-hover-color);
-}
-.editor-actions-right #editor-cancel-btn {
-    background-color: transparent;
-    color: var(--text-color);
-}
-.editor-actions-right #editor-cancel-btn:hover {
-    background-color: var(--light-bg-color);
 }
