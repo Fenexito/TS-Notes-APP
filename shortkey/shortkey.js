@@ -220,7 +220,6 @@ class Shortkey {
 
         if (isDynamic) {
             this._performReplacement('');
-            // CAMBIO: Se eliminó el `prompt` de la llamada
             this._runDynamicFlow(shortcutData, {}, shortcutData.steps[0]);
         } else {
             this._performReplacement(shortcutData.description + ' ');
@@ -237,7 +236,6 @@ class Shortkey {
                 const nextStep = shortkeyData.steps.find(s => s.id === selectedOption.nextStep);
                 this._runDynamicFlow(shortkeyData, newVariables, nextStep);
             });
-            // CAMBIO: Se eliminó el `prompt` de la llamada
             this._activePopupManager.show(currentStep.options, 'interaction');
         } else if (currentStep.type === 'template') {
             let finalText = currentStep.template;
@@ -311,56 +309,55 @@ document.addEventListener('DOMContentLoaded', () => {
     const livePreviewContainer = document.getElementById('live-preview-container');
     const livePreviewOutput = document.getElementById('live-preview-output');
 
-    // CAMBIO: Selectores para el nuevo modal de confirmación
     const confirmModal = document.getElementById('confirm-modal');
     const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
     const confirmDiscardBtn = document.getElementById('confirm-discard-btn');
     const confirmSaveBtn = document.getElementById('confirm-save-btn');
     
     let currentEditingKey = null;
-    let isDirty = false; // CAMBIO: Flag para cambios sin guardar
+    let isDirty = false;
 
     // --- Funciones de control de UI ---
     const openModal = () => {
         showListView();
-        modal.classList.add('visible');
+        if (modal) modal.classList.add('visible');
     };
 
-    // CAMBIO: Lógica de cierre modificada
     const attemptClose = () => {
+        if (!viewEditor) return;
         const isEditorVisible = !viewEditor.classList.contains('hidden');
         if (isEditorVisible && isDirty) {
-            confirmModal.classList.remove('hidden');
+            if (confirmModal) confirmModal.classList.remove('hidden');
         } else {
             closeModalCleanup();
         }
     };
 
     const closeModalCleanup = () => {
-        modal.classList.remove('visible');
-        confirmModal.classList.add('hidden');
-        // Si el editor estaba abierto, al cerrar siempre volvemos a la lista
-        if (!viewEditor.classList.contains('hidden')) {
+        if (modal) modal.classList.remove('visible');
+        if (confirmModal) confirmModal.classList.add('hidden');
+        if (viewEditor && !viewEditor.classList.contains('hidden')) {
             showListView();
         }
     };
 
     const showListView = () => {
-        viewEditor.classList.add('hidden');
-        viewList.classList.remove('hidden');
-        isDirty = false; // Reseteamos el flag al volver a la lista
+        if (viewEditor) viewEditor.classList.add('hidden');
+        if (viewList) viewList.classList.remove('hidden');
+        isDirty = false;
         renderShortcuts();
     };
 
     const showEditorView = (shortcutKey = null) => {
-        viewList.classList.add('hidden');
-        viewEditor.classList.remove('hidden');
-        isDirty = false; // Reseteamos al empezar a editar
+        if (viewList) viewList.classList.add('hidden');
+        if (viewEditor) viewEditor.classList.remove('hidden');
+        isDirty = false;
         currentEditingKey = shortcutKey;
         buildEditor(shortcutKey);
     };
 
     const setEditorMode = (mode) => {
+        if (!simpleModeView || !dynamicModeView || !addVarBtnContainer) return;
         if (mode === 'dynamic') {
             simpleModeView.classList.add('hidden');
             dynamicModeView.classList.remove('hidden');
@@ -374,13 +371,14 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const buildEditor = (key) => {
+        if (!editorForm) return;
         editorForm.reset();
-        stepsContainer.innerHTML = '';
-        templateStepContainer.innerHTML = '';
+        if (stepsContainer) stepsContainer.innerHTML = '';
+        if (templateStepContainer) templateStepContainer.innerHTML = '';
         const shortcut = key ? shortkeyManager.getShortcuts().find(s => s.key === key) : null;
 
         if (shortcut) {
-            editorKeyInput.value = shortcut.key;
+            if (editorKeyInput) editorKeyInput.value = shortcut.key;
             const hasSteps = shortcut.steps && shortcut.steps.length > 0;
             if (hasSteps) {
                 setEditorMode('dynamic');
@@ -390,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (templateStep) addStepToDOM('template', templateStep);
             } else {
                 setEditorMode('simple');
-                editorDescInput.value = shortcut.description;
+                if (editorDescInput) editorDescInput.value = shortcut.description;
             }
         } else {
             setEditorMode('simple');
@@ -400,27 +398,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const addStepToDOM = (type, data = null) => {
         const container = type === 'template' ? templateStepContainer : stepsContainer;
+        if (!container) return;
         const templateId = `template-step-${type}`;
         const template = document.getElementById(templateId);
+        if (!template) return;
         const clone = template.content.cloneNode(true);
         const stepContainer = clone.querySelector('.step-container');
         
         if (type === 'select') {
             const idInput = clone.querySelector('[data-config="id"]');
-            if (data) {
-                idInput.value = data.id;
-            } else {
-                const newId = `variable_${stepsContainer.children.length + 1}`;
-                idInput.value = newId;
-                updateTemplateOnIdChange('', newId);
+            if (idInput) {
+                if (data) {
+                    idInput.value = data.id;
+                } else {
+                    const newId = `variable_${stepsContainer.children.length + 1}`;
+                    idInput.value = newId;
+                    updateTemplateOnIdChange('', newId);
+                }
+                idInput.addEventListener('focus', () => idInput.dataset.oldValue = idInput.value);
+                idInput.addEventListener('input', () => {
+                    const oldValue = idInput.dataset.oldValue;
+                    updateTemplateOnIdChange(oldValue, idInput.value);
+                    idInput.dataset.oldValue = idInput.value;
+                    updateLivePreview();
+                });
             }
-            idInput.addEventListener('focus', () => idInput.dataset.oldValue = idInput.value);
-            idInput.addEventListener('input', () => {
-                const oldValue = idInput.dataset.oldValue;
-                updateTemplateOnIdChange(oldValue, idInput.value);
-                idInput.dataset.oldValue = idInput.value;
-                updateLivePreview();
-            });
         }
 
         if (data) {
@@ -431,12 +433,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (type === 'select' && data.options) {
                 const optionsContainer = stepContainer.querySelector('.options-container');
-                data.options.forEach(opt => addOptionToDOM(optionsContainer, opt));
+                if (optionsContainer) data.options.forEach(opt => addOptionToDOM(optionsContainer, opt));
             }
         }
         
         if (type === 'template') {
-            clone.querySelector('[data-config="template"]').addEventListener('input', updateLivePreview);
+            const templateTextarea = clone.querySelector('[data-config="template"]');
+            if (templateTextarea) templateTextarea.addEventListener('input', updateLivePreview);
         }
 
         container.appendChild(stepContainer);
@@ -446,20 +449,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const addOptionToDOM = (container, data = null) => {
         const template = document.getElementById('template-step-option');
+        if (!template) return;
         const clone = template.content.cloneNode(true);
         if (data) {
             clone.querySelectorAll('[data-config]').forEach(input => {
                 if (data[input.dataset.config]) input.value = data[input.dataset.config];
             });
         } else {
-            clone.querySelector('[data-config="nextStep"]').value = 'result';
+            const nextStepInput = clone.querySelector('[data-config="nextStep"]');
+            if (nextStepInput) nextStepInput.value = 'result';
         }
         
         clone.querySelectorAll('[data-config]').forEach(input => {
             input.addEventListener('input', updateLivePreview);
         });
 
-        // CAMBIO: Añadir listener para no permitir espacios
         clone.querySelectorAll('.no-spaces').forEach(input => {
             input.addEventListener('input', (e) => {
                 e.target.value = e.target.value.replace(/\s/g, '');
@@ -470,9 +474,19 @@ document.addEventListener('DOMContentLoaded', () => {
         autoResizeTextareas();
     };
 
-    const autoResizeTextareas = () => { /* ... sin cambios ... */ };
+    const autoResizeTextareas = () => {
+        document.querySelectorAll('.step-textarea-flexible').forEach(textarea => {
+            textarea.style.height = 'auto';
+            textarea.style.height = `${textarea.scrollHeight}px`;
+            textarea.addEventListener('input', () => {
+                textarea.style.height = 'auto';
+                textarea.style.height = `${textarea.scrollHeight}px`;
+            });
+        });
+    };
     
     const parseEditor = () => {
+        if (!editorKeyInput || !dynamicModeView) return null;
         const key = editorKeyInput.value.trim().toLowerCase();
         if (!key) return null;
 
@@ -482,25 +496,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isDynamicMode) {
             description = "Shortkey dinámico con variables.";
-            stepsContainer.querySelectorAll('.step-container').forEach(stepEl => {
-                // CAMBIO: Se eliminó el `prompt`
-                const stepData = { type: 'select', id: '', options: [] };
-                stepEl.querySelectorAll('[data-config]').forEach(input => stepData[input.dataset.config] = input.value.trim());
-                stepEl.querySelectorAll('.option-item').forEach(optEl => {
-                    const optionData = {};
-                    optEl.querySelectorAll('[data-config]').forEach(input => optionData[input.dataset.config] = input.value.trim());
-                    steps.push(optionData);
+            if (stepsContainer) {
+                stepsContainer.querySelectorAll('.step-container').forEach(stepEl => {
+                    const stepData = { type: 'select', id: '', options: [] };
+                    stepEl.querySelectorAll('[data-config]').forEach(input => stepData[input.dataset.config] = input.value.trim());
+                    stepEl.querySelectorAll('.option-item').forEach(optEl => {
+                        const optionData = {};
+                        optEl.querySelectorAll('[data-config]').forEach(input => optionData[input.dataset.config] = input.value.trim());
+                        stepData.options.push(optionData);
+                    });
+                    steps.push(stepData);
                 });
-                steps.push(stepData);
-            });
-            const templateStep = templateStepContainer.querySelector('.step-container');
-            if (templateStep) {
-                const templateData = { type: 'template' };
-                templateStep.querySelectorAll('[data-config]').forEach(input => templateData[input.dataset.config] = input.value);
-                steps.push(templateData);
+            }
+            if (templateStepContainer) {
+                const templateStep = templateStepContainer.querySelector('.step-container');
+                if (templateStep) {
+                    const templateData = { type: 'template' };
+                    templateStep.querySelectorAll('[data-config]').forEach(input => templateData[input.dataset.config] = input.value);
+                    steps.push(templateData);
+                }
             }
         } else {
-            description = editorDescInput.value.trim();
+            if (editorDescInput) description = editorDescInput.value.trim();
         }
         
         if (!description && steps.length === 0) return null;
@@ -508,93 +525,231 @@ document.addEventListener('DOMContentLoaded', () => {
         return { key, description, steps };
     };
     
-    const updateTemplateOnIdChange = (oldId, newId) => { /* ... sin cambios ... */ };
-    const updateTemplateOnDelete = (idToRemove) => { /* ... sin cambios ... */ };
-    const updateLivePreview = () => { /* ... sin cambios ... */ };
-    const renderShortcuts = () => { /* ... sin cambios ... */ };
-
-    // --- Event Listeners ---
-    closeBtn.addEventListener('click', attemptClose);
-    overlay.addEventListener('click', attemptClose);
-    addNewBtn.addEventListener('click', () => showEditorView());
-    editorCancelBtn.addEventListener('click', attemptClose);
-
-    // CAMBIO: Listeners para el nuevo modal de confirmación
-    confirmCancelBtn.addEventListener('click', () => confirmModal.classList.add('hidden'));
-    confirmDiscardBtn.addEventListener('click', closeModalCleanup);
-    confirmSaveBtn.addEventListener('click', () => {
-        editorForm.dispatchEvent(new Event('submit', { cancelable: true }));
-        // La lógica de guardado ya se encarga de cerrar si tiene éxito
-    });
-    
-    addVarBtnContainer.addEventListener('click', () => { /* ... sin cambios ... */ });
-
-    editorForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const data = parseEditor();
-        if (!data) { alert('Por favor, completa al menos la llave.'); return; }
+    const updateTemplateOnIdChange = (oldId, newId) => {
+        if (!templateStepContainer) return;
+        const templateTextarea = templateStepContainer.querySelector('[data-config="template"]');
+        if (!templateTextarea) return;
         
-        const existing = shortkeyManager.getShortcuts().find(s => s.key === data.key);
-        if (existing && data.key !== currentEditingKey) {
-            alert(`El shortkey "@${data.key}" ya existe. Por favor, elige otra llave.`);
+        const currentTemplate = templateTextarea.value;
+        const sanitizedNewId = newId.trim().replace(/\s/g, '_');
+
+        if (oldId && currentTemplate.includes(`{${oldId}}`)) {
+            templateTextarea.value = currentTemplate.replace(new RegExp(`{${oldId}}`, 'g'), `{${sanitizedNewId}}`);
+        } else if (sanitizedNewId && !currentTemplate.includes(`{${sanitizedNewId}}`)) {
+            templateTextarea.value = (templateTextarea.value ? templateTextarea.value + ' ' : '') + `{${sanitizedNewId}}`;
+        }
+    };
+
+    const updateTemplateOnDelete = (idToRemove) => {
+        if (!templateStepContainer || !idToRemove) return;
+        const templateTextarea = templateStepContainer.querySelector('[data-config="template"]');
+        if (!templateTextarea) return;
+        
+        templateTextarea.value = templateTextarea.value.replace(new RegExp(`\\s?{${idToRemove}}`, 'g'), '').trim();
+    };
+
+    const updateLivePreview = () => {
+        if (!livePreviewContainer || !livePreviewOutput) return;
+        const data = parseEditor();
+        if (!data || !data.steps || data.steps.length === 0) {
+            livePreviewContainer.classList.add('hidden');
             return;
         }
+        livePreviewContainer.classList.remove('hidden');
 
-        if (currentEditingKey) {
-            shortkeyManager.updateShortcut(currentEditingKey, data);
-        } else {
-            shortkeyManager.addShortcut(data);
+        const templateStep = data.steps.find(s => s.type === 'template');
+        if (!templateStep || !templateStep.template) {
+            livePreviewOutput.textContent = 'Escribe en la Plantilla Final para ver la vista previa.';
+            return;
         }
-        isDirty = false; // Marcar como no sucio después de guardar
-        closeModalCleanup(); // CAMBIO: Usar la función de limpieza para cerrar
-    });
+        
+        let previewText = templateStep.template;
+        data.steps.filter(s => s.type === 'select').forEach(step => {
+            const varName = step.id || 'variable';
+            const firstOption = step.options.length > 0 ? step.options[0] : null;
+            const exampleValue = firstOption && firstOption.label ? `[${firstOption.label}]` : `[ejemplo]`;
+            previewText = previewText.replace(new RegExp(`{${varName}}`, 'g'), exampleValue);
+        });
+        livePreviewOutput.textContent = previewText;
+    };
 
-    // CAMBIO: Marcar el formulario como "sucio" al detectar cambios
-    editorForm.addEventListener('input', () => {
-        isDirty = true;
-    });
-
-    // CAMBIO: Añadir listener para no permitir espacios en ID de variable
-    stepsContainer.addEventListener('input', (e) => {
-        if (e.target.matches('.no-spaces')) {
-            e.target.value = e.target.value.replace(/\s/g, '');
+    const renderShortcuts = () => {
+        const listContainer = document.getElementById('shortcutsList');
+        if (!listContainer) return;
+        listContainer.innerHTML = '';
+        const shortcuts = shortkeyManager.getShortcuts();
+        if (shortcuts.length === 0) {
+            listContainer.innerHTML = `<p style="text-align: center; color: #6b7280; padding: 1rem;">No tienes shortkeys. ¡Añade uno nuevo!</p>`;
+            return;
         }
-    });
+        shortcuts.forEach((shortcut, index) => {
+            const isDynamic = shortcut.steps && shortcut.steps.length > 0;
+            const item = document.createElement('div');
+            item.className = 'shortcut-item';
+            item.innerHTML = `
+                <div class="shortcut-reorder">
+                    <button class="action-btn move-up-btn" data-key="${shortcut.key}" title="Mover arriba" ${index === 0 ? 'disabled' : ''}>
+                        <svg style="pointer-events: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+                    </button>
+                    <button class="action-btn move-down-btn" data-key="${shortcut.key}" title="Mover abajo" ${index === shortcuts.length - 1 ? 'disabled' : ''}>
+                        <svg style="pointer-events: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                    </button>
+                </div>
+                <div style="display: flex; align-items: center; min-width: 0;">
+                    <div>
+                        <span class="shortcut-key">@${shortcut.key}</span>
+                        <p class="shortcut-description">${shortcut.description}</p>
+                    </div>
+                </div>
+                <div class="shortcut-actions">
+                    ${isDynamic ? `<svg class="dynamic-indicator" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" /></svg>` : ''}
+                    <button class="action-btn edit-btn" data-key="${shortcut.key}" title="Editar">
+                        <svg style="pointer-events: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" /></svg>
+                    </button>
+                    <button class="action-btn delete-btn" data-key="${shortcut.key}" title="Eliminar">
+                        <svg style="pointer-events: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                    </button>
+                </div>`;
+            listContainer.appendChild(item);
+        });
+    };
 
-    dynamicModeView.addEventListener('click', (e) => {
-        const removeStepBtn = e.target.closest('.remove-step-btn');
-        if (removeStepBtn) { /* ... sin cambios ... */ }
-        if (e.target.classList.contains('add-option-btn')) { /* ... sin cambios ... */ }
-        if (e.target.classList.contains('remove-option-btn')) { /* ... sin cambios ... */ }
+    // --- Event Listeners ---
+    if (closeBtn) closeBtn.addEventListener('click', attemptClose);
+    if (overlay) overlay.addEventListener('click', attemptClose);
+    if (addNewBtn) addNewBtn.addEventListener('click', () => showEditorView());
+    if (editorCancelBtn) editorCancelBtn.addEventListener('click', attemptClose);
 
-        // CAMBIO: Lógica para reordenar opciones
-        const moveUpBtn = e.target.closest('.move-option-up-btn');
-        if (moveUpBtn) {
-            const item = moveUpBtn.closest('.option-item');
-            if (item.previousElementSibling) {
-                item.parentElement.insertBefore(item, item.previousElementSibling);
-                isDirty = true;
-            }
-        }
-        const moveDownBtn = e.target.closest('.move-option-down-btn');
-        if (moveDownBtn) {
-            const item = moveDownBtn.closest('.option-item');
-            if (item.nextElementSibling) {
-                item.parentElement.insertBefore(item.nextElementSibling, item);
-                isDirty = true;
-            }
-        }
+    if (confirmCancelBtn) confirmCancelBtn.addEventListener('click', () => confirmModal.classList.add('hidden'));
+    if (confirmDiscardBtn) confirmDiscardBtn.addEventListener('click', closeModalCleanup);
+    if (confirmSaveBtn) confirmSaveBtn.addEventListener('click', () => {
+        if (editorForm) editorForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
     });
     
-    document.getElementById('shortcutsList').addEventListener('click', (e) => { /* ... sin cambios ... */ });
+    if (addVarBtnContainer) addVarBtnContainer.addEventListener('click', () => {
+        const isSimpleMode = simpleModeView && !simpleModeView.classList.contains('hidden');
+        if (isSimpleMode) {
+            setEditorMode('dynamic');
+            if (templateStepContainer && templateStepContainer.children.length === 0) {
+                addStepToDOM('template');
+            }
+            if (stepsContainer && stepsContainer.children.length === 0) {
+                addStepToDOM('select');
+            }
+        } else {
+            addStepToDOM('select');
+        }
+    });
+
+    if (editorForm) {
+        editorForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const data = parseEditor();
+            if (!data) { alert('Por favor, completa al menos la llave.'); return; }
+            
+            const existing = shortkeyManager.getShortcuts().find(s => s.key === data.key);
+            if (existing && data.key !== currentEditingKey) {
+                alert(`El shortkey "@${data.key}" ya existe. Por favor, elige otra llave.`);
+                return;
+            }
+
+            if (currentEditingKey) {
+                shortkeyManager.updateShortcut(currentEditingKey, data);
+            } else {
+                shortkeyManager.addShortcut(data);
+            }
+            isDirty = false;
+            closeModalCleanup();
+        });
+
+        editorForm.addEventListener('input', () => {
+            isDirty = true;
+        });
+    }
+
+    if (stepsContainer) {
+        stepsContainer.addEventListener('input', (e) => {
+            if (e.target.matches('.no-spaces')) {
+                e.target.value = e.target.value.replace(/\s/g, '');
+            }
+        });
+    }
+
+    if (dynamicModeView) {
+        dynamicModeView.addEventListener('click', (e) => {
+            const removeStepBtn = e.target.closest('.remove-step-btn');
+            if (removeStepBtn) {
+                const stepContainer = removeStepBtn.closest('.step-container');
+                const idToRemove = stepContainer.querySelector('[data-config="id"]')?.value;
+                updateTemplateOnDelete(idToRemove);
+                stepContainer.remove();
+                
+                if (stepsContainer && stepsContainer.children.length === 0) {
+                    if (templateStepContainer) templateStepContainer.innerHTML = '';
+                    setEditorMode('simple');
+                }
+                updateLivePreview();
+            }
+            if (e.target.classList.contains('add-option-btn')) {
+                addOptionToDOM(e.target.previousElementSibling);
+                updateLivePreview();
+            }
+            if (e.target.classList.contains('remove-option-btn')) {
+                e.target.closest('.option-item').remove();
+                updateLivePreview();
+            }
+
+            const moveUpBtn = e.target.closest('.move-option-up-btn');
+            if (moveUpBtn) {
+                const item = moveUpBtn.closest('.option-item');
+                if (item.previousElementSibling) {
+                    item.parentElement.insertBefore(item, item.previousElementSibling);
+                    isDirty = true;
+                }
+            }
+            const moveDownBtn = e.target.closest('.move-option-down-btn');
+            if (moveDownBtn) {
+                const item = moveDownBtn.closest('.option-item');
+                if (item.nextElementSibling) {
+                    item.parentElement.insertBefore(item.nextElementSibling, item);
+                    isDirty = true;
+                }
+            }
+        });
+    }
+    
+    const shortcutsListEl = document.getElementById('shortcutsList');
+    if (shortcutsListEl) {
+        shortcutsListEl.addEventListener('click', (e) => {
+            const button = e.target.closest('.action-btn');
+            if (!button) return;
+            const key = button.dataset.key;
+            if (button.classList.contains('edit-btn')) {
+                showEditorView(key);
+            } else if (button.classList.contains('move-up-btn')) {
+                shortkeyManager.moveShortcut(key, 'up');
+                renderShortcuts();
+            } else if (button.classList.contains('move-down-btn')) {
+                shortkeyManager.moveShortcut(key, 'down');
+                renderShortcuts();
+            } else if (button.classList.contains('delete-btn')) {
+                if (confirm(`¿Estás seguro de que quieres eliminar el shortkey "@${key}"?`)) {
+                    shortkeyManager.removeShortcut(key);
+                    renderShortcuts();
+                }
+            }
+        });
+    }
     
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.classList.contains('visible')) {
+        if (e.key === 'Escape' && modal && modal.classList.contains('visible')) {
             attemptClose();
         }
         if (e.ctrlKey && e.shiftKey && (e.key === 'S' || e.key === 's')) {
             e.preventDefault();
-            modal.classList.contains('visible') ? attemptClose() : openModal();
+            if (modal) {
+                modal.classList.contains('visible') ? attemptClose() : openModal();
+            }
         }
     });
 
