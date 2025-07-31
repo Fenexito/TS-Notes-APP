@@ -17,7 +17,6 @@ class PopupManager {
         this.selectedIndex = 0;
         this.popup = document.getElementById(type === 'search' ? 'shortkey-search-popup' : 'shortkey-interaction-popup');
         
-        // MODIFICADO: Prompt por defecto si no se proporciona para pasos de selección
         let displayPrompt = prompt;
         if (type === 'interaction' && !prompt) {
             displayPrompt = "Selecciona una opción:";
@@ -302,7 +301,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const selectSteps = shortcut.steps.filter(s => s.type === 'select');
                 const templateStep = shortcut.steps.find(s => s.type === 'template');
                 selectSteps.forEach(step => addStepToDOM('select', step));
-                if (templateStep) addStepToDOM('template', templateStep);
+                if (templateStep) {
+                    addStepToDOM('template', templateStep);
+                    const templateTextarea = document.querySelector('.final-template-textarea');
+                    if (templateTextarea) {
+                        templateTextarea.addEventListener('input', updateLivePreview);
+                    }
+                }
             } else {
                 setEditorMode('simple');
                 editorDescInput.value = shortcut.description;
@@ -313,7 +318,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateLivePreview();
     };
 
-    // MODIFICADO: Lógica mejorada para añadir pasos y conectar listeners
     const addStepToDOM = (type, data = null) => {
         const container = type === 'template' ? templateStepContainer : stepsContainer;
         const template = document.getElementById(`template-step-${type}`);
@@ -332,17 +336,16 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (type === 'select' && idInput) {
             const newId = `variable_${stepsContainer.children.length + 1}`;
             idInput.value = newId;
-            updateTemplateWithVariable(`{${newId}}`, ''); // Añade la nueva variable a la plantilla
+            updateTemplateWithVariable(`{${newId}}`, '');
         }
 
-        // Conectar listeners para la interactividad de la plantilla
         if (idInput) {
             idInput.addEventListener('focus', e => { e.target.dataset.oldValue = e.target.value; });
             idInput.addEventListener('input', e => {
                 const oldVar = `{${e.target.dataset.oldValue}}`;
                 const newVar = `{${e.target.value}}`;
                 updateTemplateWithVariable(newVar, oldVar);
-                e.target.dataset.oldValue = e.target.value; // Actualiza el valor antiguo
+                e.target.dataset.oldValue = e.target.value;
             });
         }
 
@@ -350,7 +353,6 @@ document.addEventListener('DOMContentLoaded', () => {
         autoResizeTextareas();
     };
 
-    // NUEVA FUNCIÓN: Actualiza la plantilla de texto final de forma segura
     const updateTemplateWithVariable = (newVar, oldVar = '') => {
         const templateTextarea = document.querySelector('.final-template-textarea');
         if (!templateTextarea) return;
@@ -364,7 +366,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateLivePreview();
     };
 
-    // MODIFICADO: Lógica mejorada para añadir opciones y actualizar botones
     const addOptionToDOM = (container, data = null) => {
         const template = document.getElementById('template-step-option');
         const clone = template.content.cloneNode(true);
@@ -380,7 +381,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateOptionReorderButtons(container);
     };
 
-    // NUEVA FUNCIÓN: Para habilitar/deshabilitar los botones de reordenar opciones
     const updateOptionReorderButtons = (optionsContainer) => {
         const options = optionsContainer.querySelectorAll('.option-item');
         options.forEach((option, index) => {
@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 textarea.style.height = `${textarea.scrollHeight}px`;
             };
             textarea.addEventListener('input', updateHeight);
-            setTimeout(updateHeight, 0); // Llama una vez para ajustar al cargar
+            setTimeout(updateHeight, 0);
         });
     };
     
@@ -431,7 +431,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return { key, description, steps };
     };
     
-    // MODIFICADO: Ahora se actualiza en tiempo real con más precisión
     const updateLivePreview = () => {
         const data = parseEditor();
         if (!data || data.steps.length === 0) {
@@ -506,7 +505,6 @@ document.addEventListener('DOMContentLoaded', () => {
             setEditorMode('dynamic');
             if (stepsContainer.children.length === 0) {
                 addStepToDOM('template');
-                // MODIFICADO: Añadido listener a la plantilla final
                 const templateTextarea = document.querySelector('.final-template-textarea');
                 if (templateTextarea) {
                     templateTextarea.addEventListener('input', updateLivePreview);
@@ -533,15 +531,15 @@ document.addEventListener('DOMContentLoaded', () => {
         showListView();
     });
     
-    // MODIFICADO: Listener de eventos para el modo dinámico con nueva lógica
     dynamicModeView.addEventListener('click', (e) => {
-        const target = e.target;
-        // Eliminar un paso de variable
-        if (target.classList.contains('remove-step-btn')) {
-            const stepContainer = target.closest('.step-container');
+        const button = e.target.closest('button');
+        if (!button) return;
+
+        if (button.classList.contains('remove-step-btn')) {
+            const stepContainer = button.closest('.step-container');
             const idToRemove = stepContainer.querySelector('.variable-id-input')?.value;
             if (idToRemove) {
-                updateTemplateWithVariable('', `{${idToRemove}}`); // Elimina la variable de la plantilla
+                updateTemplateWithVariable('', `{${idToRemove}}`);
             }
             stepContainer.remove();
             if (stepsContainer.children.length === 0) {
@@ -550,30 +548,27 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             updateLivePreview();
         }
-        // Añadir una opción
-        if (target.classList.contains('add-option-btn')) {
-            const optionsContainer = target.previousElementSibling;
+        if (button.classList.contains('add-option-btn')) {
+            const optionsContainer = button.previousElementSibling;
             addOptionToDOM(optionsContainer);
         }
-        // Eliminar una opción
-        if (target.classList.contains('remove-option-btn')) {
-            const optionItem = target.closest('.option-item');
+        if (button.classList.contains('remove-option-btn')) {
+            const optionItem = button.closest('.option-item');
             const optionsContainer = optionItem.parentElement;
             optionItem.remove();
             updateOptionReorderButtons(optionsContainer);
             updateLivePreview();
         }
-        // Mover opción hacia arriba
-        if (target.classList.contains('move-option-up')) {
-            const optionItem = target.closest('.option-item');
+        const optionItem = button.closest('.option-item');
+        if (!optionItem) return;
+
+        if (button.classList.contains('move-option-up')) {
             if (optionItem.previousElementSibling) {
                 optionItem.parentElement.insertBefore(optionItem, optionItem.previousElementSibling);
                 updateOptionReorderButtons(optionItem.parentElement);
             }
         }
-        // Mover opción hacia abajo
-        if (target.classList.contains('move-option-down')) {
-            const optionItem = target.closest('.option-item');
+        if (button.classList.contains('move-option-down')) {
             if (optionItem.nextElementSibling) {
                 optionItem.parentElement.insertBefore(optionItem.nextElementSibling, optionItem);
                 updateOptionReorderButtons(optionItem.parentElement);
