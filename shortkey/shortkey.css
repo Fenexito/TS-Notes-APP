@@ -48,9 +48,9 @@
 
 /* Contenido del Modal */
 #settingsModal .modal-header { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--gray-200); flex-shrink: 0; }
-#settingsModal .modal-header h3 { font-size: 1.1rem; font-weight: 600; margin: 0; }
+#settingsModal .modal-header h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0px; }
 #settingsModal .modal-body { padding: 0.75rem; overflow-y: auto; flex-grow: 1; }
-#settingsModal .list-header { display: flex; justify-content: space-between; align-items: center; }
+#settingsModal .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 #settingsModal #shortcutsList { display: flex; flex-direction: column; gap: 0.5rem; }
 #settingsModal .shortcut-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.75rem; background-color: white; border: 1px solid var(--gray-200); padding: 0.2rem 0.8rem; border-radius: 0.5rem; }
 #settingsModal .shortcut-key { font-family: 'JetBrains Mono', monospace; background-color: #dbeafe; color: #1e40af; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-weight: 500; font-size: 0.9em; }
@@ -66,8 +66,8 @@
 #settingsModal .hidden { display: none; }
 #view-editor form { display: flex; flex-direction: column; height: 100%; }
 .editor-content { flex-grow: 1; display: flex; flex-direction: column; gap: 1rem; }
-.editor-section { display: flex; flex-direction: row; gap: 0.25rem; align-items: flex-start; }
-.editor-section label { font-weight: 500; font-size: 0.85rem; color: var(--gray-700); width: 120px; padding-top: 0.3rem; }
+.editor-section { display: flex; flex-direction: row; gap: 0.25rem; align-items: flex-start; margin-bottom: 10px;}
+.editor-section label { font-weight: 500; font-size: 0.85rem; color: var(--gray-700); width: 120px; padding-top: 0.3rem; padding-left: 10px;}
 .input-with-prefix { display: flex; align-items: center; border: 1px solid var(--gray-300); border-radius: 0.375rem; background-color: white; flex-grow: 1; }
 .input-with-prefix span { padding: 0.3rem; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 0.9rem; color: var(--gray-500); border-right: 1px solid var(--gray-300); }
 
