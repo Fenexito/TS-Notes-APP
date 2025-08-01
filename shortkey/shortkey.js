@@ -325,6 +325,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmSaveBtn = document.getElementById('confirm-save-btn');
     
     const genericConfirmModal = document.getElementById('generic-confirm-modal');
+    const genericNoBtn = document.getElementById('generic-confirm-no-btn');
+    const genericYesBtn = document.getElementById('generic-confirm-yes-btn');
     let genericConfirmCallback = null;
     
     let currentEditingKey = null;
@@ -340,48 +342,70 @@ document.addEventListener('DOMContentLoaded', () => {
         if (on) el.classList.add('required-field-error');
         else el.classList.remove('required-field-error');
     };
-    function applyValidationStyles() {
-        // Header
-        const keyInput = document.getElementById('shortkey-key-input');
-        const descInput = document.getElementById('shortkey-desc-input');
-        toggleRequired(keyInput, isEmpty(keyInput?.value));
-        toggleRequired(descInput, isEmpty(descInput?.value));
 
-        // Panel de propiedades visible
-        document.querySelectorAll('#flow-properties-content #prop-name, #flow-properties-content .option-prop-input, #flow-properties-content #final-template').forEach(el => {
-            // etiquetas NO son requeridas; el resto sí
-            const isReadonly = el.hasAttribute('readonly');
-            // el prop-name de result es readonly; no se marca
-            if (!isReadonly) toggleRequired(el, isEmpty(el.value));
-        });
+    // ---------- Modal informativo reutilizando el genérico ----------
+    function showInfoModal(title, message) {
+        document.getElementById('generic-confirm-title').textContent = title;
+        document.getElementById('generic-confirm-message').textContent = message;
+        // Modo "informativo": ocultar botón Sí y renombrar No -> Entendido
+        if (genericYesBtn) genericYesBtn.style.display = 'none';
+        if (genericNoBtn) {
+            genericNoBtn.textContent = 'Entendido';
+            genericNoBtn.onclick = () => {
+                genericConfirmModal.classList.add('hidden');
+                // restaurar
+                if (genericYesBtn) genericYesBtn.style.display = '';
+                genericNoBtn.textContent = 'No';
+            };
+        }
+        genericConfirmModal.classList.remove('hidden');
     }
 
-    function setupHeaderValidationListeners() {
-        const keyInput = document.getElementById('shortkey-key-input');
-        const descInput = document.getElementById('shortkey-desc-input');
-        [keyInput, descInput].forEach(el => {
-            if (!el) return;
-            el.addEventListener('input', (e) => {
-                toggleRequired(e.target, isEmpty(e.target.value));
-            });
-        });
+    function showGenericConfirm(title, message, onConfirm) {
+        document.getElementById('generic-confirm-title').textContent = title;
+        document.getElementById('generic-confirm-message').textContent = message;
+        if (genericYesBtn) {
+            genericYesBtn.style.display = '';
+            genericYesBtn.onclick = () => {
+                genericConfirmModal.classList.add('hidden');
+                onConfirm?.();
+            };
+        }
+        if (genericNoBtn) {
+            genericNoBtn.textContent = 'No';
+            genericNoBtn.onclick = () => {
+                genericConfirmModal.classList.add('hidden');
+            };
+        }
+        genericConfirmModal.classList.remove('hidden');
     }
 
-    // ---------- Render/editor ----------
+    const isBackgroundClick = (e) => {
+        const canvas = document.getElementById('flow-canvas-container');
+        const svg = document.getElementById('flow-connector-svg');
+        const nodesContainer = document.getElementById('flow-node-container');
+        return (
+            e.target === canvas ||
+            e.target === svg ||
+            (e.target === nodesContainer)
+        );
+    };
+
+    // ---------- Header + Template UI ----------
     function setupFlowEditor() {
         viewEditor.innerHTML = `
             <div class="flow-editor-content">
                 <div class="flow-editor-header">
                     <div class="input-group">
                         <label for="shortkey-key-input">Activador (Key)</label>
-                        <div class="key-input-wrapper">
-                            <span class="key-input-prefix">@</span>
-                            <input type="text" id="shortkey-key-input" placeholder="mi_shortkey">
+                        <div class="key-input-wrapper taglike-field-group">
+                            <span class="key-input-prefix taglike-prefix">@</span>
+                            <input type="text" id="shortkey-key-input" class="taglike-field-input" placeholder="mi_shortkey">
                         </div>
                     </div>
                     <div class="input-group">
                         <label for="shortkey-desc-input">Descripción</label>
-                        <input type="text" id="shortkey-desc-input" placeholder="Descripción breve para la lista">
+                        <input type="text" id="shortkey-desc-input" class="taglike-field" placeholder="Descripción breve para la lista">
                     </div>
                     <div class="input-group">
                         <label>Etiquetas</label>
@@ -409,41 +433,78 @@ document.addEventListener('DOMContentLoaded', () => {
         setupHeaderValidationListeners();
     }
 
+    // Validación inicial de header
+    function applyValidationStyles() {
+        const keyInput = document.getElementById('shortkey-key-input');
+        const descInput = document.getElementById('shortkey-desc-input');
+        toggleRequired(keyInput, isEmpty(keyInput?.value));
+        toggleRequired(descInput, isEmpty(descInput?.value));
+
+        // Panel de propiedades visible
+        document.querySelectorAll('#flow-properties-content #prop-name, #flow-properties-content .option-prop-input').forEach(el => {
+            if (!el.readOnly) toggleRequired(el, isEmpty(el.value));
+        });
+        // Editor de plantilla (rich) — sincroniza con hidden textarea
+        const hiddenTpl = document.getElementById('final-template');
+        toggleRequired(hiddenTpl, isEmpty(hiddenTpl?.value));
+    }
+
+    function setupHeaderValidationListeners() {
+        const keyInput = document.getElementById('shortkey-key-input');
+        const descInput = document.getElementById('shortkey-desc-input');
+        [keyInput, descInput].forEach(el => {
+            if (!el) return;
+            el.addEventListener('input', (e) => {
+                toggleRequired(e.target, isEmpty(e.target.value));
+            });
+        });
+    }
+
+    // ---------- Panning y eventos del lienzo ----------
     function addFlowEventListeners() {
         const canvas = document.getElementById('flow-canvas-container');
         const svg = document.getElementById('flow-connector-svg');
+        const nodesContainer = document.getElementById('flow-node-container');
 
+        // mousemove/up en canvas
         canvas.addEventListener('mousemove', onFlowMouseMove);
         canvas.addEventListener('mouseup', onFlowMouseUp);
 
-        // Panning “infinito”: ahora también con click izquierdo sobre el fondo
-        canvas.addEventListener('mousedown', (e) => {
-            const isCanvasBackground = e.target === canvas;
-            const wantPan = isCanvasBackground && (e.button === 1 || e.altKey || e.button === 0);
-            if (wantPan) {
-                panningState.active = true;
-                panningState.startX = e.clientX;
-                panningState.startY = e.clientY;
-                panningState.initialNodePositions = {};
-                Object.values(flowState.nodes).forEach(node => {
-                    panningState.initialNodePositions[node.id] = { x: node.x, y: node.y };
-                });
-                canvas.style.cursor = 'grabbing';
-                // Si solo se hace click breve, también permite deseleccionar
-                if (e.button === 0 && !e.altKey) {
-                    selectNode(null);
-                }
-            } else if (isCanvasBackground) {
-                selectNode(null);
-            }
-        });
+        // Panning con click izquierdo / Alt+Click / botón medio en fondos
+        const startPan = (e) => {
+            if (!isBackgroundClick(e)) return;
+            if (!(e.button === 0 || e.button === 1) && !e.altKey) return;
+            e.preventDefault(); // evita autoscroll con botón medio
+            panningState.active = true;
+            panningState.startX = e.clientX;
+            panningState.startY = e.clientY;
+            panningState.initialNodePositions = {};
+            Object.values(flowState.nodes).forEach(node => {
+                panningState.initialNodePositions[node.id] = { x: node.x, y: node.y };
+            });
+            canvas.style.cursor = 'grabbing';
+            // Deseleccionar si es click izquierdo en fondo
+            if (e.button === 0 && !e.altKey) selectNode(null);
+        };
 
+        canvas.addEventListener('mousedown', startPan);
+        svg.addEventListener('mousedown', startPan);
+        nodesContainer.addEventListener('mousedown', (e) => {
+            // solo si es click en el contenedor vacío
+            if (e.target === nodesContainer) startPan(e);
+        });
+        
         document.getElementById('add-select-node-btn-floating').addEventListener('click', addSelectNode);
         
         viewEditor.addEventListener('click', (e) => {
             const deleteBtn = e.target.closest('.delete-node-btn');
             if (deleteBtn) {
-                deleteNode(deleteBtn.dataset.nodeId);
+                const nodeId = deleteBtn.dataset.nodeId;
+                showGenericConfirm(
+                    'Eliminar variable',
+                    `¿Eliminar la variable "${nodeId}" y sus conexiones?`,
+                    () => deleteNode(nodeId)
+                );
             }
         });
 
@@ -456,9 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        if (canvas) {
-            resizeObserver.observe(canvas);
-        }
+        if (canvas) resizeObserver.observe(canvas);
     }
     
     function resetFlowState() {
@@ -556,6 +615,95 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Template editor (tokens no editables) ---
+    function renderTemplateEditorHTML(variablePillsHTML) {
+        return `
+            <div class="properties-section">
+                <h3 class="font-semibold text-sm">Plantilla de Texto Final</h3>
+                <p class="text-xs text-gray-500 mb-2">Arrastra variables; se insertan como tokens no editables.</p>
+                <div id="final-template-editor" class="template-editor" contenteditable="true"></div>
+                <textarea id="final-template" class="hidden-textarea" style="position:absolute; left:-9999px; top:-9999px;"></textarea>
+                <div class="variable-pills-container">
+                    <small>Variables disponibles:</small>
+                    ${variablePillsHTML}
+                </div>
+            </div>
+        `;
+    }
+
+    function tokenHTML(varId) {
+        return `<span class="template-token" data-variable-id="${varId}" contenteditable="false">{${varId}}</span>`;
+    }
+
+    function htmlFromTemplateString(tpl) {
+        // Reemplaza {var} por tokenHTML(var)
+        return tpl.replace(/\{([a-zA-Z0-9_]+)\}/g, (_, v) => tokenHTML(v));
+    }
+
+    function textFromTemplateEditor(editorEl) {
+        // Serializa: tokens -> {var}, el resto texto plano
+        let out = '';
+        editorEl.childNodes.forEach(node => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                out += node.nodeValue;
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                const el = node;
+                if (el.classList.contains('template-token')) {
+                    const v = el.getAttribute('data-variable-id');
+                    out += `{${v}}`;
+                } else {
+                    out += el.innerText; // por si hay <br> u otros
+                }
+            }
+        });
+        return out.replace(/\u00A0/g, ' ');
+    }
+
+    function insertTokenAtCaret(editorEl, varId, withSpaces = true) {
+        editorEl.focus();
+        const sel = window.getSelection();
+        const range = sel && sel.getRangeAt && sel.rangeCount ? sel.getRangeAt(0) : null;
+
+        const spaceText = document.createTextNode(' ');
+        const tokenSpan = document.createElement('span');
+        tokenSpan.className = 'template-token';
+        tokenSpan.setAttribute('data-variable-id', varId);
+        tokenSpan.setAttribute('contenteditable', 'false');
+        tokenSpan.textContent = `{${varId}}`;
+
+        if (range) {
+            range.deleteContents();
+            if (withSpaces) range.insertNode(document.createTextNode(' '));
+            range.insertNode(tokenSpan);
+            if (withSpaces) {
+                const after = document.createTextNode(' ');
+                tokenSpan.after(after);
+                // mover cursor después del espacio
+                const newRange = document.createRange();
+                newRange.setStartAfter(after);
+                newRange.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(newRange);
+            } else {
+                const newRange = document.createRange();
+                newRange.setStartAfter(tokenSpan);
+                newRange.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(newRange);
+            }
+        } else {
+            // fallback: al final
+            if (withSpaces) editorEl.appendChild(spaceText.cloneNode());
+            editorEl.appendChild(tokenSpan);
+            if (withSpaces) editorEl.appendChild(spaceText.cloneNode());
+        }
+
+        // Sync hidden textarea
+        const hidden = document.getElementById('final-template');
+        hidden.value = textFromTemplateEditor(editorEl);
+        toggleRequired(hidden, isEmpty(hidden.value));
+    }
+
     function renderFlowProperties() {
         const container = document.getElementById('flow-properties-content');
         if (!container) return;
@@ -566,21 +714,12 @@ document.addEventListener('DOMContentLoaded', () => {
             .map(node => `<span class="variable-pill" draggable="true" data-variable-id="${node.id}">{${node.id}}</span>`)
             .join(' ');
 
-        const templateEditorHTML = `
-            <div class="properties-section">
-                 <h3 class="font-semibold text-sm">Plantilla de Texto Final</h3>
-                 <p class="text-xs text-gray-500 mb-2">Escribe o arrastra las variables de abajo.</p>
-                 <textarea id="final-template" class="w-full p-2 mt-1 border rounded-lg font-mono text-sm" rows="5"></textarea>
-                 <div class="variable-pills-container">
-                    <small>Variables disponibles:</small>
-                    ${variablePills}
-                 </div>
-            </div>
-        `;
+        const templateHTML = renderTemplateEditorHTML(variablePills);
 
         if (!flowState.selectedNodeId || !flowState.nodes[flowState.selectedNodeId]) {
-            container.innerHTML = `<p class="text-gray-500">Selecciona un nodo para ver sus propiedades o añade una nueva pregunta.</p>${templateEditorHTML}`;
-            if(resultNode) document.getElementById('final-template').value = resultNode.template || '';
+            container.innerHTML = `<p class="text-gray-500">Selecciona un nodo para ver sus propiedades o añade una nueva pregunta.</p>${templateHTML}`;
+            // Inicializa editor con plantilla
+            initTemplateEditor(resultNode?.template || '');
             addPropertiesEventListeners();
             return;
         }
@@ -622,10 +761,35 @@ document.addEventListener('DOMContentLoaded', () => {
                  <p class="text-xs text-gray-500 mt-1">Este ID se usará en la plantilla final, ej: {${node.id}}</p>
             </div>
             ${optionsEditor}
-            ${templateEditorHTML}
+            ${templateHTML}
         `;
-        if(resultNode) document.getElementById('final-template').value = resultNode.template || '';
+        initTemplateEditor(resultNode?.template || '');
         addPropertiesEventListeners();
+    }
+
+    function initTemplateEditor(templateString) {
+        const editor = document.getElementById('final-template-editor');
+        const hidden = document.getElementById('final-template');
+        if (!editor || !hidden) return;
+
+        editor.innerHTML = htmlFromTemplateString(templateString || '');
+        hidden.value = templateString || '';
+
+        // Drag & drop desde variable pills
+        editor.addEventListener('dragover', e => e.preventDefault());
+        editor.addEventListener('drop', e => {
+            e.preventDefault();
+            const variableId = e.dataTransfer.getData('text/plain');
+            insertTokenAtCaret(editor, variableId, true); // con espacios
+        });
+
+        // Edición: sincronizar a hidden textarea
+        const syncHidden = () => {
+            hidden.value = textFromTemplateEditor(editor);
+            toggleRequired(hidden, isEmpty(hidden.value));
+        };
+        editor.addEventListener('input', syncHidden);
+        editor.addEventListener('blur', syncHidden);
     }
     
     function autoExpandTextarea(textarea) {
@@ -635,6 +799,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function addPropertiesEventListeners() {
         const propNameInput = document.getElementById('prop-name');
+        const editor = document.getElementById('final-template-editor');
+        const hiddenTpl = document.getElementById('final-template');
+
         if (propNameInput) {
             propNameInput.addEventListener('input', (e) => {
                 const node = flowState.nodes[flowState.selectedNodeId];
@@ -642,12 +809,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     const originalValue = e.target.value;
                     const sanitizedValue = originalValue.replace(/\s/g, '_');
                     e.target.value = sanitizedValue;
+                    // actualizar nombre mostrado del nodo
+                    const oldName = node.name;
                     node.name = sanitizedValue;
                     isDirty = true;
                     const nodeTitleEl = document.querySelector(`#${CSS.escape(node.id)} .node-title`);
                     if (nodeTitleEl) nodeTitleEl.textContent = sanitizedValue;
-
                     toggleRequired(e.target, isEmpty(e.target.value));
+
+                    // Si cambió el id, actualizamos tokens en la plantilla
+                    // (solo al perder foco aplicaremos el cambio estructural de id)
                 }
             });
 
@@ -670,6 +841,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     delete flowState.nodes[oldId];
                     flowState.nodes[newId] = node;
                     flowState.selectedNodeId = newId;
+                    // Reenrutar nextStep que apunten al viejo id
                     Object.values(flowState.nodes).forEach(n => {
                         if (n.type === 'select') {
                             n.options.forEach(opt => {
@@ -677,34 +849,49 @@ document.addEventListener('DOMContentLoaded', () => {
                             });
                         }
                     });
+                    // Actualizar tokens en plantilla que referían al viejo id
+                    if (editor) {
+                        editor.querySelectorAll(`.template-token[data-variable-id="${CSS.escape(oldId)}"]`).forEach(tok => {
+                            tok.setAttribute('data-variable-id', newId);
+                            tok.textContent = `{${newId}}`;
+                        });
+                        hiddenTpl.value = textFromTemplateEditor(editor);
+                    }
                     isDirty = true;
                     renderFlow();
                 }
             });
         }
 
+        // Añadir opción
         document.getElementById('add-option-btn')?.addEventListener('click', () => {
             if (flowState.nodes[flowState.selectedNodeId]) {
                 flowState.nodes[flowState.selectedNodeId].options.push({ label: '', value: '', nextStep: 'result' });
                 isDirty = true;
                 renderFlow();
-                // Tras render, marcar nuevos inputs como requeridos
                 applyValidationStyles();
             }
         });
 
+        // Eliminar opción (con confirmación)
         document.querySelectorAll('.delete-option-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                if (flowState.nodes[flowState.selectedNodeId]) {
-                    const index = e.target.dataset.index;
-                    flowState.nodes[flowState.selectedNodeId].options.splice(index, 1);
-                    isDirty = true;
-                    renderFlow();
-                }
+                const idx = e.target.dataset.index;
+                showGenericConfirm(
+                    'Eliminar opción',
+                    `¿Eliminar la opción ${parseInt(idx,10)+1}?`,
+                    () => {
+                        if (flowState.nodes[flowState.selectedNodeId]) {
+                            flowState.nodes[flowState.selectedNodeId].options.splice(idx, 1);
+                            isDirty = true;
+                            renderFlow();
+                        }
+                    }
+                );
             });
         });
 
-        // Inputs de opciones y sus validaciones + actualización UI en vivo
+        // Inputs de opciones: validación + actualización UI en vivo
         document.querySelectorAll('.option-prop-input').forEach(input => {
             input.addEventListener('input', (e) => {
                 if (flowState.nodes[flowState.selectedNodeId]) {
@@ -713,11 +900,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     node.options[index][prop] = e.target.value;
                     isDirty = true;
 
-                    // auto-resize y validación
                     if (e.target.tagName.toLowerCase() === 'textarea') autoExpandTextarea(e.target);
                     toggleRequired(e.target, isEmpty(e.target.value));
 
-                    // *** NUEVO: actualizar el título de la opción en el nodo en tiempo real ***
+                    // Actualiza label en nodo
                     if (prop === 'label') {
                         const nodeEl = document.getElementById(node.id);
                         if (nodeEl) {
@@ -731,50 +917,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
-        
-        const finalTemplate = document.getElementById('final-template');
-        if(finalTemplate) {
-            finalTemplate.addEventListener('input', (e) => {
-                if (flowState.nodes.result) {
-                    flowState.nodes.result.template = e.target.value;
-                    isDirty = true;
-                }
-                autoExpandTextarea(e.target);
-                toggleRequired(e.target, isEmpty(e.target.value));
-            });
-            finalTemplate.addEventListener('dragover', e => e.preventDefault());
-            finalTemplate.addEventListener('drop', e => {
-                e.preventDefault();
-                const variableId = e.dataTransfer.getData('text/plain');
-                const template = e.target;
-                const start = template.selectionStart;
-                const end = template.selectionEnd;
-                const text = template.value;
-                const newText = `${text.substring(0, start)}{${variableId}}${text.substring(end)}`;
-                template.value = newText;
-                template.selectionStart = template.selectionEnd = start + variableId.length + 2;
-                if (flowState.nodes.result) flowState.nodes.result.template = newText;
-                isDirty = true;
-                autoExpandTextarea(template);
-                toggleRequired(template, isEmpty(template.value));
-            });
-        }
-        
+
+        // Editor de plantilla: arrastrar desde pills (ya implementado en initTemplateEditor)
+        // Auto expand no aplica al editor rich; hidden textarea se mantiene para compatibilidad.
+
+        // Hacer las pills arrastrables con data
         document.querySelectorAll('.variable-pill').forEach(pill => {
             pill.addEventListener('dragstart', e => {
                 e.dataTransfer.setData('text/plain', e.target.dataset.variableId);
             });
         });
-        
-        document.querySelectorAll('.option-prop-textarea, #final-template').forEach(autoExpandTextarea);
 
-        // aplicar estado de requerido al cargar el panel
-        applyValidationStyles();
+        // Al crear una nueva variable (cuando se añade un nodo select), insertar token automáticamente
+        // Se maneja en addSelectNode()
     }
 
     function onNodeMouseDown(e) {
-        e.stopPropagation();
+        // Si clic en fondo del nodo (no en conector ni botones), arrastrar nodo
         if (e.target.classList.contains('connector-dot') || e.target.closest('button')) return;
+        e.stopPropagation();
         const id = e.currentTarget.id;
         selectNode(id);
         flowState.dragging.active = true;
@@ -877,6 +1038,12 @@ document.addEventListener('DOMContentLoaded', () => {
         isDirty = true;
         selectNode(nodeId);
         applyValidationStyles();
+
+        // Insertar token automáticamente en la plantilla
+        const editor = document.getElementById('final-template-editor');
+        if (editor) {
+            insertTokenAtCaret(editor, nodeId, true);
+        }
     }
 
     function deleteNode(id) {
@@ -936,7 +1103,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const shortcut = shortcutKey ? shortkeyManager.getShortcuts().find(s => s.key === shortcutKey) : null;
         modalTitle.textContent = shortcut ? `Editando Shortkey` : "Creando Nuevo Shortkey";
         buildFlowchartEditor(shortcut);
-        // Validación por defecto: todos los requeridos en rojo suave si están vacíos
         applyValidationStyles();
 
         if (!shortcutKey) {
@@ -1000,10 +1166,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }));
         
         const resultNode = nodes.result;
+        const hidden = document.getElementById('final-template');
+        const tplValue = hidden ? hidden.value : '';
         const finalSteps = selectSteps.concat([{
             id: 'result',
             type: 'template',
-            template: document.getElementById('final-template').value,
+            template: tplValue,
             x: resultNode.x,
             y: resultNode.y
         }]);
@@ -1018,29 +1186,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const descInput = document.getElementById('shortkey-desc-input');
         requiredFields.push(keyInput, descInput);
 
-        document.querySelectorAll('#prop-name, .option-prop-input').forEach(el => {
+        document.querySelectorAll('#flow-properties-content #prop-name, #flow-properties-content .option-prop-input').forEach(el => {
             if (!el.readOnly) requiredFields.push(el);
         });
-        const finalTemplate = document.getElementById('final-template');
-        if (finalTemplate) requiredFields.push(finalTemplate);
+        const hiddenTpl = document.getElementById('final-template');
+        if (hiddenTpl) requiredFields.push(hiddenTpl);
 
         requiredFields.forEach(field => {
             field.classList.remove('required-field-error');
-            if (!field.value.trim()) {
+            if (!field.value || !field.value.trim()) {
                 field.classList.add('required-field-error');
                 isValid = false;
             }
         });
 
         if (!isValid) {
-            alert('Por favor, rellena todos los campos obligatorios marcados en rojo.');
+            showInfoModal('Campos obligatorios', 'Por favor, rellena todos los campos marcados en rojo antes de guardar.');
             return;
         }
 
         const keyToSave = keyInput.value.trim().toLowerCase().replace(/\s/g, '');
         const existing = shortkeyManager.getShortcuts().find(s => s.key === keyToSave);
         if (existing && keyToSave !== currentEditingKey) {
-            alert(`El shortkey "@${keyToSave}" ya existe. Por favor, elige otro activador.`);
+            showInfoModal('Activador duplicado', `El shortkey "@${keyToSave}" ya existe. Por favor, elige otro activador.`);
             keyInput.classList.add('required-field-error');
             return;
         }
@@ -1196,24 +1364,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (confirmDiscardBtn) confirmDiscardBtn.addEventListener('click', showListView);
     if (confirmSaveBtn) confirmSaveBtn.addEventListener('click', () => { validateAndSave(); });
     
-    function showGenericConfirm(title, message, onConfirm) {
-        document.getElementById('generic-confirm-title').textContent = title;
-        document.getElementById('generic-confirm-message').textContent = message;
-        genericConfirmModal.classList.remove('hidden');
-        genericConfirmCallback = onConfirm;
-    }
-
     document.getElementById('generic-confirm-no-btn').addEventListener('click', () => {
-        genericConfirmModal.classList.add('hidden');
-        genericConfirmCallback = null;
-    });
-
-    document.getElementById('generic-confirm-yes-btn').addEventListener('click', () => {
-        if (genericConfirmCallback) {
-            genericConfirmCallback();
+        // si estaba en modo confirm/yes-no, solo cierra (el handler de info modal ya lo maneja)
+        if (!genericConfirmModal.classList.contains('hidden')) {
+            genericConfirmModal.classList.add('hidden');
+            // restaurar posibles cambios de showInfoModal
+            if (genericYesBtn) genericYesBtn.style.display = '';
+            document.getElementById('generic-confirm-no-btn').textContent = 'No';
         }
-        genericConfirmModal.classList.add('hidden');
-        genericConfirmCallback = null;
     });
 
     const shortcutsListEl = document.getElementById('shortcutsList');
@@ -1249,6 +1407,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 confirmModal.classList.add('hidden');
             } else if (genericConfirmModal && !genericConfirmModal.classList.contains('hidden')) {
                 genericConfirmModal.classList.add('hidden');
+                // restaurar estado del modal genérico
+                if (genericYesBtn) genericYesBtn.style.display = '';
+                document.getElementById('generic-confirm-no-btn').textContent = 'No';
             } else {
                 attemptClose();
             }

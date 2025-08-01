@@ -1,6 +1,6 @@
 /**
  * Estilos personalizados para el componente Shortkey.
- * Versión 33: Header unificado, validación ligera y panning mejorado.
+ * Versión 34: Header con estilo de tags, validación ligera, panning y tokens en plantilla.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
@@ -24,7 +24,7 @@
     --text-light: #6b7280;
 }
 
-/* --- Estructura del Modal Flotante --- */
+/* --- Modal --- */
 #settingsModal {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 1000; display: flex; align-items: center; justify-content: center;
@@ -45,7 +45,7 @@
 }
 #settingsModal.visible .modal-container { transform: scale(1); }
 
-/* Estilo para el modal del editor de flujo (más grande) */
+/* Editor grande */
 #settingsModal .modal-container.flow-editor-mode {
     width: 95vw;
     max-width: 1600px;
@@ -53,7 +53,7 @@
     max-height: 90vh;
 }
 
-/* Contenido del Modal */
+/* Cabecera / lista */
 #settingsModal .modal-header { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--gray-200); flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
 #settingsModal .modal-header h3 { font-size: 1.1rem; font-weight: 600; margin: 0; }
 #settingsModal .modal-body { padding: 0.75rem; overflow: hidden; flex-grow: 1; position: relative; }
@@ -74,7 +74,7 @@
 .shortcut-tags-list { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.25rem; }
 .shortcut-tags-list .tag-pill { padding: 0.15rem 0.5rem; font-size: 0.75rem; border-radius: 999px; font-weight: 500; }
 
-/* --- EDITOR DE FLUJO VISUAL --- */
+/* --- EDITOR --- */
 #view-editor.hidden { display: none; }
 #view-editor { display: flex; height: 100%; width: 100%; gap: 0.5rem; }
 
@@ -86,7 +86,7 @@
     min-width: 0;
 }
 
-/* Header del editor UNIFICADO */
+/* Header con estilo de tags */
 .flow-editor-header {
     flex-shrink: 0;
     background-color: white;
@@ -100,50 +100,44 @@
 }
 .flow-editor-header .input-group { display: flex; flex-direction: column; gap: 0.35rem; }
 .flow-editor-header label { font-weight: 600; font-size: 0.8rem; color: var(--gray-700); margin-bottom: 0; }
-.flow-editor-header input, 
-.flow-editor-header .tags-container, 
-.flow-editor-header .key-input-wrapper { 
-    height: 38px; 
-    box-sizing: border-box; 
+
+/* --- Reutilizable: look de .tags-container aplicado a inputs --- */
+.tags-container {
+    display: flex; flex-wrap: wrap; gap: 0.4rem; background-color: white; 
+    border: 1px solid var(--gray-300); border-radius: 0.375rem; padding: 0.4rem; 
+    min-height: 38px; align-items: center;
 }
-.flow-editor-header input { 
+.taglike-field {
+    background-color: white;
+    border: 1px solid var(--gray-300);
+    border-radius: 0.375rem;
+    padding: 0.4rem 0.6rem;
+    height: 38px;
     font-family: 'Inter', sans-serif; 
     font-size: 0.9rem; 
-    padding: 0.5rem 0.6rem; 
-    border: 1px solid var(--gray-300); 
-    border-radius: 0.375rem; 
+    box-sizing: border-box;
 }
-.flow-editor-header .key-input-wrapper { 
+.taglike-field-group {
     display: flex; align-items: center; 
+    background-color: white; border: 1px solid var(--gray-300);
+    border-radius: 0.375rem; height: 38px; box-sizing: border-box;
 }
-.flow-editor-header .key-input-prefix { 
-    padding: 0.5rem 0.6rem; 
-    background-color: var(--gray-200); 
-    border: 1px solid var(--gray-300); 
-    border-right: 0; 
-    border-radius: 0.375rem 0 0 0.375rem; 
-    font-family: 'JetBrains Mono', monospace; 
-    font-size: 0.9rem; 
-    height: 38px; 
-    box-sizing: border-box; 
-    display: flex; 
-    align-items: center;
+.taglike-prefix {
+    padding: 0.4rem 0.6rem; border-right: 1px solid var(--gray-300);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--gray-700);
 }
-.flow-editor-header .key-input-wrapper input { 
-    border-left: 0; 
-    border-radius: 0 0.375rem 0.375rem 0; 
+.taglike-field-input {
+    border: 0; outline: 0; height: 100%; width: 100%; padding: 0 0.6rem; 
+    font-family: 'Inter', sans-serif; font-size: 0.9rem; background: transparent;
 }
 
-/* Lienzo: panning dentro del modal, sin scroll del modal */
+/* Lienzo (panning sin afectar modal) */
 .canvas-container { 
-    flex-grow: 1; 
-    position: relative; 
+    flex-grow: 1; position: relative; 
     background-color: var(--gray-100); 
     background-image: radial-gradient(var(--gray-300) 1px, transparent 1px); 
-    background-size: 20px 20px; 
-    border-radius: 0.5rem; 
-    overflow: hidden; 
-    cursor: grab; 
+    background-size: 20px 20px; border-radius: 0.5rem; 
+    overflow: hidden; cursor: grab;
 }
 .canvas-container:active { cursor: grabbing; }
 #node-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; transform-origin: 0 0; }
@@ -166,6 +160,7 @@
 .connector-line { stroke: var(--gray-500); stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
 .connector-line.highlight { stroke: var(--brand-indigo); }
 
+/* Botón añadir */
 #add-select-node-btn-floating {
     position: absolute; bottom: 1rem; right: 1rem; z-index: 3;
     background-color: var(--brand-indigo); color: white; font-weight: 600;
@@ -174,7 +169,7 @@
 }
 #add-select-node-btn-floating:hover { background-color: #4338ca; transform: scale(1.05); }
 
-/* Estilos para el panel de propiedades */
+/* Panel de propiedades */
 .properties-panel input, .properties-panel textarea { font-family: 'Inter', sans-serif; font-size: 0.9rem; padding: 0.5rem; border: 1px solid var(--gray-300); border-radius: 0.375rem; box-sizing: border-box; width: 100%; }
 .properties-panel label { font-weight: 500; font-size: 0.85rem; color: var(--gray-700); display: block; margin-bottom: 0.25rem; }
 .properties-section { padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--gray-200); }
@@ -197,9 +192,40 @@
 }
 .variable-pill:active { cursor: grabbing; }
 
-/* Estilos para Etiquetas en el Editor */
+/* Template editor (rich) */
+.template-editor {
+    min-height: 100px;
+    padding: 0.5rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 0.375rem;
+    background: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.template-editor:focus { outline: none; }
+.template-token {
+    display: inline-block;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    color: #3730a3;
+    border-radius: 0.375rem;
+    padding: 0 0.35rem;
+    font-family: 'JetBrains Mono', monospace;
+    user-select: none;
+}
+
+/* Textarea oculto para serialización (compatibilidad) */
+.hidden-textarea {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Etiquetas en Editor */
 .tags-editor-wrapper { display: flex; flex-direction: column; gap: 0.4rem; }
-.tags-container { display: flex; flex-wrap: wrap; gap: 0.4rem; background-color: white; border: 1px solid var(--gray-300); border-radius: 0.375rem; padding: 0.4rem; min-height: 38px; align-items: center; }
 .tag-pill { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0.5rem; border-radius: 999px; font-weight: 500; font-size: 0.8rem; }
 .remove-tag-btn { all: unset; box-sizing: border-box; cursor: pointer; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1; background-color: rgba(0,0,0,0.1); }
 .remove-tag-btn:hover { background-color: rgba(0,0,0,0.2); }
@@ -208,7 +234,7 @@
 .existing-tags .tag-pill { cursor: pointer; transition: transform 0.1s, box-shadow 0.2s; }
 .existing-tags .tag-pill:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
 
-/* Validación de Campos (ligera) */
+/* Validación (ligera) */
 .required-field-error {
     border-color: var(--brand-red-soft) !important;
     box-shadow: 0 0 0 2px var(--brand-red-soft-shadow);
@@ -236,7 +262,7 @@
 #editor-cancel-btn { background-color: var(--gray-500); color: white; }
 #editor-save-btn { background-color: var(--brand-green); color: white; }
 
-/* Modal de Confirmación y Pop-ups */
+/* Confirm/Popups */
 .confirm-modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 1500; display: flex; align-items: center; justify-content: center;
@@ -256,6 +282,7 @@
 .btn-danger { background-color: var(--brand-red); color: white; }
 .btn-success { background-color: var(--brand-green); color: white; }
 
+/* Shortkey popups */
 .shortkey-popup {
     position: fixed; z-index: 2000; background-color: white; border: 1px solid var(--gray-300);
     border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-family: 'Inter', sans-serif;
