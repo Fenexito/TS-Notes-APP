@@ -25,10 +25,15 @@ class PopupManager {
             if (type === 'search') {
                 content += `<button class="popup-option" data-index="${index}" data-key="${item.key}">
                     <span class="search-key">@${item.key}</span>
+                    <span class="separator">—</span>
                     <span class="search-desc">${item.description}</span>
                 </button>`;
             } else {
-                content += `<button class="popup-option" data-index="${index}" data-value="${item.value}" data-next="${item.nextStep}">${item.label}</button>`;
+                content += `<button class="popup-option" data-index="${index}" data-value="${item.value}" data-next="${item.nextStep}">
+                    <span class="interaction-label">${item.label}</span>
+                    <span class="separator">—</span>
+                    <span class="interaction-value">${item.value}</span>
+                </button>`;
             }
         });
         this.popup.innerHTML = content;
@@ -386,6 +391,59 @@ document.addEventListener('DOMContentLoaded', () => {
             e.target === inner
         );
     };
+
+    /* ------------------------------------------------------------------ */
+    /* BOTONES  Importar / Exportar  JSON                                 */
+    /* ------------------------------------------------------------------ */
+    const listFooter = document.createElement('div');
+    listFooter.id = 'import-export-actions';
+    listFooter.innerHTML = `
+        <input type="file" id="import-file-input" accept=".json" hidden>
+        <button id="export-shortkeys-btn" class="secondary-btn">Exportar JSON</button>
+        <button id="import-shortkeys-btn" class="secondary-btn">Importar JSON</button>
+    `;
+    viewList.appendChild(listFooter);
+
+    /* Exportar */
+    document.getElementById('export-shortkeys-btn').onclick = () => {
+        const blob = new Blob(
+            [JSON.stringify(shortkeyManager.getShortcuts(), null, 2)],
+            { type: 'application/json' }
+        );
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `shortkeys-${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    /* Importar */
+    const importInput = document.getElementById('import-file-input');
+    document.getElementById('import-shortkeys-btn').onclick = () => importInput.click();
+
+    importInput.addEventListener('change', (e) => {
+        if (!e.target.files.length) return;
+        const f = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const data = JSON.parse(reader.result);
+                if (!Array.isArray(data)) throw Error();
+                showGenericConfirm(
+                    'Importar Shortkeys',
+                    'Esto reemplazará todos tus shortkeys actuales. ¿Continuar?',
+                    () => { shortkeyManager.setShortcuts(data); renderShortcuts(); }
+                );
+            } catch {
+                showInfoModal('Error', 'El archivo no es un JSON válido.');
+            }
+            importInput.value = '';
+        };
+        reader.readAsText(f);
+    });
+    /* ------------------------------------------------------------------ */
+
 
     // ---------- Header (reescrito y afinado) + Editor ----------
     function setupFlowEditor() {

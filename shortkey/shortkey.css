@@ -1,29 +1,29 @@
 /**
- * Estilos personalizados para el componente Shortkey.
- * Versión 40: popup legible (texto blanco sobre fondo azul) y prompt más compacto.
- */
+ * Shortkeys styles – versión 40
+ * ▸ Popup legible (texto blanco en seleccionado) + prompt compacto
+ * ▸ Botones Import / Export
+ * ▸ Todo lo demás igual que versión 39
+ * ---------------------------------------------------------------------------*/
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
 :root {
-    --brand-blue: #2563eb;
-    --brand-blue-dark: #1d4ed8;
-    --brand-red: #dc2626;
-    --brand-red-soft: #fca5a5;
-    --brand-red-soft-shadow: rgba(252, 165, 165, 0.35);
-    --brand-yellow: #f59e0b;
-    --brand-green: #16a34a;
-    --brand-indigo: #4f46e5;
-    --gray-50: #f9fafb;
-    --gray-100: #f3f4f6;
-    --gray-200: #e5e7eb;
-    --gray-300: #d1d5db;
-    --gray-400: #9ca3af;
-    --gray-500: #6b7280;
-    --gray-700: #374151;
-    --gray-800: #1f2937;
-    --text-dark: #374151; 
-    --text-light: #6b7280;
+    --brand-blue:#2563eb;--brand-blue-dark:#1d4ed8;--brand-red:#dc2626;
+    --brand-red-soft:#fca5a5;--brand-red-soft-shadow:rgba(252,165,165,.35);
+    --brand-yellow:#f59e0b;--brand-green:#16a34a;--brand-indigo:#4f46e5;
+    --gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-300:#d1d5db;
+    --gray-400:#9ca3af;--gray-500:#6b7280;--gray-700:#374151;--gray-800:#1f2937;
+    --text-dark:#374151;--text-light:#6b7280;
 }
+
+/* ===== BOTONES Import / Export ===== */
+.secondary-btn{
+  background:#fff;border:1px solid var(--gray-300);border-radius:.375rem;
+  padding:.4rem .8rem;font-size:.85rem;font-weight:600;cursor:pointer;
+  transition:background .15s,box-shadow .15s;margin-left:.5rem;
+}
+.secondary-btn:hover{background:var(--gray-100);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+#import-export-actions{margin-top:.75rem;display:flex;justify-content:flex-end;align-items:center}
+
 
 /* --- Modal base --- */
 #settingsModal {
@@ -276,58 +276,28 @@
 .btn-danger { background-color: var(--brand-red); color: white; }
 .btn-success { background-color: var(--brand-green); color: white; }
 
-/* ---------- POP-UP SHORTKEY (ajustes de visual) ---------- */
-
-.shortkey-popup {
-    position: fixed; z-index: 2000;
-    background-color: white; border: 1px solid var(--gray-300);
-    border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-    opacity: 0; visibility: hidden; transform: scale(0.95) translateY(-10px);
-    transition: opacity 0.1s ease, transform 0.1s ease, visibility 0s linear 0.1s;
-    max-height: 250px; overflow-y: auto;
-    color: var(--text-dark);
+/* ---------- POP-UP Shortkey (look nuevo) ---------- */
+.shortkey-popup{
+  position:fixed;z-index:2000;background:#fff;border:1px solid var(--gray-300);
+  border-radius:.5rem;box-shadow:0 10px 15px -3px rgba(0,0,0,.1);
+  opacity:0;visibility:hidden;transform:scale(.95) translateY(-10px);
+  transition:opacity .1s,transform .1s,visibility 0s linear .1s;
+  max-height:250px;overflow-y:auto;color:var(--text-dark);font-size:.9rem;
 }
-
-.shortkey-popup.visible {
-    opacity: 1; visibility: visible; transform: scale(1) translateY(0);
-    transition-delay: 0s;
+.shortkey-popup.visible{opacity:1;visibility:visible;transform:scale(1) translateY(0);transition-delay:0s}
+/* prompt compacto */
+.shortkey-popup .popup-prompt{
+  font-weight:600;font-size:.85rem;padding:.4rem .7rem;border-bottom:1px solid var(--gray-200);color:var(--gray-700)
 }
-
-/* Prompt (más compacto) */
-.shortkey-popup .popup-prompt {
-    font-weight: 600;
-    font-size: 0.85rem;            /* ↓ antes ~1rem */
-    padding: 0.4rem 0.7rem;        /* ↓ antes 0.6rem 0.8rem */
-    border-bottom: 1px solid var(--gray-200);
-    color: var(--gray-700);
+/* opción base */
+.shortkey-popup .popup-option{
+  display:block;width:100%;text-align:left;padding:.55rem .8rem;border:none;background:none;cursor:pointer
 }
-
-/* Opciones */
-.shortkey-popup .popup-option {
-    display: block; width: 100%;
-    text-align: left;
-    padding: 0.55rem 0.8rem;
-    background: none; border: none; cursor: pointer;
-    color: var(--gray-800);
-    font-size: 0.9rem;
-}
-
-/* Colores por defecto de la búsqueda */
-#shortkey-search-popup .popup-option .search-key  { color: var(--brand-blue); }
-#shortkey-search-popup .popup-option .search-desc { color: var(--text-light); }
-
-/* Hover */
-.shortkey-popup .popup-option:hover {
-    background-color: var(--gray-100);
-}
-
-/* ---- SELECCIONADA: fondo azul y TODO el texto blanco ---- */
-.shortkey-popup .popup-option.selected {
-    background-color: var(--brand-blue);
-    color: #fff;
-}
-.shortkey-popup .popup-option.selected *,
-.shortkey-popup .popup-option.selected .search-key,
-.shortkey-popup .popup-option.selected .search-desc {
-    color: #fff !important;        /* forzamos blanco a todos los hijos */
-}
+.shortkey-popup .popup-option:hover{background:var(--gray-100)}
+/* spans internos */
+.search-key,.interaction-label{font-family:'JetBrains Mono',monospace;font-weight:500;color:var(--brand-blue)}
+.search-desc,.interaction-value{color:var(--text-light)}
+.separator{margin:0 .25em;color:var(--gray-400)}
+/* seleccionada: fondo + blanco */
+.shortkey-popup .popup-option.selected{background:var(--brand-blue);color:#fff}
+.shortkey-popup .popup-option.selected *{color:#fff!important}
