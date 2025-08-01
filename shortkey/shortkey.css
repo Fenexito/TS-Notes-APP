@@ -1,6 +1,6 @@
 /**
  * Estilos personalizados para el componente Shortkey.
- * Versión 27: Editor de propiedades generales y mejoras visuales.
+ * Versión 28: Ajustes visuales y funcionales solicitados.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
@@ -77,7 +77,7 @@
 .flow-editor-header {
     flex-shrink: 0;
     background-color: white;
-    padding: 0.75rem;
+    padding: 0.5rem 0.75rem;
     border: 1px solid var(--gray-200);
     border-radius: 0.5rem;
     display: grid;
@@ -92,13 +92,14 @@
 }
 .flow-editor-header label {
     font-weight: 500;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: var(--gray-700);
+    margin-bottom: 0;
 }
 .flow-editor-header input {
     font-family: 'Inter', sans-serif;
-    font-size: 0.9rem;
-    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+    padding: 0.3rem 0.6rem;
     border: 1px solid var(--gray-300);
     border-radius: 0.375rem;
 }
@@ -107,12 +108,13 @@
     align-items: center;
 }
 .flow-editor-header .key-input-prefix {
-    padding: 0.4rem 0.6rem;
+    padding: 0.3rem 0.6rem;
     background-color: var(--gray-200);
     border: 1px solid var(--gray-300);
     border-right: 0;
     border-radius: 0.375rem 0 0 0.375rem;
     font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
 }
 
 .flow-editor-main {
@@ -123,15 +125,16 @@
     min-height: 0;
 }
 .canvas-container { flex-grow: 1; position: relative; background-color: var(--gray-100); background-image: radial-gradient(var(--gray-300) 1px, transparent 1px); background-size: 20px 20px; border-radius: 0.5rem; overflow: hidden; }
-#node-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+#node-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
 .node {
     position: absolute; background-color: white; border: 1px solid #9ca3af; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-    padding: 12px; width: 240px; cursor: grab; transition: box-shadow 0.2s, border-color 0.2s; user-select: none;
+    padding: 10px; width: 220px; cursor: grab; transition: box-shadow 0.2s, border-color 0.2s; user-select: none;
+    font-size: 0.9rem;
 }
 .node.selected { border-color: var(--brand-indigo); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3); }
-.node-header { font-weight: 600; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--gray-200); padding-bottom: 8px; margin-bottom: 8px; }
-.node-title { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.node-options .option { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 0.85rem; }
+.node-header { font-weight: 600; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--gray-200); padding-bottom: 6px; margin-bottom: 6px; }
+.node-title { font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.node-options .option { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; font-size: 0.8rem; }
 .connector-dot, .connector-dot-in {
     width: 12px; height: 12px; background-color: #fff; border: 2px solid var(--gray-500);
     border-radius: 50%; transition: background-color 0.2s;
@@ -139,8 +142,8 @@
 .connector-dot { cursor: crosshair; }
 .connector-dot:hover { background-color: var(--brand-indigo); }
 .connector-dot-in { position: absolute; left: -7px; top: 50%; transform: translateY(-50%); }
-.properties-panel { width: 350px; flex-shrink: 0; background-color: #f9fafb; border-left: 1px solid var(--gray-200); padding: 16px; display: flex; flex-direction: column; overflow-y: auto; }
-#connector-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+.properties-panel { width: 320px; flex-shrink: 0; background-color: #f9fafb; border-left: 1px solid var(--gray-200); padding: 16px; display: flex; flex-direction: column; overflow-y: auto; }
+#connector-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
 .connector-line { stroke: var(--gray-500); stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
 .connector-line.highlight { stroke: var(--brand-indigo); }
 
@@ -161,21 +164,21 @@
 }
 
 /* Estilos para Etiquetas en el Editor */
-.tags-editor-wrapper { display: flex; flex-direction: column; gap: 0.5rem; }
-.tags-container { display: flex; flex-wrap: wrap; gap: 0.5rem; background-color: white; border: 1px solid var(--gray-300); border-radius: 0.375rem; padding: 0.5rem; min-height: 38px; }
-.tag-pill { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.6rem; border-radius: 999px; font-weight: 500; font-size: 0.85rem; }
-.remove-tag-btn { all: unset; box-sizing: border-box; cursor: pointer; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; line-height: 1; background-color: rgba(0,0,0,0.1); }
+.tags-editor-wrapper { display: flex; flex-direction: column; gap: 0.4rem; }
+.tags-container { display: flex; flex-wrap: wrap; gap: 0.4rem; background-color: white; border: 1px solid var(--gray-300); border-radius: 0.375rem; padding: 0.4rem; min-height: 32px; align-items: center; }
+.tag-pill { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0.5rem; border-radius: 999px; font-weight: 500; font-size: 0.8rem; }
+.remove-tag-btn { all: unset; box-sizing: border-box; cursor: pointer; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1; background-color: rgba(0,0,0,0.1); }
 .remove-tag-btn:hover { background-color: rgba(0,0,0,0.2); }
-.existing-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.5rem; }
-.existing-tags small { color: var(--text-light); font-size: 0.8rem; }
+.existing-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-top: 0.25rem; }
+.existing-tags small { color: var(--text-light); font-size: 0.75rem; }
 .existing-tags .tag-pill { cursor: pointer; transition: transform 0.1s; }
 .existing-tags .tag-pill:hover { transform: translateY(-1px); }
 #add-tag-input {
     flex-grow: 1;
     border: none;
     outline: none;
-    padding: 0.25rem;
-    font-size: 0.9rem;
+    padding: 0.2rem;
+    font-size: 0.85rem;
     background: transparent;
 }
 
@@ -183,13 +186,13 @@
 /* Botones y Acciones */
 #closeSettingsBtn, .delete-node-btn, .delete-option-btn {
     all: unset; box-sizing: border-box; color: var(--brand-red); border-radius: 50%;
-    width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
     font-size: 16px; font-weight: bold; line-height: 1; cursor: pointer; transition: background-color 0.2s, transform 0.2s;
 }
 #closeSettingsBtn:hover, .delete-node-btn:hover, .delete-option-btn:hover { background-color: var(--gray-200); transform: scale(1.1); }
 #closeSettingsBtn { position: relative; top: -2px; }
-.delete-node-btn { font-size: 20px; }
-.delete-option-btn { font-size: 20px; }
+.delete-node-btn { font-size: 18px; }
+.delete-option-btn { font-size: 18px; }
 
 .editor-actions-sticky {
     flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;

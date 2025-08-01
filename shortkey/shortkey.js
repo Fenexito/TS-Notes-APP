@@ -534,10 +534,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <label for="prop-name">Nombre de la Variable</label>
                     <input type="text" id="prop-name" value="${node.name}" ${node.type === 'result' ? 'readonly class="bg-gray-200"' : ''}>
                 </div>
-                <div>
-                    <label for="prop-id">ID de la Variable (para plantilla)</label>
-                    <input type="text" id="prop-id" value="${node.id}" readonly class="bg-gray-200">
-                </div>
             </div>
             ${optionsEditor}
             ${templateEditorHTML}
@@ -750,17 +746,17 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         } else {
             shortcut.steps.forEach((step, index) => {
-                flowState.nodes[step.id] = {
-                    ...step,
-                    name: step.name || step.id,
-                    x: 100 + (index * 280),
-                    y: 150
-                };
+                if (step.type !== 'template') {
+                    flowState.nodes[step.id] = {
+                        ...step,
+                        name: step.name || step.id,
+                        x: 100 + (index * 280),
+                        y: 150
+                    };
+                }
             });
-            if (!flowState.nodes.result) {
-                 const resultNode = shortcut.steps.find(s => s.type === 'template') || { id: 'result', type: 'template', template: '' };
-                 flowState.nodes.result = { ...resultNode, name: 'Texto Final', type: 'result', x: 400, y: 350 };
-            }
+            const resultNode = shortcut.steps.find(s => s.type === 'template') || { id: 'result', type: 'template', template: '' };
+            flowState.nodes.result = { ...resultNode, name: 'Texto Final', type: 'result', x: 400, y: 350 };
         }
         const firstNodeId = Object.keys(flowState.nodes).find(id => id !== 'result');
         selectNode(firstNodeId || 'result');
@@ -768,7 +764,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function parseFlowchartEditor() {
         const nodes = flowState.nodes;
-        const resultNode = nodes.result || { id: 'result', type: 'template', template: '' };
         
         const selectSteps = Object.values(nodes)
             .filter(node => node.type === 'select')
@@ -902,8 +897,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('tags-container');
         const input = document.getElementById('add-tag-input');
         
-        // Clear previous tags
-        container.querySelectorAll('.tag-pill').forEach(pill => pill.remove());
+        container.querySelectorAll('.tag-pill:not(.suggestion-tag)').forEach(pill => pill.remove());
 
         currentTags.forEach(tag => {
             const {bg, text} = getColorForTag(tag);
@@ -941,7 +935,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const steps = parseFlowchartEditor();
-            const description = descInput.value.trim() || (steps.length > 1 ? "Shortkey dinámico con variables." : "Shortkey simple.");
+            const description = descInput.value.trim() || (steps.length > 1 ? "Shortkey dinámico con variables." : (flowState.nodes.result?.template || "Shortkey simple."));
             
             const data = {
                 key: keyToSave,
