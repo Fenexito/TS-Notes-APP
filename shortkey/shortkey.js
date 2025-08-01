@@ -1,5 +1,6 @@
 /**
  * Clase para manejar los pop-ups de interacción y búsqueda.
+ * (Sin cambios en esta clase)
  */
 class PopupManager {
     constructor(element, onSelect) {
@@ -139,6 +140,7 @@ class PopupManager {
 
 /**
  * Clase principal Shortkey
+ * (Lógica de ejecución sin cambios)
  */
 class Shortkey {
     constructor() {
@@ -250,7 +252,7 @@ class Shortkey {
                 const nextStep = shortkeyData.steps.find(s => s.id === selectedOption.nextStep);
                 this._runDynamicFlow(shortkeyData, newVariables, nextStep);
             });
-            this._activePopupManager.show(currentStep.options, 'interaction');
+            this._activePopupManager.show(currentStep.options, 'interaction', currentStep.id);
         } else if (currentStep.type === 'template') {
             let finalText = currentStep.template;
             
@@ -295,44 +297,30 @@ class Shortkey {
 }
 
 /**
- * Lógica de la Aplicación
+ * Lógica de la Aplicación y del Editor de Flujo
  */
 document.addEventListener('DOMContentLoaded', () => {
-    console.info('[Shortkey] Módulo dinámico cargado y listo.');
+    console.info('[Shortkey] Módulo de flujo visual cargado y listo.');
     
     // --- CONFIGURACIÓN DE ETIQUETAS ---
-    // Aquí defines las etiquetas fijas que el usuario podrá seleccionar.
     const PREDEFINED_TAGS = ['cx_issue', 'ts_steps', 'general', 'billing', 'sales'];
 
     const shortkeyManager = new Shortkey();
-    // Adjunta el listener a todos los elementos con la clase.
-    // El filtrado se hará automáticamente si el elemento tiene el atributo `data-shortkey-tag`.
     shortkeyManager.attach('.shortkey-enabled');
 
     // --- Selectores del DOM ---
     const modal = document.getElementById('settingsModal');
+    const modalContainer = modal.querySelector('.modal-container');
+    const modalTitle = document.getElementById('modal-title');
     const closeBtn = document.getElementById('closeSettingsBtn');
     const overlay = document.getElementById('modalOverlay');
     const viewList = document.getElementById('view-list');
     const viewEditor = document.getElementById('view-editor');
     const addNewBtn = document.getElementById('add-new-shortkey-btn');
-    const editorForm = document.getElementById('shortkey-editor-form');
-    const editorKeyInput = document.getElementById('editor-key');
+    const editorActions = document.getElementById('editor-actions-sticky');
     const editorCancelBtn = document.getElementById('editor-cancel-btn');
+    const editorSaveBtn = document.getElementById('editor-save-btn');
     
-    const simpleModeView = document.getElementById('simple-mode-view');
-    const dynamicModeView = document.getElementById('dynamic-mode-view');
-    const editorDescInput = document.getElementById('editor-description');
-    const addVarBtnContainer = document.getElementById('add-select-step-btn');
-    
-    const stepsContainer = document.getElementById('steps-container');
-    const templateStepContainer = document.getElementById('template-step-container');
-    const livePreviewContainer = document.getElementById('live-preview-container');
-    const livePreviewOutput = document.getElementById('live-preview-output');
-
-    const tagsContainer = document.getElementById('tags-container');
-    const availableTagsContainer = document.getElementById('available-tags-container');
-
     const confirmModal = document.getElementById('confirm-modal');
     const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
     const confirmDiscardBtn = document.getElementById('confirm-discard-btn');
@@ -341,283 +329,391 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentEditingKey = null;
     let isDirty = false;
 
-    // --- Funciones de control de UI ---
+    // --- LÓGICA DEL EDITOR DE FLUJO ---
+    let flowState = {};
+
+    function setupFlowEditor() {
+        viewEditor.innerHTML = `
+            <div id="flow-canvas-container" class="canvas-container">
+                <svg id="flow-connector-svg"></svg>
+                <div id="flow-node-container"></div>
+            </div>
+            <div id="flow-properties-panel" class="properties-panel">
+                <div class="flex-grow">
+                    <h2 class="text-xl font-bold mb-4">Propiedades</h2>
+                    <div id="flow-properties-content" class="space-y-4"></div>
+                </div>
+                <div id="flow-actions" class="flex-shrink-0 mt-6 space-y-2">
+                     <button id="add-select-node-btn" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-all shadow">
+                        + Añadir Pregunta
+                    </button>
+                </div>
+            </div>
+        `;
+        addFlowEventListeners();
+    }
+
+    function addFlowEventListeners() {
+        const canvas = document.getElementById('flow-canvas-container');
+        canvas.addEventListener('mousemove', onFlowMouseMove);
+        canvas.addEventListener('mouseup', onFlowMouseUp);
+        canvas.addEventListener('mousedown', () => selectNode(null)); // Deselect on canvas click
+        document.getElementById('add-select-node-btn').addEventListener('click', addSelectNode);
+    }
+    
+    function resetFlowState() {
+        flowState = {
+            nodes: {},
+            selectedNodeId: null,
+            dragging: { active: false, id: null, offsetX: 0, offsetY: 0 },
+            connecting: { active: false, fromNodeId: null, fromOptionIndex: null, tempLine: null }
+        };
+    }
+
+    function renderFlow() {
+        renderFlowNodes();
+        renderFlowConnections();
+        renderFlowProperties();
+    }
+
+    function renderFlowNodes() {
+        const container = document.getElementById('flow-node-container');
+        if (!container) return;
+        container.innerHTML = '';
+        Object.values(flowState.nodes).forEach(node => {
+            const nodeEl = document.createElement('div');
+            nodeEl.id = node.id;
+            nodeEl.className = 'node';
+            if (node.id === flowState.selectedNodeId) nodeEl.classList.add('selected');
+            if (node.type === 'result') nodeEl.style.borderColor = 'var(--brand-green)';
+            nodeEl.style.left = `${node.x}px`;
+            nodeEl.style.top = `${node.y}px`;
+
+            let optionsHTML = '';
+            if (node.type === 'select') {
+                optionsHTML = node.options.map((opt, index) => `
+                    <div class="option">
+                        <span>${opt.label || `Opción ${index + 1}`}</span>
+                        <div class="connector-dot" data-node-id="${node.id}" data-option-index="${index}"></div>
+                    </div>
+                `).join('');
+            }
+
+            nodeEl.innerHTML = `
+                <div class="node-header" style="${node.type === 'result' ? 'background-color: #dcfce7;' : ''}">
+                    <span class="node-title">${node.name}</span>
+                    ${node.type !== 'result' ? `<button class="delete-node-btn" data-node-id="${node.id}">&times;</button>` : ''}
+                </div>
+                <div class="node-options">${optionsHTML}</div>
+            `;
+            container.appendChild(nodeEl);
+        });
+        
+        // Add event listeners to newly created nodes
+        document.querySelectorAll('.node').forEach(el => {
+            el.addEventListener('mousedown', onNodeMouseDown);
+        });
+        document.querySelectorAll('.connector-dot').forEach(el => {
+            el.addEventListener('mousedown', onConnectorMouseDown);
+        });
+    }
+
+    function renderFlowConnections() {
+        const svg = document.getElementById('flow-connector-svg');
+        if (!svg) return;
+        svg.innerHTML = '';
+        Object.values(flowState.nodes).forEach(node => {
+            if (node.type === 'select') {
+                node.options.forEach((opt, index) => {
+                    if (opt.nextStep && flowState.nodes[opt.nextStep]) {
+                        const fromEl = document.querySelector(`.connector-dot[data-node-id="${node.id}"][data-option-index="${index}"]`);
+                        const toEl = document.getElementById(opt.nextStep);
+                        if (fromEl && toEl) {
+                            const canvasRect = document.getElementById('flow-canvas-container').getBoundingClientRect();
+                            const fromRect = fromEl.getBoundingClientRect();
+                            const toRect = toEl.getBoundingClientRect();
+
+                            const startX = fromRect.left - canvasRect.left + fromRect.width / 2;
+                            const startY = fromRect.top - canvasRect.top + fromRect.height / 2;
+                            const endX = toRect.left - canvasRect.left;
+                            const endY = toRect.top - canvasRect.top + toRect.height / 2;
+                            
+                            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                            path.setAttribute('d', `M ${startX} ${startY} C ${startX + 60} ${startY}, ${endX - 60} ${endY}, ${endX} ${endY}`);
+                            path.setAttribute('class', 'connector-line');
+                            svg.appendChild(path);
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    function renderFlowProperties() {
+        const container = document.getElementById('flow-properties-content');
+        if (!container) return;
+
+        if (!flowState.selectedNodeId || !flowState.nodes[flowState.selectedNodeId]) {
+            container.innerHTML = '<p class="text-gray-500">Selecciona un nodo para ver sus propiedades.</p>';
+            return;
+        }
+
+        const node = flowState.nodes[flowState.selectedNodeId];
+        let optionsEditor = '';
+        if (node.type === 'select') {
+            const optionsHTML = node.options.map((opt, index) => `
+                <div class="bg-white p-2 border rounded-md space-y-2">
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm font-semibold">Opción ${index + 1}</p>
+                        <button class="delete-option-btn" data-index="${index}">&times;</button>
+                    </div>
+                    <input type="text" class="option-prop-input w-full p-1 border rounded" data-index="${index}" data-prop="label" value="${opt.label || ''}" placeholder="Texto a mostrar">
+                    <input type="text" class="option-prop-input w-full p-1 border rounded" data-index="${index}" data-prop="value" value="${opt.value || ''}" placeholder="Valor a guardar">
+                </div>
+            `).join('');
+            optionsEditor = `
+                <h3 class="font-semibold mt-4 text-sm">Opciones</h3>
+                <div class="space-y-2">${optionsHTML}</div>
+                <button id="add-option-btn" class="mt-2 text-sm text-indigo-600 hover:text-indigo-800 font-semibold">+ Añadir opción</button>
+            `;
+        }
+
+        container.innerHTML = `
+            <div>
+                <label for="prop-name">Nombre de la Variable</label>
+                <input type="text" id="prop-name" value="${node.name}" ${node.type === 'result' ? 'readonly class="bg-gray-200"' : ''}>
+            </div>
+            <div>
+                <label for="prop-id">ID de la Variable (para plantilla)</label>
+                <input type="text" id="prop-id" value="${node.id}" readonly class="bg-gray-200">
+            </div>
+            ${optionsEditor}
+        `;
+        addPropertiesEventListeners();
+    }
+    
+    function addPropertiesEventListeners() {
+        document.getElementById('prop-name')?.addEventListener('input', (e) => {
+            flowState.nodes[flowState.selectedNodeId].name = e.target.value;
+            isDirty = true;
+            renderFlowNodes(); // Only re-render nodes to update title
+        });
+        document.getElementById('add-option-btn')?.addEventListener('click', () => {
+            flowState.nodes[flowState.selectedNodeId].options.push({ label: '', value: '', nextStep: 'result' });
+            isDirty = true;
+            renderFlow();
+        });
+        document.querySelectorAll('.delete-option-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = e.target.dataset.index;
+                const option = flowState.nodes[flowState.selectedNodeId].options[index];
+                option.nextStep = null;
+                flowState.nodes[flowState.selectedNodeId].options.splice(index, 1);
+                isDirty = true;
+                renderFlow();
+            });
+        });
+        document.querySelectorAll('.option-prop-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const { index, prop } = e.target.dataset;
+                flowState.nodes[flowState.selectedNodeId].options[index][prop] = e.target.value;
+                isDirty = true;
+                renderFlowNodes(); // Only re-render nodes to update option text
+            });
+        });
+    }
+
+    function onNodeMouseDown(e) {
+        e.stopPropagation();
+        if (e.target.classList.contains('connector-dot') || e.target.closest('button')) return;
+        const id = e.currentTarget.id;
+        selectNode(id);
+        flowState.dragging.active = true;
+        flowState.dragging.id = id;
+        const nodeRect = e.currentTarget.getBoundingClientRect();
+        const canvasRect = document.getElementById('flow-canvas-container').getBoundingClientRect();
+        flowState.dragging.offsetX = e.clientX - nodeRect.left;
+        flowState.dragging.offsetY = e.clientY - nodeRect.top;
+        e.currentTarget.style.cursor = 'grabbing';
+    }
+
+    function onConnectorMouseDown(e) {
+        e.stopPropagation();
+        const { nodeId, optionIndex } = e.target.dataset;
+        flowState.connecting.active = true;
+        flowState.connecting.fromNodeId = nodeId;
+        flowState.connecting.fromOptionIndex = optionIndex;
+        
+        const tempLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        tempLine.setAttribute('class', 'connector-line highlight');
+        document.getElementById('flow-connector-svg').appendChild(tempLine);
+        flowState.connecting.tempLine = tempLine;
+    }
+
+    function onFlowMouseMove(e) {
+        if (flowState.dragging.active) {
+            const node = flowState.nodes[flowState.dragging.id];
+            const canvasRect = document.getElementById('flow-canvas-container').getBoundingClientRect();
+            node.x = e.clientX - canvasRect.left - flowState.dragging.offsetX;
+            node.y = e.clientY - canvasRect.top - flowState.dragging.offsetY;
+            isDirty = true;
+            renderFlow();
+        }
+        if (flowState.connecting.active) {
+            const fromDot = document.querySelector(`.connector-dot[data-node-id="${flowState.connecting.fromNodeId}"][data-option-index="${flowState.connecting.fromOptionIndex}"]`);
+            const canvasRect = document.getElementById('flow-canvas-container').getBoundingClientRect();
+            const fromRect = fromDot.getBoundingClientRect();
+            const startX = fromRect.left - canvasRect.left + fromRect.width / 2;
+            const startY = fromRect.top - canvasRect.top + fromRect.height / 2;
+            const endX = e.clientX - canvasRect.left;
+            const endY = e.clientY - canvasRect.top;
+            flowState.connecting.tempLine.setAttribute('d', `M ${startX} ${startY} C ${startX + 60} ${startY}, ${endX - 60} ${endY}, ${endX} ${endY}`);
+        }
+    }
+
+    function onFlowMouseUp(e) {
+        if (flowState.dragging.active) {
+            document.getElementById(flowState.dragging.id).style.cursor = 'grab';
+            flowState.dragging.active = false;
+            flowState.dragging.id = null;
+        }
+        if (flowState.connecting.active) {
+            flowState.connecting.tempLine.remove();
+            const toNodeEl = e.target.closest('.node');
+            if (toNodeEl && toNodeEl.id !== flowState.connecting.fromNodeId) {
+                const fromNode = flowState.nodes[flowState.connecting.fromNodeId];
+                fromNode.options[flowState.connecting.fromOptionIndex].nextStep = toNodeEl.id;
+                isDirty = true;
+            }
+            flowState.connecting.active = false;
+            renderFlow();
+        }
+    }
+
+    function selectNode(id) {
+        flowState.selectedNodeId = id;
+        renderFlow();
+    }
+
+    function addSelectNode() {
+        const count = Object.keys(flowState.nodes).length;
+        const nodeId = `variable_${count}`;
+        flowState.nodes[nodeId] = {
+            id: nodeId, name: `Nueva Pregunta ${count}`, type: 'select', x: 50, y: 50,
+            options: [{ label: 'Opción 1', value: 'valor1', nextStep: 'result' }]
+        };
+        isDirty = true;
+        selectNode(nodeId);
+    }
+
+    function deleteNode(id) {
+        Object.values(flowState.nodes).forEach(node => {
+            if (node.type === 'select') {
+                node.options.forEach(opt => { if (opt.nextStep === id) opt.nextStep = 'result'; });
+            }
+        });
+        delete flowState.nodes[id];
+        if (flowState.selectedNodeId === id) flowState.selectedNodeId = null;
+        isDirty = true;
+        renderFlow();
+    }
+    
+    // --- Lógica de la Aplicación Principal ---
     const openModal = () => {
         showListView();
-        if (modal) modal.classList.add('visible');
+        modal.classList.add('visible');
     };
 
     const attemptClose = () => {
-        if (!viewEditor) return;
         const isEditorVisible = !viewEditor.classList.contains('hidden');
         if (!isEditorVisible) {
             closeModalCleanup();
             return;
         }
         if (isDirty) {
-            if (confirmModal) confirmModal.classList.remove('hidden');
+            confirmModal.classList.remove('hidden');
         } else {
             showListView();
         }
     };
 
     const closeModalCleanup = () => {
-        if (modal) modal.classList.remove('visible');
-        if (confirmModal) confirmModal.classList.add('hidden');
+        modal.classList.remove('visible');
+        confirmModal.classList.add('hidden');
     };
 
     const showListView = () => {
-        if (viewEditor) viewEditor.classList.add('hidden');
-        if (viewList) viewList.classList.remove('hidden');
-        if (confirmModal) confirmModal.classList.add('hidden');
+        modalContainer.classList.remove('flow-editor-mode');
+        modalTitle.textContent = "Configuración de Shortkeys";
+        viewEditor.classList.add('hidden');
+        editorActions.classList.add('hidden');
+        viewList.classList.remove('hidden');
         isDirty = false;
         renderShortcuts();
     };
 
     const showEditorView = (shortcutKey = null) => {
-        if (viewList) viewList.classList.add('hidden');
-        if (viewEditor) viewEditor.classList.remove('hidden');
+        modalContainer.classList.add('flow-editor-mode');
+        viewList.classList.add('hidden');
+        viewEditor.classList.remove('hidden');
+        editorActions.classList.remove('hidden');
         isDirty = false;
         currentEditingKey = shortcutKey;
-        buildEditor(shortcutKey);
+        const shortcut = shortcutKey ? shortkeyManager.getShortcuts().find(s => s.key === shortcutKey) : null;
+        modalTitle.textContent = shortcut ? `Editando: @${shortcut.key}` : "Creando Nuevo Shortkey";
+        buildFlowchartEditor(shortcut);
     };
 
-    const setEditorMode = (mode) => {
-        if (!simpleModeView || !dynamicModeView || !addVarBtnContainer) return;
-        if (mode === 'dynamic') {
-            simpleModeView.classList.add('hidden');
-            dynamicModeView.classList.remove('hidden');
-            addVarBtnContainer.textContent = "+ Añadir Otra Variable";
+    // --- Traducción entre formato de Steps y formato de Flujo ---
+    function buildFlowchartEditor(shortcut) {
+        setupFlowEditor();
+        resetFlowState();
+        
+        if (!shortcut || shortcut.steps.length === 0) {
+            // Crear flujo por defecto para un shortkey nuevo o simple
+            flowState.nodes = {
+                'result': { id: 'result', name: 'Texto Final', type: 'result', x: 400, y: 150, template: shortcut ? shortcut.description : '' }
+            };
         } else {
-            dynamicModeView.classList.add('hidden');
-            simpleModeView.classList.remove('hidden');
-            addVarBtnContainer.textContent = "+ Añadir Variables (Modo Dinámico)";
-        }
-        addVarBtnContainer.classList.remove('hidden');
-    };
-
-    const buildEditor = (key) => {
-        if (!editorForm) return;
-        editorForm.reset();
-        if (stepsContainer) stepsContainer.innerHTML = '';
-        if (templateStepContainer) templateStepContainer.innerHTML = '';
-        if (tagsContainer) tagsContainer.innerHTML = '';
-        
-        const shortcut = key ? shortkeyManager.getShortcuts().find(s => s.key === key) : null;
-
-        if (shortcut) {
-            if (editorKeyInput) editorKeyInput.value = shortcut.key;
-            if (shortcut.tags) {
-                shortcut.tags.forEach(tag => addTagToEditor(tag));
-            }
-            const hasSteps = shortcut.steps && shortcut.steps.length > 0;
-            if (hasSteps) {
-                setEditorMode('dynamic');
-                const selectSteps = shortcut.steps.filter(s => s.type === 'select');
-                const templateStep = shortcut.steps.find(s => s.type === 'template');
-                selectSteps.forEach(step => addStepToDOM('select', step));
-                if (templateStep) addStepToDOM('template', templateStep);
-            } else {
-                setEditorMode('simple');
-                if (editorDescInput) editorDescInput.value = shortcut.description;
-            }
-        } else {
-            setEditorMode('simple');
-        }
-        renderAvailableTags();
-        updateLivePreview();
-    };
-
-    const addStepToDOM = (type, data = null) => {
-        const container = type === 'template' ? templateStepContainer : stepsContainer;
-        if (!container) return;
-        const templateId = `template-step-${type}`;
-        const template = document.getElementById(templateId);
-        if (!template) return;
-        const clone = template.content.cloneNode(true);
-        const stepContainer = clone.querySelector('.step-container');
-        
-        if (type === 'select') {
-            const idInput = clone.querySelector('[data-config="id"]');
-            if (idInput) {
-                if (data) {
-                    idInput.value = data.id;
-                } else {
-                    const newId = `variable_${stepsContainer.children.length + 1}`;
-                    idInput.value = newId;
-                    addPlaceholderToTemplate(newId);
-                }
-                idInput.addEventListener('focus', () => idInput.dataset.oldValue = idInput.value);
-                idInput.addEventListener('input', () => {
-                    const oldValue = idInput.dataset.oldValue;
-                    updateTemplateOnIdChange(oldValue, idInput.value);
-                    idInput.dataset.oldValue = idInput.value;
-                    updateLivePreview();
-                });
-            }
-        }
-
-        if (data) {
-            stepContainer.querySelectorAll('[data-config]').forEach(input => {
-                if (data[input.dataset.config] && input.dataset.config !== 'id') {
-                    input.value = data[input.dataset.config];
-                }
+            // Convertir 'steps' a 'nodes'
+            shortcut.steps.forEach((step, index) => {
+                flowState.nodes[step.id] = {
+                    ...step,
+                    name: step.id, // Usamos el ID como nombre inicial
+                    x: 100 + (index * 280),
+                    y: 150
+                };
             });
-            if (type === 'select' && data.options) {
-                const optionsContainer = stepContainer.querySelector('.options-container');
-                if (optionsContainer) data.options.forEach(opt => addOptionToDOM(optionsContainer, opt));
-            }
         }
-        
-        if (type === 'template') {
-            const templateTextarea = clone.querySelector('[data-config="template"]');
-            if (templateTextarea) templateTextarea.addEventListener('input', updateLivePreview);
-        }
-
-        container.appendChild(stepContainer);
-        autoResizeTextareas();
-        updateLivePreview();
-    };
-
-    const addOptionToDOM = (container, data = null) => {
-        const template = document.getElementById('template-step-option');
-        if (!template) return;
-        const clone = template.content.cloneNode(true);
-        if (data) {
-            clone.querySelectorAll('[data-config]').forEach(input => {
-                if (data[input.dataset.config]) input.value = data[input.dataset.config];
-            });
-        } else {
-            const nextStepInput = clone.querySelector('[data-config="nextStep"]');
-            if (nextStepInput) nextStepInput.value = 'result';
-        }
-        
-        clone.querySelectorAll('[data-config]').forEach(input => {
-            input.addEventListener('input', updateLivePreview);
-        });
-
-        clone.querySelectorAll('.no-spaces').forEach(input => {
-            input.addEventListener('input', (e) => {
-                e.target.value = e.target.value.replace(/\s/g, '');
-            });
-        });
-
-        container.appendChild(clone);
-        autoResizeTextareas();
-    };
-
-    const autoResizeTextareas = () => {
-        document.querySelectorAll('.step-textarea-flexible').forEach(textarea => {
-            textarea.style.height = 'auto';
-            textarea.style.height = `${textarea.scrollHeight}px`;
-            textarea.addEventListener('input', () => {
-                textarea.style.height = 'auto';
-                textarea.style.height = `${textarea.scrollHeight}px`;
-            });
-        });
-    };
+        selectNode(Object.keys(flowState.nodes)[0]);
+    }
     
-    const parseEditor = () => {
-        if (!editorKeyInput || !dynamicModeView) return null;
-        const key = editorKeyInput.value.trim().toLowerCase();
-        if (!key) return null;
-
-        const isDynamicMode = !dynamicModeView.classList.contains('hidden');
-        let description = '';
-        const steps = [];
-        const tags = [];
-        if (tagsContainer) {
-            tagsContainer.querySelectorAll('.tag-pill-text').forEach(el => tags.push(el.textContent));
+    function parseFlowchartEditor() {
+        const nodes = flowState.nodes;
+        if (Object.keys(nodes).length <= 1 && nodes.result && !nodes.result.template) {
+            // Considerado vacío si solo está el nodo de resultado y no tiene plantilla
+            return []; 
         }
+        return Object.values(nodes)
+            .filter(node => node.id !== 'result') // Excluir el nodo de resultado de la lista de pasos 'select'
+            .map(node => ({
+                id: node.id,
+                type: 'select',
+                options: node.options.map(opt => ({
+                    label: opt.label,
+                    value: opt.value,
+                    nextStep: opt.nextStep || 'result'
+                }))
+            }))
+            .concat([{
+                id: 'result',
+                type: 'template',
+                template: nodes.result.template || ''
+            }]);
+    }
 
-        if (isDynamicMode) {
-            description = "Shortkey dinámico con variables.";
-            if (stepsContainer) {
-                stepsContainer.querySelectorAll('.step-container').forEach(stepEl => {
-                    const stepData = { type: 'select', id: '', options: [] };
-                    stepEl.querySelectorAll('[data-config]').forEach(input => stepData[input.dataset.config] = input.value.trim());
-                    stepEl.querySelectorAll('.option-item').forEach(optEl => {
-                        const optionData = {};
-                        optEl.querySelectorAll('[data-config]').forEach(input => optionData[input.dataset.config] = input.value.trim());
-                        stepData.options.push(optionData);
-                    });
-                    steps.push(stepData);
-                });
-            }
-            if (templateStepContainer) {
-                const templateStep = templateStepContainer.querySelector('.step-container');
-                if (templateStep) {
-                    const templateData = { type: 'template' };
-                    templateStep.querySelectorAll('[data-config]').forEach(input => templateData[input.dataset.config] = input.value);
-                    steps.push(templateData);
-                }
-            }
-        } else {
-            if (editorDescInput) description = editorDescInput.value.trim();
-        }
-        
-        if (!description && steps.length === 0) return null;
-
-        return { key, description, steps, tags };
-    };
-    
-    const addPlaceholderToTemplate = (newId) => {
-        if (!templateStepContainer) return;
-        const templateTextarea = templateStepContainer.querySelector('[data-config="template"]');
-        if (!templateTextarea) return;
-        const sanitizedNewId = newId.trim().replace(/\s/g, '_');
-        if (sanitizedNewId && !templateTextarea.value.includes(`{${sanitizedNewId}}`)) {
-             templateTextarea.value = (templateTextarea.value ? templateTextarea.value + ' ' : '') + `{${sanitizedNewId}}`;
-        }
-    };
-
-    const updateTemplateOnIdChange = (oldId, newId) => {
-        if (!templateStepContainer) return;
-        const templateTextarea = templateStepContainer.querySelector('[data-config="template"]');
-        if (!templateTextarea) return;
-        
-        const currentTemplate = templateTextarea.value;
-        const sanitizedNewId = newId.trim().replace(/\s/g, '');
-
-        if (oldId && currentTemplate.includes(`{${oldId}}`)) {
-            templateTextarea.value = currentTemplate.replace(new RegExp(`{${oldId}}`, 'g'), `{${sanitizedNewId}}`);
-        }
-    };
-
-    const updateTemplateOnDelete = (idToRemove) => {
-        if (!templateStepContainer || !idToRemove) return;
-        const templateTextarea = templateStepContainer.querySelector('[data-config="template"]');
-        if (!templateTextarea) return;
-        
-        templateTextarea.value = templateTextarea.value.replace(new RegExp(`\\s?{${idToRemove}}`, 'g'), '').trim();
-    };
-
-    const updateLivePreview = () => {
-        if (!livePreviewContainer || !livePreviewOutput) return;
-        const data = parseEditor();
-        if (!data || !data.steps || data.steps.length === 0) {
-            livePreviewContainer.classList.add('hidden');
-            return;
-        }
-        livePreviewContainer.classList.remove('hidden');
-
-        const templateStep = data.steps.find(s => s.type === 'template');
-        if (!templateStep || !templateStep.template) {
-            livePreviewOutput.textContent = 'Escribe en la Plantilla Final para ver la vista previa.';
-            return;
-        }
-        
-        let previewText = templateStep.template;
-        data.steps.filter(s => s.type === 'select').forEach(step => {
-            const varName = step.id || 'variable';
-            const firstOption = step.options.length > 0 ? step.options[0] : null;
-            const exampleValue = firstOption && firstOption.label ? `[${firstOption.label}]` : `[ejemplo]`;
-            previewText = previewText.replace(new RegExp(`{${varName}}`, 'g'), exampleValue);
-        });
-        livePreviewOutput.textContent = previewText;
-    };
-
-    const renderShortcuts = () => {
+    function renderShortcuts() {
+        // ... (código original de renderShortcuts, sin cambios)
         const listContainer = document.getElementById('shortcutsList');
         if (!listContainer) return;
         listContainer.innerHTML = '';
@@ -668,12 +764,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
             listContainer.appendChild(item);
         });
-    };
-
-    // --- Funciones para Etiquetas ---
+    }
+    
+    // --- Funciones para Etiquetas (sin cambios) ---
     const tagColors = ['#e0f2fe', '#dcfce7', '#fefce8', '#fee2e2', '#f3e8ff', '#dbeafe', '#e0e7ff'];
     const tagTextColors = ['#0c4a6e', '#166534', '#854d0e', '#991b1b', '#581c87', '#1e40af', '#312e81'];
-
     const getColorForTag = (tag) => {
         let hash = 0;
         for (let i = 0; i < tag.length; i++) {
@@ -683,96 +778,34 @@ document.addEventListener('DOMContentLoaded', () => {
         return { bg: tagColors[index], text: tagTextColors[index] };
     };
 
-    const addTagToEditor = (tag) => {
-        if (!tag || !tagsContainer) return;
-        const existingTags = Array.from(tagsContainer.querySelectorAll('.tag-pill-text')).map(el => el.textContent);
-        if (existingTags.includes(tag)) return;
-        
-        const template = document.getElementById('template-tag-pill');
-        if (!template) return;
-
-        const clone = template.content.cloneNode(true);
-        const pill = clone.querySelector('.tag-pill');
-        const textEl = clone.querySelector('.tag-pill-text');
-        const removeBtn = clone.querySelector('.remove-tag-btn');
-
-        textEl.textContent = tag;
-        const colors = getColorForTag(tag);
-        pill.style.backgroundColor = colors.bg;
-        pill.style.color = colors.text;
-        
-        removeBtn.addEventListener('click', () => {
-            pill.remove();
-            isDirty = true;
-        });
-
-        tagsContainer.appendChild(pill);
-        isDirty = true;
-    };
-
-    const renderAvailableTags = () => {
-        if (!availableTagsContainer) return;
-        availableTagsContainer.innerHTML = '<small>Etiquetas disponibles:</small>';
-        PREDEFINED_TAGS.forEach(tag => {
-            const pill = document.createElement('span');
-            pill.className = 'tag-pill';
-            pill.textContent = tag;
-            const colors = getColorForTag(tag);
-            pill.style.backgroundColor = colors.bg;
-            pill.style.color = colors.text;
-            pill.addEventListener('click', () => addTagToEditor(tag));
-            availableTagsContainer.appendChild(pill);
-        });
-    };
-
     // --- Event Listeners ---
     if (closeBtn) closeBtn.addEventListener('click', attemptClose);
     if (overlay) overlay.addEventListener('click', attemptClose);
     if (addNewBtn) addNewBtn.addEventListener('click', () => showEditorView());
     if (editorCancelBtn) editorCancelBtn.addEventListener('click', attemptClose);
-
-    if (confirmCancelBtn) {
-        confirmCancelBtn.addEventListener('click', () => {
-            if (confirmModal) confirmModal.classList.add('hidden');
-        });
-    }
-    if (confirmDiscardBtn) {
-        confirmDiscardBtn.addEventListener('click', showListView);
-    }
-    if (confirmSaveBtn) {
-        confirmSaveBtn.addEventListener('click', () => {
-            if (editorForm) editorForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-        });
-    }
-    
-    if (addVarBtnContainer) {
-        addVarBtnContainer.addEventListener('click', () => {
-            const isSimpleMode = simpleModeView && !simpleModeView.classList.contains('hidden');
-            if (isSimpleMode) {
-                setEditorMode('dynamic');
-                if (templateStepContainer && templateStepContainer.children.length === 0) {
-                    addStepToDOM('template');
-                }
-                if (stepsContainer && stepsContainer.children.length === 0) {
-                    addStepToDOM('select');
-                }
-            } else {
-                addStepToDOM('select');
-            }
-        });
-    }
-
-    if (editorForm) {
-        editorForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const data = parseEditor();
-            if (!data) { alert('Por favor, completa al menos la llave.'); return; }
-            
-            const existing = shortkeyManager.getShortcuts().find(s => s.key === data.key);
-            if (existing && data.key !== currentEditingKey) {
-                alert(`El shortkey "@${data.key}" ya existe. Por favor, elige otra llave.`);
+    if (editorSaveBtn) {
+        editorSaveBtn.addEventListener('click', () => {
+            // Este es el nuevo proceso de guardado
+            const key = prompt("Ingresa el activador para este shortkey (ej: mi_flujo):")?.trim().toLowerCase().replace(/\s/g, '');
+            if (!key) {
+                alert("El activador no puede estar vacío.");
                 return;
             }
+            const existing = shortkeyManager.getShortcuts().find(s => s.key === key);
+            if (existing && key !== currentEditingKey) {
+                alert(`El shortkey "@${key}" ya existe. Por favor, elige otro activador.`);
+                return;
+            }
+
+            const steps = parseFlowchartEditor();
+            const description = steps.length > 0 ? "Shortkey dinámico con variables." : (flowState.nodes.result?.template || "Shortkey simple.");
+            
+            const data = {
+                key: key,
+                description: description,
+                steps: steps,
+                tags: [] // La edición de etiquetas se puede añadir al panel de propiedades
+            };
 
             if (currentEditingKey) {
                 shortkeyManager.updateShortcut(currentEditingKey, data);
@@ -782,68 +815,11 @@ document.addEventListener('DOMContentLoaded', () => {
             isDirty = false;
             showListView();
         });
-
-        editorForm.addEventListener('input', () => {
-            isDirty = true;
-        });
     }
 
-    if (editorKeyInput) {
-        editorKeyInput.addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/\s/g, '');
-        });
-    }
-
-    if (stepsContainer) {
-        stepsContainer.addEventListener('input', (e) => {
-            if (e.target.matches('.no-spaces')) {
-                e.target.value = e.target.value.replace(/\s/g, '');
-            }
-        });
-    }
-
-    if (dynamicModeView) {
-        dynamicModeView.addEventListener('click', (e) => {
-            const removeStepBtn = e.target.closest('.remove-step-btn');
-            if (removeStepBtn) {
-                const stepContainer = removeStepBtn.closest('.step-container');
-                const idToRemove = stepContainer.querySelector('[data-config="id"]')?.value;
-                updateTemplateOnDelete(idToRemove);
-                stepContainer.remove();
-                
-                if (stepsContainer && stepsContainer.children.length === 0) {
-                    if (templateStepContainer) templateStepContainer.innerHTML = '';
-                    setEditorMode('simple');
-                }
-                updateLivePreview();
-            }
-            if (e.target.classList.contains('add-option-btn')) {
-                addOptionToDOM(e.target.previousElementSibling);
-                updateLivePreview();
-            }
-            if (e.target.classList.contains('remove-option-btn')) {
-                e.target.closest('.option-item').remove();
-                updateLivePreview();
-            }
-
-            const moveUpBtn = e.target.closest('.move-option-up-btn');
-            if (moveUpBtn) {
-                const item = moveUpBtn.closest('.option-item');
-                if (item.previousElementSibling) {
-                    item.parentElement.insertBefore(item, item.previousElementSibling);
-                    isDirty = true;
-                }
-            }
-            const moveDownBtn = e.target.closest('.move-option-down-btn');
-            if (moveDownBtn) {
-                const item = moveDownBtn.closest('.option-item');
-                if (item.nextElementSibling) {
-                    item.parentElement.insertBefore(item.nextElementSibling, item);
-                    isDirty = true;
-                }
-            }
-        });
-    }
+    if (confirmCancelBtn) confirmCancelBtn.addEventListener('click', () => confirmModal.classList.add('hidden'));
+    if (confirmDiscardBtn) confirmDiscardBtn.addEventListener('click', showListView);
+    if (confirmSaveBtn) confirmSaveBtn.addEventListener('click', () => editorSaveBtn.click());
     
     const shortcutsListEl = document.getElementById('shortcutsList');
     if (shortcutsListEl) {
@@ -886,5 +862,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Carga inicial
     showListView();
-    autoResizeTextareas();
 });
