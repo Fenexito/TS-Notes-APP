@@ -367,7 +367,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderFlow() {
-        // Defer rendering to the next animation frame to ensure DOM is updated
         window.requestAnimationFrame(() => {
             renderFlowNodes();
             renderFlowConnections();
