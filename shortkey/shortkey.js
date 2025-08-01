@@ -333,6 +333,41 @@ document.addEventListener('DOMContentLoaded', () => {
     let flowState = {};
     let panningState = { active: false, startX: 0, startY: 0, initialNodePositions: {} };
 
+    // ---------- Utilidades de validación visual ----------
+    const isEmpty = (v) => !v || String(v).trim() === '';
+    const toggleRequired = (el, on) => {
+        if (!el) return;
+        if (on) el.classList.add('required-field-error');
+        else el.classList.remove('required-field-error');
+    };
+    function applyValidationStyles() {
+        // Header
+        const keyInput = document.getElementById('shortkey-key-input');
+        const descInput = document.getElementById('shortkey-desc-input');
+        toggleRequired(keyInput, isEmpty(keyInput?.value));
+        toggleRequired(descInput, isEmpty(descInput?.value));
+
+        // Panel de propiedades visible
+        document.querySelectorAll('#flow-properties-content #prop-name, #flow-properties-content .option-prop-input, #flow-properties-content #final-template').forEach(el => {
+            // etiquetas NO son requeridas; el resto sí
+            const isReadonly = el.hasAttribute('readonly');
+            // el prop-name de result es readonly; no se marca
+            if (!isReadonly) toggleRequired(el, isEmpty(el.value));
+        });
+    }
+
+    function setupHeaderValidationListeners() {
+        const keyInput = document.getElementById('shortkey-key-input');
+        const descInput = document.getElementById('shortkey-desc-input');
+        [keyInput, descInput].forEach(el => {
+            if (!el) return;
+            el.addEventListener('input', (e) => {
+                toggleRequired(e.target, isEmpty(e.target.value));
+            });
+        });
+    }
+
+    // ---------- Render/editor ----------
     function setupFlowEditor() {
         viewEditor.innerHTML = `
             <div class="flow-editor-content">
@@ -371,6 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         addFlowEventListeners();
         setupTagEditor();
+        setupHeaderValidationListeners();
     }
 
     function addFlowEventListeners() {
@@ -379,8 +415,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         canvas.addEventListener('mousemove', onFlowMouseMove);
         canvas.addEventListener('mouseup', onFlowMouseUp);
+
+        // Panning “infinito”: ahora también con click izquierdo sobre el fondo
         canvas.addEventListener('mousedown', (e) => {
-            if (e.target === canvas && (e.button === 1 || e.altKey)) { // Middle mouse or Alt+Click
+            const isCanvasBackground = e.target === canvas;
+            const wantPan = isCanvasBackground && (e.button === 1 || e.altKey || e.button === 0);
+            if (wantPan) {
                 panningState.active = true;
                 panningState.startX = e.clientX;
                 panningState.startY = e.clientY;
@@ -389,10 +429,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     panningState.initialNodePositions[node.id] = { x: node.x, y: node.y };
                 });
                 canvas.style.cursor = 'grabbing';
-            } else if (e.target === canvas) {
-                 selectNode(null);
+                // Si solo se hace click breve, también permite deseleccionar
+                if (e.button === 0 && !e.altKey) {
+                    selectNode(null);
+                }
+            } else if (isCanvasBackground) {
+                selectNode(null);
             }
         });
+
         document.getElementById('add-select-node-btn-floating').addEventListener('click', addSelectNode);
         
         viewEditor.addEventListener('click', (e) => {
@@ -431,6 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderFlowNodes();
             renderFlowConnections();
             renderFlowProperties();
+            applyValidationStyles();
         });
     }
 
@@ -600,6 +646,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     isDirty = true;
                     const nodeTitleEl = document.querySelector(`#${CSS.escape(node.id)} .node-title`);
                     if (nodeTitleEl) nodeTitleEl.textContent = sanitizedValue;
+
+                    toggleRequired(e.target, isEmpty(e.target.value));
                 }
             });
 
@@ -614,6 +662,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             node.name = oldId;
                             renderFlowNodes();
                         }
+                        toggleRequired(e.target, isEmpty(e.target.value));
                         return;
                     }
                     node.id = newId;
@@ -639,8 +688,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 flowState.nodes[flowState.selectedNodeId].options.push({ label: '', value: '', nextStep: 'result' });
                 isDirty = true;
                 renderFlow();
+                // Tras render, marcar nuevos inputs como requeridos
+                applyValidationStyles();
             }
         });
+
         document.querySelectorAll('.delete-option-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 if (flowState.nodes[flowState.selectedNodeId]) {
@@ -651,14 +703,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
+
+        // Inputs de opciones y sus validaciones + actualización UI en vivo
         document.querySelectorAll('.option-prop-input').forEach(input => {
             input.addEventListener('input', (e) => {
                 if (flowState.nodes[flowState.selectedNodeId]) {
                     const { index, prop } = e.target.dataset;
-                    flowState.nodes[flowState.selectedNodeId].options[index][prop] = e.target.value;
+                    const node = flowState.nodes[flowState.selectedNodeId];
+                    node.options[index][prop] = e.target.value;
                     isDirty = true;
+
+                    // auto-resize y validación
                     if (e.target.tagName.toLowerCase() === 'textarea') autoExpandTextarea(e.target);
-                    if (e.target.value) e.target.classList.remove('required-field-error');
+                    toggleRequired(e.target, isEmpty(e.target.value));
+
+                    // *** NUEVO: actualizar el título de la opción en el nodo en tiempo real ***
+                    if (prop === 'label') {
+                        const nodeEl = document.getElementById(node.id);
+                        if (nodeEl) {
+                            const spans = nodeEl.querySelectorAll('.node-options .option span');
+                            const idx = parseInt(index, 10);
+                            if (spans && spans[idx]) {
+                                spans[idx].textContent = e.target.value || `Opción ${idx + 1}`;
+                            }
+                        }
+                    }
                 }
             });
         });
@@ -671,6 +740,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     isDirty = true;
                 }
                 autoExpandTextarea(e.target);
+                toggleRequired(e.target, isEmpty(e.target.value));
             });
             finalTemplate.addEventListener('dragover', e => e.preventDefault());
             finalTemplate.addEventListener('drop', e => {
@@ -686,6 +756,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (flowState.nodes.result) flowState.nodes.result.template = newText;
                 isDirty = true;
                 autoExpandTextarea(template);
+                toggleRequired(template, isEmpty(template.value));
             });
         }
         
@@ -696,6 +767,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         document.querySelectorAll('.option-prop-textarea, #final-template').forEach(autoExpandTextarea);
+
+        // aplicar estado de requerido al cargar el panel
+        applyValidationStyles();
     }
 
     function onNodeMouseDown(e) {
@@ -750,7 +824,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderFlow();
         }
         if (flowState.connecting.active) {
-            const fromDot = document.querySelector(`.connector-dot[data-node-id="${CSS.escape(flowState.connecting.fromNodeId)}"][data-option-index="${flowState.connecting.fromOptionIndex}"]`);
+            const fromDot = document.querySelector(`.connector-dot[data-node-id="${CSS.escape(flowState.connecting.fromNodeId)}"][data-option-index="${CSS.escape(flowState.connecting.fromOptionIndex)}"]`);
             const canvasRect = document.getElementById('flow-canvas-container').getBoundingClientRect();
             const fromRect = fromDot.getBoundingClientRect();
             const startX = fromRect.left - canvasRect.left + fromRect.width / 2;
@@ -802,6 +876,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         isDirty = true;
         selectNode(nodeId);
+        applyValidationStyles();
     }
 
     function deleteNode(id) {
@@ -861,12 +936,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const shortcut = shortcutKey ? shortkeyManager.getShortcuts().find(s => s.key === shortcutKey) : null;
         modalTitle.textContent = shortcut ? `Editando Shortkey` : "Creando Nuevo Shortkey";
         buildFlowchartEditor(shortcut);
+        // Validación por defecto: todos los requeridos en rojo suave si están vacíos
+        applyValidationStyles();
+
         if (!shortcutKey) {
             setTimeout(() => {
                 const keyInput = document.getElementById('shortkey-key-input');
+                const descInput = document.getElementById('shortkey-desc-input');
+                toggleRequired(keyInput, isEmpty(keyInput?.value));
+                toggleRequired(descInput, isEmpty(descInput?.value));
                 keyInput?.focus();
-                keyInput?.classList.add('required-field-error');
-                document.getElementById('shortkey-desc-input')?.classList.add('required-field-error');
             }, 100);
         }
     };
@@ -942,6 +1021,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('#prop-name, .option-prop-input').forEach(el => {
             if (!el.readOnly) requiredFields.push(el);
         });
+        const finalTemplate = document.getElementById('final-template');
+        if (finalTemplate) requiredFields.push(finalTemplate);
 
         requiredFields.forEach(field => {
             field.classList.remove('required-field-error');
