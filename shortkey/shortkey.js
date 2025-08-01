@@ -158,7 +158,7 @@ class Shortkey {
         } else {
             this._shortcuts = [
                 { key: 'sds', description: 'Saludos cordiales,', steps: [], tags: ['general'] },
-                { key: 'cxtv', description: 'Flujo de TV.', steps: [ { id: 'issue', type: 'select', options: [ { label: 'stb_no_boot', value: 'tv is not powering on', nextStep: 'result' }, { label: 'recording', value: 'cx cannot record', nextStep: 'recordings' } ] }, { id: 'recordings', type: 'select', options: [ { label: 'rec_list', value: 'cannot see the recording list', nextStep: 'result' }, { label: 'play_rec', value: 'cx cannot play recordings', nextStep: 'result' } ] }, { id: 'result', type: 'template', template: '{issue} {recordings}.' } ], tags: ['cx_issue', 'troubleshooting'] }
+                { key: 'cxtv', description: 'Flujo de TV.', steps: [ { id: 'issue', type: 'select', name: 'Problema TV', options: [ { label: 'stb_no_boot', value: 'tv is not powering on', nextStep: 'result' }, { label: 'recording', value: 'cx cannot record', nextStep: 'recordings' } ] }, { id: 'recordings', type: 'select', name: 'Grabaciones', options: [ { label: 'rec_list', value: 'cannot see the recording list', nextStep: 'result' }, { label: 'play_rec', value: 'cx cannot play recordings', nextStep: 'result' } ] }, { id: 'result', type: 'template', template: '{issue} {recordings}.' } ], tags: ['cx_issue', 'troubleshooting'] }
             ];
             this._saveShortcuts();
         }
@@ -367,9 +367,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderFlow() {
-        renderFlowNodes();
-        renderFlowConnections();
-        renderFlowProperties();
+        // Defer rendering to the next animation frame to ensure DOM is updated
+        window.requestAnimationFrame(() => {
+            renderFlowNodes();
+            renderFlowConnections();
+            renderFlowProperties();
+        });
     }
 
     function renderFlowNodes() {
@@ -396,6 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             nodeEl.innerHTML = `
+                <div class="connector-dot-in"></div>
                 <div class="node-header" style="${node.type === 'result' ? 'background-color: #dcfce7;' : ''}">
                     <span class="node-title">${node.name}</span>
                     ${node.type !== 'result' ? `<button class="delete-node-btn" data-node-id="${node.id}">&times;</button>` : ''}
@@ -411,8 +415,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderFlowConnections() {
         const svg = document.getElementById('flow-connector-svg');
-        if (!svg) return;
+        const canvas = document.getElementById('flow-canvas-container');
+        if (!svg || !canvas) return;
         svg.innerHTML = '';
+        const canvasRect = canvas.getBoundingClientRect();
+
         Object.values(flowState.nodes).forEach(node => {
             if (node.type === 'select') {
                 node.options.forEach((opt, index) => {
@@ -420,7 +427,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         const fromEl = document.querySelector(`.connector-dot[data-node-id="${node.id}"][data-option-index="${index}"]`);
                         const toEl = document.getElementById(opt.nextStep);
                         if (fromEl && toEl) {
-                            const canvasRect = document.getElementById('flow-canvas-container').getBoundingClientRect();
                             const fromRect = fromEl.getBoundingClientRect();
                             const toRect = toEl.getBoundingClientRect();
 
@@ -729,7 +735,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }))
             }));
         
-        return selectSteps.concat([resultNode]);
+        const finalSteps = selectSteps.concat([resultNode]);
+        return finalSteps.filter(step => step.id); // Ensure no steps without an id are saved
     }
 
     function renderShortcuts() {
@@ -742,7 +749,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         shortcuts.forEach((shortcut, index) => {
-            const isDynamic = shortcut.steps && shortcut.steps.length > 0;
+            const isDynamic = shortcut.steps && shortcut.steps.length > 1; // A dynamic shortkey has more than just the result step
             const item = document.createElement('div');
             item.className = 'shortcut-item';
 
@@ -836,7 +843,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (confirmCancelBtn) confirmCancelBtn.addEventListener('click', () => confirmModal.classList.add('hidden'));
     if (confirmDiscardBtn) confirmDiscardBtn.addEventListener('click', showListView);
-    if (confirmSaveBtn) confirmSaveBtn.addEventListener('click', () => editorSaveBtn.click());
+    if (confirmSaveBtn) confirmSaveBtn.addEventListener('click', () => { editorSaveBtn.click(); });
     
     const shortcutsListEl = document.getElementById('shortcutsList');
     if (shortcutsListEl) {

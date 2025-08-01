@@ -1,6 +1,6 @@
 /**
  * Estilos personalizados para el componente Shortkey.
- * Versión 25: Editor de Flujo Visual.
+ * Versión 26: Correcciones de Flujo Visual.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
@@ -53,7 +53,7 @@
 /* Contenido del Modal */
 #settingsModal .modal-header { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--gray-200); flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
 #settingsModal .modal-header h3 { font-size: 1.1rem; font-weight: 600; margin: 0; }
-#settingsModal .modal-body { padding: 0.75rem; overflow-y: auto; flex-grow: 1; position: relative; }
+#settingsModal .modal-body { padding: 0.75rem; overflow: hidden; flex-grow: 1; position: relative; }
 #settingsModal .list-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 #settingsModal #shortcutsList { display: flex; flex-direction: column; gap: 0.5rem; }
 #settingsModal .shortcut-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.75rem; background-color: white; border: 1px solid var(--gray-200); padding: 0.5rem 0.8rem; border-radius: 0.5rem; }
@@ -74,8 +74,8 @@
 /* --- EDITOR DE FLUJO VISUAL --- */
 #view-editor.hidden { display: none; }
 #view-editor { display: flex; height: 100%; width: 100%; }
-.canvas-container { flex-grow: 1; position: relative; background-color: var(--gray-100); background-image: radial-gradient(var(--gray-300) 1px, transparent 1px); background-size: 20px 20px; border-radius: 0.5rem; }
-#node-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+.canvas-container { flex-grow: 1; position: relative; background-color: var(--gray-100); background-image: radial-gradient(var(--gray-300) 1px, transparent 1px); background-size: 20px 20px; border-radius: 0.5rem; overflow: hidden; }
+#node-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 .node {
     position: absolute; background-color: white; border: 1px solid #9ca3af; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
     padding: 12px; width: 240px; cursor: grab; transition: box-shadow 0.2s, border-color 0.2s; user-select: none;
@@ -84,13 +84,15 @@
 .node-header { font-weight: 600; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--gray-200); padding-bottom: 8px; margin-bottom: 8px; }
 .node-title { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .node-options .option { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 0.85rem; }
-.connector-dot {
+.connector-dot, .connector-dot-in {
     width: 12px; height: 12px; background-color: #fff; border: 2px solid var(--gray-500);
-    border-radius: 50%; cursor: crosshair; transition: background-color 0.2s;
+    border-radius: 50%; transition: background-color 0.2s;
 }
+.connector-dot { cursor: crosshair; }
 .connector-dot:hover { background-color: var(--brand-indigo); }
+.connector-dot-in { position: absolute; left: -7px; top: 50%; transform: translateY(-50%); }
 .properties-panel { width: 350px; flex-shrink: 0; background-color: #f9fafb; border-left: 1px solid var(--gray-200); padding: 16px; display: flex; flex-direction: column; overflow-y: auto; }
-#connector-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+#connector-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
 .connector-line { stroke: var(--gray-500); stroke-width: 2.5; fill: none; }
 .connector-line.highlight { stroke: var(--brand-indigo); }
 
