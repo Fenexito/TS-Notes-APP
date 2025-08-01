@@ -236,7 +236,8 @@ class Shortkey {
 
         if (isDynamic) {
             this._performReplacement('');
-            this._runDynamicFlow(shortcutData, {}, shortcutData.steps[0]);
+            const firstStep = shortcutData.steps.find(s => s.type === 'select');
+            this._runDynamicFlow(shortcutData, {}, firstStep);
         } else {
             this._performReplacement(shortcutData.description + ' ');
         }
@@ -252,7 +253,7 @@ class Shortkey {
                 const nextStep = shortkeyData.steps.find(s => s.id === selectedOption.nextStep);
                 this._runDynamicFlow(shortkeyData, newVariables, nextStep);
             });
-            this._activePopupManager.show(currentStep.options, 'interaction', currentStep.id);
+            this._activePopupManager.show(currentStep.options, 'interaction', currentStep.name || currentStep.id);
         } else if (currentStep.type === 'template') {
             let finalText = currentStep.template;
             
@@ -302,13 +303,10 @@ class Shortkey {
 document.addEventListener('DOMContentLoaded', () => {
     console.info('[Shortkey] Módulo de flujo visual cargado y listo.');
     
-    // --- CONFIGURACIÓN DE ETIQUETAS ---
     const PREDEFINED_TAGS = ['cx_issue', 'ts_steps', 'general', 'billing', 'sales'];
-
     const shortkeyManager = new Shortkey();
     shortkeyManager.attach('.shortkey-enabled');
 
-    // --- Selectores del DOM ---
     const modal = document.getElementById('settingsModal');
     const modalContainer = modal.querySelector('.modal-container');
     const modalTitle = document.getElementById('modal-title');
@@ -328,8 +326,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let currentEditingKey = null;
     let isDirty = false;
-
-    // --- LÓGICA DEL EDITOR DE FLUJO ---
     let flowState = {};
 
     function setupFlowEditor() {
@@ -357,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const canvas = document.getElementById('flow-canvas-container');
         canvas.addEventListener('mousemove', onFlowMouseMove);
         canvas.addEventListener('mouseup', onFlowMouseUp);
-        canvas.addEventListener('mousedown', () => selectNode(null)); // Deselect on canvas click
+        canvas.addEventListener('mousedown', () => selectNode(null));
         document.getElementById('add-select-node-btn').addEventListener('click', addSelectNode);
     }
     
@@ -409,13 +405,8 @@ document.addEventListener('DOMContentLoaded', () => {
             container.appendChild(nodeEl);
         });
         
-        // Add event listeners to newly created nodes
-        document.querySelectorAll('.node').forEach(el => {
-            el.addEventListener('mousedown', onNodeMouseDown);
-        });
-        document.querySelectorAll('.connector-dot').forEach(el => {
-            el.addEventListener('mousedown', onConnectorMouseDown);
-        });
+        document.querySelectorAll('.node').forEach(el => el.addEventListener('mousedown', onNodeMouseDown));
+        document.querySelectorAll('.connector-dot').forEach(el => el.addEventListener('mousedown', onConnectorMouseDown));
     }
 
     function renderFlowConnections() {
@@ -453,8 +444,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('flow-properties-content');
         if (!container) return;
 
+        const resultNode = flowState.nodes.result;
+        const templateEditorHTML = `
+            <div class="mt-6 pt-4 border-t border-gray-200">
+                 <h3 class="font-semibold text-sm">Plantilla de Texto Final</h3>
+                 <p class="text-xs text-gray-500 mb-2">Usa {id_variable} para insertar valores.</p>
+                 <textarea id="final-template" class="w-full p-2 mt-1 border rounded-lg h-32 font-mono text-sm">${resultNode ? resultNode.template : ''}</textarea>
+            </div>
+        `;
+
         if (!flowState.selectedNodeId || !flowState.nodes[flowState.selectedNodeId]) {
-            container.innerHTML = '<p class="text-gray-500">Selecciona un nodo para ver sus propiedades.</p>';
+            container.innerHTML = `<p class="text-gray-500">Selecciona un nodo para ver sus propiedades.</p>${templateEditorHTML}`;
+            addPropertiesEventListeners();
             return;
         }
 
@@ -488,38 +489,51 @@ document.addEventListener('DOMContentLoaded', () => {
                 <input type="text" id="prop-id" value="${node.id}" readonly class="bg-gray-200">
             </div>
             ${optionsEditor}
+            ${templateEditorHTML}
         `;
         addPropertiesEventListeners();
     }
     
     function addPropertiesEventListeners() {
         document.getElementById('prop-name')?.addEventListener('input', (e) => {
-            flowState.nodes[flowState.selectedNodeId].name = e.target.value;
-            isDirty = true;
-            renderFlowNodes(); // Only re-render nodes to update title
+            if (flowState.nodes[flowState.selectedNodeId]) {
+                flowState.nodes[flowState.selectedNodeId].name = e.target.value;
+                isDirty = true;
+                renderFlowNodes();
+            }
         });
         document.getElementById('add-option-btn')?.addEventListener('click', () => {
-            flowState.nodes[flowState.selectedNodeId].options.push({ label: '', value: '', nextStep: 'result' });
-            isDirty = true;
-            renderFlow();
+            if (flowState.nodes[flowState.selectedNodeId]) {
+                flowState.nodes[flowState.selectedNodeId].options.push({ label: '', value: '', nextStep: 'result' });
+                isDirty = true;
+                renderFlow();
+            }
         });
         document.querySelectorAll('.delete-option-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const index = e.target.dataset.index;
-                const option = flowState.nodes[flowState.selectedNodeId].options[index];
-                option.nextStep = null;
-                flowState.nodes[flowState.selectedNodeId].options.splice(index, 1);
-                isDirty = true;
-                renderFlow();
+                if (flowState.nodes[flowState.selectedNodeId]) {
+                    const index = e.target.dataset.index;
+                    flowState.nodes[flowState.selectedNodeId].options.splice(index, 1);
+                    isDirty = true;
+                    renderFlow();
+                }
             });
         });
         document.querySelectorAll('.option-prop-input').forEach(input => {
             input.addEventListener('input', (e) => {
-                const { index, prop } = e.target.dataset;
-                flowState.nodes[flowState.selectedNodeId].options[index][prop] = e.target.value;
-                isDirty = true;
-                renderFlowNodes(); // Only re-render nodes to update option text
+                if (flowState.nodes[flowState.selectedNodeId]) {
+                    const { index, prop } = e.target.dataset;
+                    flowState.nodes[flowState.selectedNodeId].options[index][prop] = e.target.value;
+                    isDirty = true;
+                    renderFlowNodes();
+                }
             });
+        });
+        document.getElementById('final-template')?.addEventListener('input', (e) => {
+            if (flowState.nodes.result) {
+                flowState.nodes.result.template = e.target.value;
+                isDirty = true;
+            }
         });
     }
 
@@ -530,10 +544,12 @@ document.addEventListener('DOMContentLoaded', () => {
         selectNode(id);
         flowState.dragging.active = true;
         flowState.dragging.id = id;
-        const nodeRect = e.currentTarget.getBoundingClientRect();
+        const node = flowState.nodes[id];
         const canvasRect = document.getElementById('flow-canvas-container').getBoundingClientRect();
-        flowState.dragging.offsetX = e.clientX - nodeRect.left;
-        flowState.dragging.offsetY = e.clientY - nodeRect.top;
+        const mouseXInCanvas = e.clientX - canvasRect.left;
+        const mouseYInCanvas = e.clientY - canvasRect.top;
+        flowState.dragging.offsetX = mouseXInCanvas - node.x;
+        flowState.dragging.offsetY = mouseYInCanvas - node.y;
         e.currentTarget.style.cursor = 'grabbing';
     }
 
@@ -551,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function onFlowMouseMove(e) {
-        if (flowState.dragging.active) {
+        if (flowState.dragging.active && flowState.dragging.id) {
             const node = flowState.nodes[flowState.dragging.id];
             const canvasRect = document.getElementById('flow-canvas-container').getBoundingClientRect();
             node.x = e.clientX - canvasRect.left - flowState.dragging.offsetX;
@@ -573,7 +589,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function onFlowMouseUp(e) {
         if (flowState.dragging.active) {
-            document.getElementById(flowState.dragging.id).style.cursor = 'grab';
+            const aNodeIsBeingDragged = flowState.dragging.id && document.getElementById(flowState.dragging.id);
+            if (aNodeIsBeingDragged) {
+                document.getElementById(flowState.dragging.id).style.cursor = 'grab';
+            }
             flowState.dragging.active = false;
             flowState.dragging.id = null;
         }
@@ -618,7 +637,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderFlow();
     }
     
-    // --- Lógica de la Aplicación Principal ---
     const openModal = () => {
         showListView();
         modal.classList.add('visible');
@@ -648,6 +666,7 @@ document.addEventListener('DOMContentLoaded', () => {
         viewEditor.classList.add('hidden');
         editorActions.classList.add('hidden');
         viewList.classList.remove('hidden');
+        if (confirmModal) confirmModal.classList.add('hidden');
         isDirty = false;
         renderShortcuts();
     };
@@ -664,56 +683,56 @@ document.addEventListener('DOMContentLoaded', () => {
         buildFlowchartEditor(shortcut);
     };
 
-    // --- Traducción entre formato de Steps y formato de Flujo ---
     function buildFlowchartEditor(shortcut) {
         setupFlowEditor();
         resetFlowState();
         
-        if (!shortcut || shortcut.steps.length === 0) {
-            // Crear flujo por defecto para un shortkey nuevo o simple
+        if (!shortcut || !shortcut.steps || shortcut.steps.length === 0) {
             flowState.nodes = {
                 'result': { id: 'result', name: 'Texto Final', type: 'result', x: 400, y: 150, template: shortcut ? shortcut.description : '' }
             };
         } else {
-            // Convertir 'steps' a 'nodes'
             shortcut.steps.forEach((step, index) => {
                 flowState.nodes[step.id] = {
                     ...step,
-                    name: step.id, // Usamos el ID como nombre inicial
+                    name: step.name || step.id,
                     x: 100 + (index * 280),
                     y: 150
                 };
             });
+            if (!flowState.nodes.result) {
+                 flowState.nodes.result = { id: 'result', name: 'Texto Final', type: 'result', x: 400, y: 350, template: '' };
+            }
         }
-        selectNode(Object.keys(flowState.nodes)[0]);
+        const firstNodeId = Object.keys(flowState.nodes).find(id => id !== 'result');
+        selectNode(firstNodeId || 'result');
     }
     
     function parseFlowchartEditor() {
         const nodes = flowState.nodes;
-        if (Object.keys(nodes).length <= 1 && nodes.result && !nodes.result.template) {
-            // Considerado vacío si solo está el nodo de resultado y no tiene plantilla
+        const resultNode = nodes.result || { id: 'result', type: 'template', template: '' };
+        
+        if (Object.keys(nodes).length <= 1 && !resultNode.template) {
             return []; 
         }
-        return Object.values(nodes)
-            .filter(node => node.id !== 'result') // Excluir el nodo de resultado de la lista de pasos 'select'
+
+        const selectSteps = Object.values(nodes)
+            .filter(node => node.type === 'select')
             .map(node => ({
                 id: node.id,
+                name: node.name,
                 type: 'select',
                 options: node.options.map(opt => ({
                     label: opt.label,
                     value: opt.value,
                     nextStep: opt.nextStep || 'result'
                 }))
-            }))
-            .concat([{
-                id: 'result',
-                type: 'template',
-                template: nodes.result.template || ''
-            }]);
+            }));
+        
+        return selectSteps.concat([resultNode]);
     }
 
     function renderShortcuts() {
-        // ... (código original de renderShortcuts, sin cambios)
         const listContainer = document.getElementById('shortcutsList');
         if (!listContainer) return;
         listContainer.innerHTML = '';
@@ -766,7 +785,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // --- Funciones para Etiquetas (sin cambios) ---
     const tagColors = ['#e0f2fe', '#dcfce7', '#fefce8', '#fee2e2', '#f3e8ff', '#dbeafe', '#e0e7ff'];
     const tagTextColors = ['#0c4a6e', '#166534', '#854d0e', '#991b1b', '#581c87', '#1e40af', '#312e81'];
     const getColorForTag = (tag) => {
@@ -778,33 +796,32 @@ document.addEventListener('DOMContentLoaded', () => {
         return { bg: tagColors[index], text: tagTextColors[index] };
     };
 
-    // --- Event Listeners ---
     if (closeBtn) closeBtn.addEventListener('click', attemptClose);
     if (overlay) overlay.addEventListener('click', attemptClose);
     if (addNewBtn) addNewBtn.addEventListener('click', () => showEditorView());
     if (editorCancelBtn) editorCancelBtn.addEventListener('click', attemptClose);
     if (editorSaveBtn) {
         editorSaveBtn.addEventListener('click', () => {
-            // Este es el nuevo proceso de guardado
-            const key = prompt("Ingresa el activador para este shortkey (ej: mi_flujo):")?.trim().toLowerCase().replace(/\s/g, '');
-            if (!key) {
-                alert("El activador no puede estar vacío.");
+            const keyToSave = currentEditingKey || prompt("Ingresa el activador para este shortkey (ej: mi_flujo):")?.trim().toLowerCase().replace(/\s/g, '');
+            if (!keyToSave) {
+                if(!currentEditingKey) alert("El activador no puede estar vacío.");
                 return;
             }
-            const existing = shortkeyManager.getShortcuts().find(s => s.key === key);
-            if (existing && key !== currentEditingKey) {
-                alert(`El shortkey "@${key}" ya existe. Por favor, elige otro activador.`);
+            
+            const existing = shortkeyManager.getShortcuts().find(s => s.key === keyToSave);
+            if (existing && keyToSave !== currentEditingKey) {
+                alert(`El shortkey "@${keyToSave}" ya existe. Por favor, elige otro activador.`);
                 return;
             }
 
             const steps = parseFlowchartEditor();
-            const description = steps.length > 0 ? "Shortkey dinámico con variables." : (flowState.nodes.result?.template || "Shortkey simple.");
+            const description = steps.length > 1 ? "Shortkey dinámico con variables." : (flowState.nodes.result?.template || "Shortkey simple.");
             
             const data = {
-                key: key,
+                key: keyToSave,
                 description: description,
                 steps: steps,
-                tags: [] // La edición de etiquetas se puede añadir al panel de propiedades
+                tags: []
             };
 
             if (currentEditingKey) {
@@ -860,6 +877,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Carga inicial
     showListView();
 });
