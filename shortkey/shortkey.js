@@ -374,6 +374,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function addFlowEventListeners() {
         const canvas = document.getElementById('flow-canvas-container');
+        const svg = document.getElementById('flow-connector-svg');
+
         canvas.addEventListener('mousemove', onFlowMouseMove);
         canvas.addEventListener('mouseup', onFlowMouseUp);
         canvas.addEventListener('mousedown', (e) => {
@@ -389,6 +391,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 deleteNode(deleteBtn.dataset.nodeId);
             }
         });
+
+        // Observer to handle canvas resizing and ensure SVG matches dimensions
+        const resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                const { width, height } = entry.contentRect;
+                svg.setAttribute('width', width);
+                svg.setAttribute('height', height);
+                // Redraw connections when size changes to ensure they are positioned correctly
+                renderFlowConnections();
+            }
+        });
+
+        if (canvas) {
+            resizeObserver.observe(canvas);
+        }
     }
     
     function resetFlowState() {
