@@ -331,6 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentTags = [];
     let isDirty = false;
     let flowState = {};
+    let panningState = { active: false, startX: 0, startY: 0, initialNodePositions: {} };
 
     function setupFlowEditor() {
         viewEditor.innerHTML = `
@@ -379,7 +380,16 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.addEventListener('mousemove', onFlowMouseMove);
         canvas.addEventListener('mouseup', onFlowMouseUp);
         canvas.addEventListener('mousedown', (e) => {
-            if (e.target === canvas) {
+            if (e.target === canvas && (e.button === 1 || e.altKey)) { // Middle mouse or Alt+Click
+                panningState.active = true;
+                panningState.startX = e.clientX;
+                panningState.startY = e.clientY;
+                panningState.initialNodePositions = {};
+                Object.values(flowState.nodes).forEach(node => {
+                    panningState.initialNodePositions[node.id] = { x: node.x, y: node.y };
+                });
+                canvas.style.cursor = 'grabbing';
+            } else if (e.target === canvas) {
                  selectNode(null);
             }
         });
@@ -534,7 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (node.type === 'select') {
             const optionsHTML = node.options.map((opt, index) => `
                 <div class="bg-white p-2 border rounded-md space-y-2">
-                    <div class="flex justify-between items-center">
+                    <div class="option-header">
                         <p class="text-sm font-semibold">Opción ${index + 1}</p>
                         <button class="delete-option-btn" data-index="${index}">&times;</button>
                     </div>
@@ -648,6 +658,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     flowState.nodes[flowState.selectedNodeId].options[index][prop] = e.target.value;
                     isDirty = true;
                     if (e.target.tagName.toLowerCase() === 'textarea') autoExpandTextarea(e.target);
+                    if (e.target.value) e.target.classList.remove('required-field-error');
                 }
             });
         });
@@ -717,6 +728,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function onFlowMouseMove(e) {
+        if (panningState.active) {
+            const dx = e.clientX - panningState.startX;
+            const dy = e.clientY - panningState.startY;
+            Object.values(flowState.nodes).forEach(node => {
+                const initial = panningState.initialNodePositions[node.id];
+                node.x = initial.x + dx;
+                node.y = initial.y + dy;
+            });
+            isDirty = true;
+            renderFlow();
+            return;
+        }
+
         if (flowState.dragging.active && flowState.dragging.id) {
             const node = flowState.nodes[flowState.dragging.id];
             const canvasRect = document.getElementById('flow-canvas-container').getBoundingClientRect();
@@ -738,10 +762,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function onFlowMouseUp(e) {
+        if (panningState.active) {
+            panningState.active = false;
+            document.getElementById('flow-canvas-container').style.cursor = 'grab';
+        }
+
         if (flowState.dragging.active) {
-            const aNodeIsBeingDragged = flowState.dragging.id && document.getElementById(flowState.dragging.id);
-            if (aNodeIsBeingDragged) {
-                document.getElementById(flowState.dragging.id).style.cursor = 'grab';
+            const draggedNode = document.getElementById(flowState.dragging.id);
+            if (draggedNode) {
+                draggedNode.style.cursor = 'grab';
             }
             flowState.dragging.active = false;
             flowState.dragging.id = null;
@@ -769,7 +798,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const nodeId = `pregunta_${count}`;
         flowState.nodes[nodeId] = {
             id: nodeId, name: nodeId, type: 'select', x: 50, y: 50,
-            options: [{ label: 'Opción 1', value: 'valor1', nextStep: 'result' }]
+            options: [{ label: '', value: '', nextStep: 'result' }]
         };
         isDirty = true;
         selectNode(nodeId);
@@ -833,7 +862,12 @@ document.addEventListener('DOMContentLoaded', () => {
         modalTitle.textContent = shortcut ? `Editando Shortkey` : "Creando Nuevo Shortkey";
         buildFlowchartEditor(shortcut);
         if (!shortcutKey) {
-            setTimeout(() => document.getElementById('shortkey-key-input')?.focus(), 100);
+            setTimeout(() => {
+                const keyInput = document.getElementById('shortkey-key-input');
+                keyInput?.focus();
+                keyInput?.classList.add('required-field-error');
+                document.getElementById('shortkey-desc-input')?.classList.add('required-field-error');
+            }, 100);
         }
     };
 
@@ -905,16 +939,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const descInput = document.getElementById('shortkey-desc-input');
         requiredFields.push(keyInput, descInput);
 
-        document.querySelectorAll('.properties-panel input[type="text"], .properties-panel textarea').forEach(el => {
+        document.querySelectorAll('#prop-name, .option-prop-input').forEach(el => {
             if (!el.readOnly) requiredFields.push(el);
         });
 
         requiredFields.forEach(field => {
+            field.classList.remove('required-field-error');
             if (!field.value.trim()) {
                 field.classList.add('required-field-error');
                 isValid = false;
-            } else {
-                field.classList.remove('required-field-error');
             }
         });
 
