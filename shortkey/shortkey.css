@@ -1,6 +1,6 @@
 /**
  * Estilos personalizados para el componente Shortkey.
- * Versión 39: Reincorporados estilos de modales (z-index alto), cámara real, header alineado, tokens en caret.
+ * Versión 40: popup legible (texto blanco sobre fondo azul) y prompt más compacto.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
@@ -276,22 +276,58 @@
 .btn-danger { background-color: var(--brand-red); color: white; }
 .btn-success { background-color: var(--brand-green); color: white; }
 
-/* Popups shortkey */
+/* ---------- POP-UP SHORTKEY (ajustes de visual) ---------- */
+
 .shortkey-popup {
-    position: fixed; z-index: 2000; background-color: white; border: 1px solid var(--gray-300);
-    border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); font-family: 'Inter', sans-serif;
-    opacity: 0; visibility: hidden; transform: scale(0.95) translateY(-10px); 
-    transition: opacity 0.1s ease, transform 0.1s ease, visibility 0s linear 0.1s; 
+    position: fixed; z-index: 2000;
+    background-color: white; border: 1px solid var(--gray-300);
+    border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    opacity: 0; visibility: hidden; transform: scale(0.95) translateY(-10px);
+    transition: opacity 0.1s ease, transform 0.1s ease, visibility 0s linear 0.1s;
     max-height: 250px; overflow-y: auto;
     color: var(--text-dark);
 }
-.shortkey-popup.visible { opacity: 1; visibility: visible; transform: scale(1) translateY(0); transition-delay: 0s; }
-.shortkey-popup .popup-prompt { font-weight: 600; padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--gray-200); color: var(--gray-700); }
-.shortkey-popup .popup-option { display: block; width: 100%; text-align: left; padding: 0.6rem 0.8rem; background: none; border: none; cursor: pointer; }
-#shortkey-search-popup .popup-option { display: flex; flex-direction: column; gap: 0.1rem; }
-#shortkey-search-popup .popup-option .search-key { font-family: 'JetBrains Mono', monospace; font-weight: 500; color: var(--brand-blue); }
-#shortkey-search-popup .popup-option .search-desc { font-size: 0.9em; color: var(--text-light); }
-.shortkey-popup .popup-option:hover { background-color: var(--gray-100); }
-.shortkey-popup .popup-option.selected { background-color: var(--brand-blue); color: white; }
+
+.shortkey-popup.visible {
+    opacity: 1; visibility: visible; transform: scale(1) translateY(0);
+    transition-delay: 0s;
+}
+
+/* Prompt (más compacto) */
+.shortkey-popup .popup-prompt {
+    font-weight: 600;
+    font-size: 0.85rem;            /* ↓ antes ~1rem */
+    padding: 0.4rem 0.7rem;        /* ↓ antes 0.6rem 0.8rem */
+    border-bottom: 1px solid var(--gray-200);
+    color: var(--gray-700);
+}
+
+/* Opciones */
+.shortkey-popup .popup-option {
+    display: block; width: 100%;
+    text-align: left;
+    padding: 0.55rem 0.8rem;
+    background: none; border: none; cursor: pointer;
+    color: var(--gray-800);
+    font-size: 0.9rem;
+}
+
+/* Colores por defecto de la búsqueda */
+#shortkey-search-popup .popup-option .search-key  { color: var(--brand-blue); }
+#shortkey-search-popup .popup-option .search-desc { color: var(--text-light); }
+
+/* Hover */
+.shortkey-popup .popup-option:hover {
+    background-color: var(--gray-100);
+}
+
+/* ---- SELECCIONADA: fondo azul y TODO el texto blanco ---- */
+.shortkey-popup .popup-option.selected {
+    background-color: var(--brand-blue);
+    color: #fff;
+}
+.shortkey-popup .popup-option.selected *,
 .shortkey-popup .popup-option.selected .search-key,
-.shortkey-popup .popup-option.selected .search-desc { color: white; }
+.shortkey-popup .popup-option.selected .search-desc {
+    color: #fff !important;        /* forzamos blanco a todos los hijos */
+}
