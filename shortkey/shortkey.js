@@ -462,8 +462,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (node.type === 'select') {
                 node.options.forEach((opt, index) => {
                     if (opt.nextStep && flowState.nodes[opt.nextStep]) {
-                        const fromEl = document.querySelector(`.connector-dot[data-node-id="${node.id}"][data-option-index="${index}"]`);
-                        const toEl = document.getElementById(opt.nextStep);
+                        const fromEl = document.querySelector(`.connector-dot[data-node-id="${CSS.escape(node.id)}"][data-option-index="${index}"]`);
+                        const toEl = document.getElementById(CSS.escape(opt.nextStep));
                         if (fromEl && toEl) {
                             const toDot = toEl.querySelector('.connector-dot-in');
                             const fromRect = fromEl.getBoundingClientRect();
@@ -563,7 +563,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     node.name = sanitizedValue;
                     isDirty = true;
-                    renderFlowNodes();
+                    
+                    const nodeTitleEl = document.querySelector(`#${CSS.escape(node.id)} .node-title`);
+                    if (nodeTitleEl) {
+                        nodeTitleEl.textContent = sanitizedValue;
+                    }
                 }
             });
 
@@ -571,18 +575,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 const node = flowState.nodes[flowState.selectedNodeId];
                 if (node) {
                     const oldId = node.id;
-                    const newId = e.target.value;
+                    const newId = e.target.value.replace(/\s/g, '_');
 
-                    if (!newId || oldId === 'result' || (flowState.nodes[newId] && newId !== oldId)) {
+                    if (!newId || oldId === newId || (flowState.nodes[newId] && newId !== oldId)) {
                         e.target.value = oldId;
-                        node.name = oldId;
-                        renderFlowNodes();
+                        if (node.name !== oldId) {
+                            node.name = oldId;
+                            renderFlowNodes();
+                        }
                         return;
                     }
                     
-                    if (oldId === newId) return;
-
                     node.id = newId;
+                    node.name = newId;
+
                     delete flowState.nodes[oldId];
                     flowState.nodes[newId] = node;
                     flowState.selectedNodeId = newId;
@@ -629,7 +635,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (e.target.tagName.toLowerCase() === 'textarea') {
                         autoExpandTextarea(e.target);
                     }
-                    renderFlowNodes();
                 }
             });
         });
@@ -640,7 +645,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        // Initial auto-expand for textareas
         document.querySelectorAll('.option-prop-textarea').forEach(autoExpandTextarea);
     }
 
@@ -683,7 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderFlow();
         }
         if (flowState.connecting.active) {
-            const fromDot = document.querySelector(`.connector-dot[data-node-id="${flowState.connecting.fromNodeId}"][data-option-index="${flowState.connecting.fromOptionIndex}"]`);
+            const fromDot = document.querySelector(`.connector-dot[data-node-id="${CSS.escape(flowState.connecting.fromNodeId)}"][data-option-index="${flowState.connecting.fromOptionIndex}"]`);
             const canvasRect = document.getElementById('flow-canvas-container').getBoundingClientRect();
             const fromRect = fromDot.getBoundingClientRect();
             const startX = fromRect.left - canvasRect.left + fromRect.width / 2;

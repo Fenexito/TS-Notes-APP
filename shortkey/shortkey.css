@@ -1,6 +1,6 @@
 /**
  * Estilos personalizados para el componente Shortkey.
- * Versión 30: Corrección final de layout, visibilidad de conectores y UI.
+ * Versión 31: Corrección final de layout, visibilidad de conectores y UI.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
@@ -80,7 +80,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    min-width: 0;
+    min-width: 0; /* Prevents flex items from overflowing */
 }
 
 .flow-editor-header {
