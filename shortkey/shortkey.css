@@ -80,7 +80,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    min-width: 0; /* Prevents flex items from overflowing */
+    min-width: 0;
 }
 
 .flow-editor-header {
@@ -92,13 +92,13 @@
     display: grid;
     grid-template-columns: 1fr 2fr 1.5fr;
     gap: 1rem;
-    align-items: flex-start;
+    align-items: end; /* Alinea los items al final para simetría */
 }
 .flow-editor-header .input-group { display: flex; flex-direction: column; gap: 0.25rem; }
 .flow-editor-header label { font-weight: 500; font-size: 0.75rem; color: var(--gray-700); margin-bottom: 0; }
-.flow-editor-header input { font-family: 'Inter', sans-serif; font-size: 0.85rem; padding: 0.3rem 0.6rem; border: 1px solid var(--gray-300); border-radius: 0.375rem; }
+.flow-editor-header input { font-family: 'Inter', sans-serif; font-size: 0.85rem; padding: 0.4rem 0.6rem; border: 1px solid var(--gray-300); border-radius: 0.375rem; }
 .flow-editor-header .key-input-wrapper { display: flex; align-items: center; }
-.flow-editor-header .key-input-prefix { padding: 0.3rem 0.6rem; background-color: var(--gray-200); border: 1px solid var(--gray-300); border-right: 0; border-radius: 0.375rem 0 0 0.375rem; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+.flow-editor-header .key-input-prefix { padding: 0.4rem 0.6rem; background-color: var(--gray-200); border: 1px solid var(--gray-300); border-right: 0; border-radius: 0.375rem 0 0 0.375rem; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
 
 .canvas-container { flex-grow: 1; position: relative; background-color: var(--gray-100); background-image: radial-gradient(var(--gray-300) 1px, transparent 1px); background-size: 20px 20px; border-radius: 0.5rem; overflow: hidden; }
 #node-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
@@ -136,9 +136,24 @@
 .properties-section:last-child { border-bottom: none; margin-bottom: 0; }
 .option-prop-textarea { overflow: hidden; resize: none; min-height: 40px; }
 
+.variable-pills-container { margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px dashed var(--gray-300); }
+.variable-pill {
+    display: inline-block;
+    background-color: var(--brand-indigo);
+    color: white;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    cursor: grab;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.variable-pill:active { cursor: grabbing; }
+
 /* Estilos para Etiquetas en el Editor */
 .tags-editor-wrapper { display: flex; flex-direction: column; gap: 0.4rem; }
-.tags-container { display: flex; flex-wrap: wrap; gap: 0.4rem; background-color: white; border: 1px solid var(--gray-300); border-radius: 0.375rem; padding: 0.4rem; min-height: 32px; align-items: center; }
+.tags-container { display: flex; flex-wrap: wrap; gap: 0.4rem; background-color: white; border: 1px solid var(--gray-300); border-radius: 0.375rem; padding: 0.4rem; min-height: 33px; align-items: center; }
 .tag-pill { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0.5rem; border-radius: 999px; font-weight: 500; font-size: 0.8rem; }
 .remove-tag-btn { all: unset; box-sizing: border-box; cursor: pointer; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1; background-color: rgba(0,0,0,0.1); }
 .remove-tag-btn:hover { background-color: rgba(0,0,0,0.2); }
@@ -146,6 +161,12 @@
 .existing-tags small { color: var(--text-light); font-size: 0.75rem; }
 .existing-tags .tag-pill { cursor: pointer; transition: transform 0.1s, box-shadow 0.2s; }
 .existing-tags .tag-pill:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+
+/* Validación de Campos */
+.required-field-error {
+    border-color: var(--brand-red) !important;
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+}
 
 /* Botones y Acciones */
 #closeSettingsBtn, .delete-node-btn, .delete-option-btn {

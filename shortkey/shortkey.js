@@ -158,7 +158,7 @@ class Shortkey {
         } else {
             this._shortcuts = [
                 { key: 'sds', description: 'Saludos cordiales,', steps: [], tags: ['general'] },
-                { key: 'cxtv', description: 'Flujo de TV.', steps: [ { id: 'issue', type: 'select', name: 'Problema TV', options: [ { label: 'stb_no_boot', value: 'tv is not powering on', nextStep: 'result' }, { label: 'recording', value: 'cx cannot record', nextStep: 'recordings' } ] }, { id: 'recordings', type: 'select', name: 'Grabaciones', options: [ { label: 'rec_list', value: 'cannot see the recording list', nextStep: 'result' }, { label: 'play_rec', value: 'cx cannot play recordings', nextStep: 'result' } ] }, { id: 'result', type: 'template', template: '{issue} {recordings}.' } ], tags: ['cx_issue', 'troubleshooting'] }
+                { key: 'cxtv', description: 'Flujo de TV.', steps: [ { id: 'issue', type: 'select', name: 'Problema TV', x: 100, y: 150, options: [ { label: 'stb_no_boot', value: 'tv is not powering on', nextStep: 'result' }, { label: 'recording', value: 'cx cannot record', nextStep: 'recordings' } ] }, { id: 'recordings', type: 'select', name: 'Grabaciones', x: 380, y: 250, options: [ { label: 'rec_list', value: 'cannot see the recording list', nextStep: 'result' }, { label: 'play_rec', value: 'cx cannot play recordings', nextStep: 'result' } ] }, { id: 'result', type: 'template', template: '{issue} {recordings}.', x: 600, y: 150 } ], tags: ['cx_issue', 'troubleshooting'] }
             ];
             this._saveShortcuts();
         }
@@ -392,13 +392,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Observer to handle canvas resizing and ensure SVG matches dimensions
         const resizeObserver = new ResizeObserver(entries => {
             for (let entry of entries) {
                 const { width, height } = entry.contentRect;
                 svg.setAttribute('width', width);
                 svg.setAttribute('height', height);
-                // Redraw connections when size changes to ensure they are positioned correctly
                 renderFlowConnections();
             }
         });
@@ -507,16 +505,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) return;
 
         const resultNode = flowState.nodes.result;
+        const variablePills = Object.values(flowState.nodes)
+            .filter(node => node.type === 'select' && node.id)
+            .map(node => `<span class="variable-pill" draggable="true" data-variable-id="${node.id}">{${node.id}}</span>`)
+            .join(' ');
+
         const templateEditorHTML = `
             <div class="properties-section">
                  <h3 class="font-semibold text-sm">Plantilla de Texto Final</h3>
-                 <p class="text-xs text-gray-500 mb-2">Usa {id_de_la_variable} para insertar los valores de las preguntas.</p>
-                 <textarea id="final-template" class="w-full p-2 mt-1 border rounded-lg h-48 font-mono text-sm">${resultNode ? resultNode.template : ''}</textarea>
+                 <p class="text-xs text-gray-500 mb-2">Escribe o arrastra las variables de abajo.</p>
+                 <textarea id="final-template" class="w-full p-2 mt-1 border rounded-lg font-mono text-sm" rows="5"></textarea>
+                 <div class="variable-pills-container">
+                    <small>Variables disponibles:</small>
+                    ${variablePills}
+                 </div>
             </div>
         `;
 
         if (!flowState.selectedNodeId || !flowState.nodes[flowState.selectedNodeId]) {
             container.innerHTML = `<p class="text-gray-500">Selecciona un nodo para ver sus propiedades o añade una nueva pregunta.</p>${templateEditorHTML}`;
+            if(resultNode) document.getElementById('final-template').value = resultNode.template || '';
             addPropertiesEventListeners();
             return;
         }
@@ -560,12 +568,13 @@ document.addEventListener('DOMContentLoaded', () => {
             ${optionsEditor}
             ${templateEditorHTML}
         `;
+        if(resultNode) document.getElementById('final-template').value = resultNode.template || '';
         addPropertiesEventListeners();
     }
     
     function autoExpandTextarea(textarea) {
         textarea.style.height = 'auto';
-        textarea.style.height = textarea.scrollHeight + 'px';
+        textarea.style.height = (textarea.scrollHeight) + 'px';
     }
 
     function addPropertiesEventListeners() {
@@ -577,14 +586,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const originalValue = e.target.value;
                     const sanitizedValue = originalValue.replace(/\s/g, '_');
                     e.target.value = sanitizedValue;
-                    
                     node.name = sanitizedValue;
                     isDirty = true;
-                    
                     const nodeTitleEl = document.querySelector(`#${CSS.escape(node.id)} .node-title`);
-                    if (nodeTitleEl) {
-                        nodeTitleEl.textContent = sanitizedValue;
-                    }
+                    if (nodeTitleEl) nodeTitleEl.textContent = sanitizedValue;
                 }
             });
 
@@ -593,7 +598,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (node) {
                     const oldId = node.id;
                     const newId = e.target.value.replace(/\s/g, '_');
-
                     if (!newId || oldId === newId || (flowState.nodes[newId] && newId !== oldId)) {
                         e.target.value = oldId;
                         if (node.name !== oldId) {
@@ -602,24 +606,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         return;
                     }
-                    
                     node.id = newId;
                     node.name = newId;
-
                     delete flowState.nodes[oldId];
                     flowState.nodes[newId] = node;
                     flowState.selectedNodeId = newId;
-
                     Object.values(flowState.nodes).forEach(n => {
                         if (n.type === 'select') {
                             n.options.forEach(opt => {
-                                if (opt.nextStep === oldId) {
-                                    opt.nextStep = newId;
-                                }
+                                if (opt.nextStep === oldId) opt.nextStep = newId;
                             });
                         }
                     });
-                    
                     isDirty = true;
                     renderFlow();
                 }
@@ -649,20 +647,44 @@ document.addEventListener('DOMContentLoaded', () => {
                     const { index, prop } = e.target.dataset;
                     flowState.nodes[flowState.selectedNodeId].options[index][prop] = e.target.value;
                     isDirty = true;
-                    if (e.target.tagName.toLowerCase() === 'textarea') {
-                        autoExpandTextarea(e.target);
-                    }
+                    if (e.target.tagName.toLowerCase() === 'textarea') autoExpandTextarea(e.target);
                 }
             });
         });
-        document.getElementById('final-template')?.addEventListener('input', (e) => {
-            if (flowState.nodes.result) {
-                flowState.nodes.result.template = e.target.value;
+        
+        const finalTemplate = document.getElementById('final-template');
+        if(finalTemplate) {
+            finalTemplate.addEventListener('input', (e) => {
+                if (flowState.nodes.result) {
+                    flowState.nodes.result.template = e.target.value;
+                    isDirty = true;
+                }
+                autoExpandTextarea(e.target);
+            });
+            finalTemplate.addEventListener('dragover', e => e.preventDefault());
+            finalTemplate.addEventListener('drop', e => {
+                e.preventDefault();
+                const variableId = e.dataTransfer.getData('text/plain');
+                const template = e.target;
+                const start = template.selectionStart;
+                const end = template.selectionEnd;
+                const text = template.value;
+                const newText = `${text.substring(0, start)}{${variableId}}${text.substring(end)}`;
+                template.value = newText;
+                template.selectionStart = template.selectionEnd = start + variableId.length + 2;
+                if (flowState.nodes.result) flowState.nodes.result.template = newText;
                 isDirty = true;
-            }
+                autoExpandTextarea(template);
+            });
+        }
+        
+        document.querySelectorAll('.variable-pill').forEach(pill => {
+            pill.addEventListener('dragstart', e => {
+                e.dataTransfer.setData('text/plain', e.target.dataset.variableId);
+            });
         });
         
-        document.querySelectorAll('.option-prop-textarea').forEach(autoExpandTextarea);
+        document.querySelectorAll('.option-prop-textarea, #final-template').forEach(autoExpandTextarea);
     }
 
     function onNodeMouseDown(e) {
@@ -810,6 +832,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const shortcut = shortcutKey ? shortkeyManager.getShortcuts().find(s => s.key === shortcutKey) : null;
         modalTitle.textContent = shortcut ? `Editando Shortkey` : "Creando Nuevo Shortkey";
         buildFlowchartEditor(shortcut);
+        if (!shortcutKey) {
+            setTimeout(() => document.getElementById('shortkey-key-input')?.focus(), 100);
+        }
     };
 
     function buildFlowchartEditor(shortcut) {
@@ -830,14 +855,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (step.type !== 'template') {
                     flowState.nodes[step.id] = {
                         ...step,
-                        name: step.id, // Use ID as the name for consistency
-                        x: Math.floor(Math.random() * 400) + 50,
-                        y: Math.floor(Math.random() * 200) + 50
+                        name: step.id,
+                        x: step.x || Math.floor(Math.random() * 400) + 50,
+                        y: step.y || Math.floor(Math.random() * 200) + 50
                     };
                 }
             });
             const resultNode = shortcut.steps.find(s => s.type === 'template') || { id: 'result', template: '' };
-            flowState.nodes.result = { ...resultNode, id: 'result', name: 'result', type: 'result', x: 600, y: 150 };
+            flowState.nodes.result = { ...resultNode, id: 'result', name: 'result', type: 'result', x: resultNode.x || 600, y: resultNode.y || 150 };
         }
         const firstNodeId = Object.keys(flowState.nodes).find(id => id !== 'result');
         selectNode(firstNodeId || 'result');
@@ -850,8 +875,10 @@ document.addEventListener('DOMContentLoaded', () => {
             .filter(node => node.type === 'select')
             .map(node => ({
                 id: node.id,
-                name: node.name, // Keep name and id the same
+                name: node.name,
                 type: 'select',
+                x: node.x,
+                y: node.y,
                 options: node.options.map(opt => ({
                     label: opt.label,
                     value: opt.value,
@@ -859,13 +886,70 @@ document.addEventListener('DOMContentLoaded', () => {
                 }))
             }));
         
+        const resultNode = nodes.result;
         const finalSteps = selectSteps.concat([{
             id: 'result',
             type: 'template',
-            template: document.getElementById('final-template').value
+            template: document.getElementById('final-template').value,
+            x: resultNode.x,
+            y: resultNode.y
         }]);
         return finalSteps.filter(step => step.id); 
     }
+    
+    function validateAndSave() {
+        let isValid = true;
+        const requiredFields = [];
+        
+        const keyInput = document.getElementById('shortkey-key-input');
+        const descInput = document.getElementById('shortkey-desc-input');
+        requiredFields.push(keyInput, descInput);
+
+        document.querySelectorAll('.properties-panel input[type="text"], .properties-panel textarea').forEach(el => {
+            if (!el.readOnly) requiredFields.push(el);
+        });
+
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('required-field-error');
+                isValid = false;
+            } else {
+                field.classList.remove('required-field-error');
+            }
+        });
+
+        if (!isValid) {
+            alert('Por favor, rellena todos los campos obligatorios marcados en rojo.');
+            return;
+        }
+
+        const keyToSave = keyInput.value.trim().toLowerCase().replace(/\s/g, '');
+        const existing = shortkeyManager.getShortcuts().find(s => s.key === keyToSave);
+        if (existing && keyToSave !== currentEditingKey) {
+            alert(`El shortkey "@${keyToSave}" ya existe. Por favor, elige otro activador.`);
+            keyInput.classList.add('required-field-error');
+            return;
+        }
+
+        const steps = parseFlowchartEditor();
+        const description = descInput.value.trim();
+        
+        const data = {
+            key: keyToSave,
+            description: description,
+            steps: steps,
+            tags: currentTags
+        };
+
+        if (currentEditingKey) {
+            shortkeyManager.updateShortcut(currentEditingKey, data);
+        } else {
+            shortkeyManager.addShortcut(data);
+        }
+        isDirty = false;
+        showListView();
+    }
+
 
     function renderShortcuts() {
         const listContainer = document.getElementById('shortcutsList');
@@ -992,48 +1076,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (overlay) overlay.addEventListener('click', attemptClose);
     if (addNewBtn) addNewBtn.addEventListener('click', () => showEditorView());
     if (editorCancelBtn) editorCancelBtn.addEventListener('click', attemptClose);
-    if (editorSaveBtn) {
-        editorSaveBtn.addEventListener('click', () => {
-            const keyInput = document.getElementById('shortkey-key-input');
-            const descInput = document.getElementById('shortkey-desc-input');
-            
-            const keyToSave = keyInput.value.trim().toLowerCase().replace(/\s/g, '');
-            if (!keyToSave) {
-                alert("El activador no puede estar vacío.");
-                keyInput.focus();
-                return;
-            }
-            
-            const existing = shortkeyManager.getShortcuts().find(s => s.key === keyToSave);
-            if (existing && keyToSave !== currentEditingKey) {
-                alert(`El shortkey "@${keyToSave}" ya existe. Por favor, elige otro activador.`);
-                keyInput.focus();
-                return;
-            }
-
-            const steps = parseFlowchartEditor();
-            const description = descInput.value.trim() || (steps.length > 1 ? "Shortkey dinámico con variables." : (flowState.nodes.result?.template || "Shortkey simple."));
-            
-            const data = {
-                key: keyToSave,
-                description: description,
-                steps: steps,
-                tags: currentTags
-            };
-
-            if (currentEditingKey) {
-                shortkeyManager.updateShortcut(currentEditingKey, data);
-            } else {
-                shortkeyManager.addShortcut(data);
-            }
-            isDirty = false;
-            showListView();
-        });
-    }
+    if (editorSaveBtn) editorSaveBtn.addEventListener('click', validateAndSave);
 
     if (confirmCancelBtn) confirmCancelBtn.addEventListener('click', () => confirmModal.classList.add('hidden'));
     if (confirmDiscardBtn) confirmDiscardBtn.addEventListener('click', showListView);
-    if (confirmSaveBtn) confirmSaveBtn.addEventListener('click', () => { editorSaveBtn.click(); });
+    if (confirmSaveBtn) confirmSaveBtn.addEventListener('click', () => { validateAndSave(); });
     
     function showGenericConfirm(title, message, onConfirm) {
         document.getElementById('generic-confirm-title').textContent = title;
