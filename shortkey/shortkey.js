@@ -334,24 +334,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setupFlowEditor() {
         viewEditor.innerHTML = `
-            <div class="flow-editor-header">
-                <div class="input-group">
-                    <label for="shortkey-key-input">Activador (Key)</label>
-                    <div class="key-input-wrapper">
-                        <span class="key-input-prefix">@</span>
-                        <input type="text" id="shortkey-key-input" placeholder="mi_shortkey">
+            <div class="flow-editor-content">
+                <div class="flow-editor-header">
+                    <div class="input-group">
+                        <label for="shortkey-key-input">Activador (Key)</label>
+                        <div class="key-input-wrapper">
+                            <span class="key-input-prefix">@</span>
+                            <input type="text" id="shortkey-key-input" placeholder="mi_shortkey">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="shortkey-desc-input">Descripción</label>
+                        <input type="text" id="shortkey-desc-input" placeholder="Descripción breve para la lista">
+                    </div>
+                    <div class="input-group">
+                        <label>Etiquetas</label>
+                        <div id="tags-editor" class="tags-editor-wrapper"></div>
                     </div>
                 </div>
-                <div class="input-group">
-                    <label for="shortkey-desc-input">Descripción</label>
-                    <input type="text" id="shortkey-desc-input" placeholder="Descripción breve para la lista">
-                </div>
-                <div class="input-group">
-                    <label>Etiquetas</label>
-                    <div id="tags-editor" class="tags-editor-wrapper"></div>
-                </div>
-            </div>
-            <div class="flow-editor-main">
                 <div id="flow-canvas-container" class="canvas-container">
                     <svg id="flow-connector-svg">
                         <defs>
@@ -363,9 +363,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div id="flow-node-container"></div>
                     <button id="add-select-node-btn-floating">+ Añadir Pregunta</button>
                 </div>
-                <div id="flow-properties-panel" class="properties-panel">
-                    <div id="flow-properties-content" class="space-y-4"></div>
-                </div>
+            </div>
+            <div id="flow-properties-panel" class="properties-panel">
+                <div id="flow-properties-content" class="space-y-4"></div>
             </div>
         `;
         addFlowEventListeners();
@@ -546,34 +546,47 @@ document.addEventListener('DOMContentLoaded', () => {
         addPropertiesEventListeners();
     }
     
+    function autoExpandTextarea(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+    }
+
     function addPropertiesEventListeners() {
         const propNameInput = document.getElementById('prop-name');
         if (propNameInput) {
             propNameInput.addEventListener('input', (e) => {
                 const node = flowState.nodes[flowState.selectedNodeId];
                 if (node) {
-                    // Replace spaces with underscores and update value
                     const originalValue = e.target.value;
                     const sanitizedValue = originalValue.replace(/\s/g, '_');
-                    if (originalValue !== sanitizedValue) {
-                        e.target.value = sanitizedValue;
-                    }
+                    e.target.value = sanitizedValue;
                     
-                    // Update the node ID, which is the "name" in this context
-                    const oldId = node.id;
-                    const newId = sanitizedValue;
+                    node.name = sanitizedValue;
+                    isDirty = true;
+                    renderFlowNodes();
+                }
+            });
 
-                    // Prevent empty ID or changing the 'result' node ID
-                    if (!newId || oldId === 'result') {
-                        e.target.value = oldId; // Revert if invalid
+            propNameInput.addEventListener('blur', (e) => {
+                const node = flowState.nodes[flowState.selectedNodeId];
+                if (node) {
+                    const oldId = node.id;
+                    const newId = e.target.value;
+
+                    if (!newId || oldId === 'result' || (flowState.nodes[newId] && newId !== oldId)) {
+                        e.target.value = oldId;
+                        node.name = oldId;
+                        renderFlowNodes();
                         return;
                     }
+                    
+                    if (oldId === newId) return;
 
-                    // Update node id
                     node.id = newId;
-                    node.name = newId; // Keep name and id in sync for simplicity
+                    delete flowState.nodes[oldId];
+                    flowState.nodes[newId] = node;
+                    flowState.selectedNodeId = newId;
 
-                    // Update any connections pointing to the old ID
                     Object.values(flowState.nodes).forEach(n => {
                         if (n.type === 'select') {
                             n.options.forEach(opt => {
@@ -584,13 +597,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     });
                     
-                    // Update the key in the main nodes object
-                    delete flowState.nodes[oldId];
-                    flowState.nodes[newId] = node;
-                    flowState.selectedNodeId = newId;
-
                     isDirty = true;
-                    renderFlow(); // Re-render everything to reflect the ID change
+                    renderFlow();
                 }
             });
         }
@@ -618,6 +626,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const { index, prop } = e.target.dataset;
                     flowState.nodes[flowState.selectedNodeId].options[index][prop] = e.target.value;
                     isDirty = true;
+                    if (e.target.tagName.toLowerCase() === 'textarea') {
+                        autoExpandTextarea(e.target);
+                    }
                     renderFlowNodes();
                 }
             });
@@ -628,6 +639,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 isDirty = true;
             }
         });
+        
+        // Initial auto-expand for textareas
+        document.querySelectorAll('.option-prop-textarea').forEach(autoExpandTextarea);
     }
 
     function onNodeMouseDown(e) {
