@@ -334,26 +334,20 @@ document.addEventListener('DOMContentLoaded', () => {
     let isDirty = false;
     let flowState = {};
     let panningState = { active: false, startX: 0, startY: 0, initialNodePositions: {} };
+    let zoomState = { scale: 1, min: 0.5, max: 2, step: 0.1 };
 
-    // ---------- Utilidades de validación visual ----------
+    // ---------- Utilidades ----------
     const isEmpty = (v) => !v || String(v).trim() === '';
-    const toggleRequired = (el, on) => {
-        if (!el) return;
-        if (on) el.classList.add('required-field-error');
-        else el.classList.remove('required-field-error');
-    };
+    const toggleRequired = (el, on) => { if (el) (on ? el.classList.add('required-field-error') : el.classList.remove('required-field-error')); };
 
-    // ---------- Modal informativo reutilizando el genérico ----------
     function showInfoModal(title, message) {
         document.getElementById('generic-confirm-title').textContent = title;
         document.getElementById('generic-confirm-message').textContent = message;
-        // Modo "informativo": ocultar botón Sí y renombrar No -> Entendido
         if (genericYesBtn) genericYesBtn.style.display = 'none';
         if (genericNoBtn) {
             genericNoBtn.textContent = 'Entendido';
             genericNoBtn.onclick = () => {
                 genericConfirmModal.classList.add('hidden');
-                // restaurar
                 if (genericYesBtn) genericYesBtn.style.display = '';
                 genericNoBtn.textContent = 'No';
             };
@@ -373,9 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (genericNoBtn) {
             genericNoBtn.textContent = 'No';
-            genericNoBtn.onclick = () => {
-                genericConfirmModal.classList.add('hidden');
-            };
+            genericNoBtn.onclick = () => genericConfirmModal.classList.add('hidden');
         }
         genericConfirmModal.classList.remove('hidden');
     }
@@ -384,44 +376,54 @@ document.addEventListener('DOMContentLoaded', () => {
         const canvas = document.getElementById('flow-canvas-container');
         const svg = document.getElementById('flow-connector-svg');
         const nodesContainer = document.getElementById('flow-node-container');
+        const inner = document.getElementById('flow-inner');
         return (
             e.target === canvas ||
             e.target === svg ||
-            (e.target === nodesContainer)
+            e.target === nodesContainer ||
+            e.target === inner
         );
     };
 
-    // ---------- Header + Template UI ----------
+    // ---------- Header (reescrito) + Editor ----------
     function setupFlowEditor() {
         viewEditor.innerHTML = `
             <div class="flow-editor-content">
-                <div class="flow-editor-header">
-                    <div class="input-group">
-                        <label for="shortkey-key-input">Activador (Key)</label>
-                        <div class="key-input-wrapper taglike-field-group">
-                            <span class="key-input-prefix taglike-prefix">@</span>
-                            <input type="text" id="shortkey-key-input" class="taglike-field-input" placeholder="mi_shortkey">
+                <div class="flow-header clean">
+                    <div class="field">
+                        <label for="shortkey-key-input">Activador</label>
+                        <div class="chip-input">
+                            <span class="chip-prefix">@</span>
+                            <input id="shortkey-key-input" type="text" placeholder="mi_shortkey" />
                         </div>
+                        <small class="hint">Sin espacios. Se guardará en minúsculas.</small>
                     </div>
-                    <div class="input-group">
+                    <div class="field">
                         <label for="shortkey-desc-input">Descripción</label>
-                        <input type="text" id="shortkey-desc-input" class="taglike-field" placeholder="Descripción breve para la lista">
+                        <input id="shortkey-desc-input" type="text" class="chip" placeholder="Descripción breve para la lista" />
                     </div>
-                    <div class="input-group">
+                    <div class="field">
                         <label>Etiquetas</label>
                         <div id="tags-editor" class="tags-editor-wrapper"></div>
                     </div>
                 </div>
+
                 <div id="flow-canvas-container" class="canvas-container">
-                    <svg id="flow-connector-svg">
-                        <defs>
-                            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--gray-500)"></path>
-                            </marker>
-                        </defs>
-                    </svg>
-                    <div id="flow-node-container"></div>
-                    <button id="add-select-node-btn-floating">+ Añadir Pregunta</button>
+                    <div id="flow-inner" class="flow-inner">
+                        <svg id="flow-connector-svg">
+                            <defs>
+                                <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--gray-500)"></path>
+                                </marker>
+                            </defs>
+                        </svg>
+                        <div id="flow-node-container"></div>
+                        <button id="add-select-node-btn-floating">+ Añadir Pregunta</button>
+
+                        <div id="minimap" class="minimap">
+                            <canvas id="minimap-canvas" width="160" height="110"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div id="flow-properties-panel" class="properties-panel">
@@ -433,18 +435,14 @@ document.addEventListener('DOMContentLoaded', () => {
         setupHeaderValidationListeners();
     }
 
-    // Validación inicial de header
     function applyValidationStyles() {
         const keyInput = document.getElementById('shortkey-key-input');
         const descInput = document.getElementById('shortkey-desc-input');
         toggleRequired(keyInput, isEmpty(keyInput?.value));
         toggleRequired(descInput, isEmpty(descInput?.value));
-
-        // Panel de propiedades visible
         document.querySelectorAll('#flow-properties-content #prop-name, #flow-properties-content .option-prop-input').forEach(el => {
             if (!el.readOnly) toggleRequired(el, isEmpty(el.value));
         });
-        // Editor de plantilla (rich) — sincroniza con hidden textarea
         const hiddenTpl = document.getElementById('final-template');
         toggleRequired(hiddenTpl, isEmpty(hiddenTpl?.value));
     }
@@ -453,28 +451,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const keyInput = document.getElementById('shortkey-key-input');
         const descInput = document.getElementById('shortkey-desc-input');
         [keyInput, descInput].forEach(el => {
-            if (!el) return;
-            el.addEventListener('input', (e) => {
-                toggleRequired(e.target, isEmpty(e.target.value));
-            });
+            el?.addEventListener('input', (e) => toggleRequired(e.target, isEmpty(e.target.value)));
         });
     }
 
-    // ---------- Panning y eventos del lienzo ----------
+    // ---------- Eventos de lienzo, panning y ZOOM ----------
     function addFlowEventListeners() {
         const canvas = document.getElementById('flow-canvas-container');
         const svg = document.getElementById('flow-connector-svg');
         const nodesContainer = document.getElementById('flow-node-container');
 
-        // mousemove/up en canvas
         canvas.addEventListener('mousemove', onFlowMouseMove);
         canvas.addEventListener('mouseup', onFlowMouseUp);
 
-        // Panning con click izquierdo / Alt+Click / botón medio en fondos
+        // Panning
         const startPan = (e) => {
             if (!isBackgroundClick(e)) return;
             if (!(e.button === 0 || e.button === 1) && !e.altKey) return;
-            e.preventDefault(); // evita autoscroll con botón medio
+            e.preventDefault();
             panningState.active = true;
             panningState.startX = e.clientX;
             panningState.startY = e.clientY;
@@ -483,19 +477,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 panningState.initialNodePositions[node.id] = { x: node.x, y: node.y };
             });
             canvas.style.cursor = 'grabbing';
-            // Deseleccionar si es click izquierdo en fondo
             if (e.button === 0 && !e.altKey) selectNode(null);
         };
-
         canvas.addEventListener('mousedown', startPan);
         svg.addEventListener('mousedown', startPan);
-        nodesContainer.addEventListener('mousedown', (e) => {
-            // solo si es click en el contenedor vacío
-            if (e.target === nodesContainer) startPan(e);
-        });
-        
+        nodesContainer.addEventListener('mousedown', (e) => { if (e.target === nodesContainer) startPan(e); });
+
+        // ZOOM con CTRL + rueda (zoom hacia el cursor)
+        canvas.addEventListener('wheel', (e) => {
+            if (!e.ctrlKey) return;
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            const oldScale = zoomState.scale;
+            const dir = e.deltaY < 0 ? 1 : -1;
+            let newScale = +(oldScale + dir * zoomState.step).toFixed(2);
+            newScale = Math.max(zoomState.min, Math.min(zoomState.max, newScale));
+            if (newScale === oldScale) return;
+
+            // world coords debajo del cursor antes del zoom
+            const wx = mouseX / oldScale;
+            const wy = mouseY / oldScale;
+
+            zoomState.scale = newScale;
+            applyZoomTransform();
+
+            // Mantener el punto bajo el cursor fijo (traslación "cámara" moviendo nodos)
+            const dx = (mouseX / newScale) - wx;
+            const dy = (mouseY / newScale) - wy;
+            Object.values(flowState.nodes).forEach(node => {
+                node.x += dx;
+                node.y += dy;
+            });
+            renderFlow();
+        }, { passive: false });
+
         document.getElementById('add-select-node-btn-floating').addEventListener('click', addSelectNode);
-        
+
         viewEditor.addEventListener('click', (e) => {
             const deleteBtn = e.target.closest('.delete-node-btn');
             if (deleteBtn) {
@@ -514,10 +534,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 svg.setAttribute('width', width);
                 svg.setAttribute('height', height);
                 renderFlowConnections();
+                drawMinimap();
             }
         });
-
         if (canvas) resizeObserver.observe(canvas);
+    }
+
+    function applyZoomTransform() {
+        const scale = zoomState.scale;
+        const svg = document.getElementById('flow-connector-svg');
+        const nodes = document.getElementById('flow-node-container');
+        svg.style.transform = `scale(${scale})`;
+        nodes.style.transform = `scale(${scale})`;
+        svg.style.transformOrigin = nodes.style.transformOrigin = '0 0';
     }
     
     function resetFlowState() {
@@ -528,6 +557,8 @@ document.addEventListener('DOMContentLoaded', () => {
             connecting: { active: false, fromNodeId: null, fromOptionIndex: null, tempLine: null }
         };
         currentTags = [];
+        zoomState.scale = 1;
+        applyZoomTransform();
     }
 
     function renderFlow() {
@@ -536,6 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderFlowConnections();
             renderFlowProperties();
             applyValidationStyles();
+            drawMinimap();
         });
     }
 
@@ -615,92 +647,62 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Template editor (tokens no editables) ---
+    // ----- Template (tokens no editables) -----
     function renderTemplateEditorHTML(variablePillsHTML) {
         return `
             <div class="properties-section">
-                <h3 class="font-semibold text-sm">Plantilla de Texto Final</h3>
-                <p class="text-xs text-gray-500 mb-2">Arrastra variables; se insertan como tokens no editables.</p>
-                <div id="final-template-editor" class="template-editor" contenteditable="true"></div>
-                <textarea id="final-template" class="hidden-textarea" style="position:absolute; left:-9999px; top:-9999px;"></textarea>
-                <div class="variable-pills-container">
+                 <h3 class="font-semibold text-sm">Plantilla de Texto Final</h3>
+                 <p class="text-xs text-gray-500 mb-2">Haz <strong>click</strong> en una variable o arrástrala; se insertará al final como token no editable.</p>
+                 <div id="final-template-editor" class="template-editor" contenteditable="true"></div>
+                 <textarea id="final-template" class="hidden-textarea"></textarea>
+                 <div class="variable-pills-container">
                     <small>Variables disponibles:</small>
                     ${variablePillsHTML}
-                </div>
+                 </div>
             </div>
         `;
     }
-
-    function tokenHTML(varId) {
-        return `<span class="template-token" data-variable-id="${varId}" contenteditable="false">{${varId}}</span>`;
-    }
+    const tokenHTML = (varId) => `<span class="template-token" data-variable-id="${varId}" contenteditable="false">{${varId}}</span>`;
 
     function htmlFromTemplateString(tpl) {
-        // Reemplaza {var} por tokenHTML(var)
-        return tpl.replace(/\{([a-zA-Z0-9_]+)\}/g, (_, v) => tokenHTML(v));
+        return (tpl || '').replace(/\{([a-zA-Z0-9_]+)\}/g, (_, v) => tokenHTML(v));
     }
 
     function textFromTemplateEditor(editorEl) {
-        // Serializa: tokens -> {var}, el resto texto plano
         let out = '';
         editorEl.childNodes.forEach(node => {
-            if (node.nodeType === Node.TEXT_NODE) {
-                out += node.nodeValue;
-            } else if (node.nodeType === Node.ELEMENT_NODE) {
+            if (node.nodeType === Node.TEXT_NODE) out += node.nodeValue;
+            else if (node.nodeType === Node.ELEMENT_NODE) {
                 const el = node;
                 if (el.classList.contains('template-token')) {
                     const v = el.getAttribute('data-variable-id');
                     out += `{${v}}`;
                 } else {
-                    out += el.innerText; // por si hay <br> u otros
+                    out += el.innerText;
                 }
             }
         });
         return out.replace(/\u00A0/g, ' ');
     }
 
-    function insertTokenAtCaret(editorEl, varId, withSpaces = true) {
-        editorEl.focus();
-        const sel = window.getSelection();
-        const range = sel && sel.getRangeAt && sel.rangeCount ? sel.getRangeAt(0) : null;
-
-        const spaceText = document.createTextNode(' ');
+    function appendTokenAtEnd(editorEl, varId) {
+        const hidden = document.getElementById('final-template');
+        const space = document.createTextNode(' ');
         const tokenSpan = document.createElement('span');
         tokenSpan.className = 'template-token';
         tokenSpan.setAttribute('data-variable-id', varId);
         tokenSpan.setAttribute('contenteditable', 'false');
         tokenSpan.textContent = `{${varId}}`;
 
-        if (range) {
-            range.deleteContents();
-            if (withSpaces) range.insertNode(document.createTextNode(' '));
-            range.insertNode(tokenSpan);
-            if (withSpaces) {
-                const after = document.createTextNode(' ');
-                tokenSpan.after(after);
-                // mover cursor después del espacio
-                const newRange = document.createRange();
-                newRange.setStartAfter(after);
-                newRange.collapse(true);
-                sel.removeAllRanges();
-                sel.addRange(newRange);
-            } else {
-                const newRange = document.createRange();
-                newRange.setStartAfter(tokenSpan);
-                newRange.collapse(true);
-                sel.removeAllRanges();
-                sel.addRange(newRange);
-            }
-        } else {
-            // fallback: al final
-            if (withSpaces) editorEl.appendChild(spaceText.cloneNode());
-            editorEl.appendChild(tokenSpan);
-            if (withSpaces) editorEl.appendChild(spaceText.cloneNode());
+        // Insertar con espacio antes y después al FINAL
+        if (editorEl.lastChild && editorEl.lastChild.nodeType === Node.TEXT_NODE && /\S$/.test(editorEl.lastChild.nodeValue)) {
+            editorEl.appendChild(space.cloneNode());
         }
+        editorEl.appendChild(tokenSpan);
+        editorEl.appendChild(space.cloneNode());
 
-        // Sync hidden textarea
-        const hidden = document.getElementById('final-template');
         hidden.value = textFromTemplateEditor(editorEl);
+        if (flowState.nodes.result) flowState.nodes.result.template = hidden.value;
         toggleRequired(hidden, isEmpty(hidden.value));
     }
 
@@ -718,7 +720,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!flowState.selectedNodeId || !flowState.nodes[flowState.selectedNodeId]) {
             container.innerHTML = `<p class="text-gray-500">Selecciona un nodo para ver sus propiedades o añade una nueva pregunta.</p>${templateHTML}`;
-            // Inicializa editor con plantilla
             initTemplateEditor(resultNode?.template || '');
             addPropertiesEventListeners();
             return;
@@ -775,23 +776,30 @@ document.addEventListener('DOMContentLoaded', () => {
         editor.innerHTML = htmlFromTemplateString(templateString || '');
         hidden.value = templateString || '';
 
-        // Drag & drop desde variable pills
+        // Drop SIEMPRE inserta al final
         editor.addEventListener('dragover', e => e.preventDefault());
         editor.addEventListener('drop', e => {
             e.preventDefault();
             const variableId = e.dataTransfer.getData('text/plain');
-            insertTokenAtCaret(editor, variableId, true); // con espacios
+            appendTokenAtEnd(editor, variableId);
         });
 
-        // Edición: sincronizar a hidden textarea
+        // Sync en cambios de texto (por si añaden texto libre)
         const syncHidden = () => {
             hidden.value = textFromTemplateEditor(editor);
+            if (flowState.nodes.result) flowState.nodes.result.template = hidden.value;
             toggleRequired(hidden, isEmpty(hidden.value));
         };
         editor.addEventListener('input', syncHidden);
         editor.addEventListener('blur', syncHidden);
+
+        // Click en pastillas (insertar al final)
+        document.querySelectorAll('.variable-pill').forEach(pill => {
+            pill.addEventListener('click', () => appendTokenAtEnd(editor, pill.dataset.variableId));
+            pill.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', pill.dataset.variableId));
+        });
     }
-    
+
     function autoExpandTextarea(textarea) {
         textarea.style.height = 'auto';
         textarea.style.height = (textarea.scrollHeight) + 'px';
@@ -806,74 +814,58 @@ document.addEventListener('DOMContentLoaded', () => {
             propNameInput.addEventListener('input', (e) => {
                 const node = flowState.nodes[flowState.selectedNodeId];
                 if (node) {
-                    const originalValue = e.target.value;
-                    const sanitizedValue = originalValue.replace(/\s/g, '_');
-                    e.target.value = sanitizedValue;
-                    // actualizar nombre mostrado del nodo
-                    const oldName = node.name;
-                    node.name = sanitizedValue;
-                    isDirty = true;
+                    const val = e.target.value.replace(/\s/g, '_');
+                    e.target.value = val;
                     const nodeTitleEl = document.querySelector(`#${CSS.escape(node.id)} .node-title`);
-                    if (nodeTitleEl) nodeTitleEl.textContent = sanitizedValue;
-                    toggleRequired(e.target, isEmpty(e.target.value));
-
-                    // Si cambió el id, actualizamos tokens en la plantilla
-                    // (solo al perder foco aplicaremos el cambio estructural de id)
+                    if (nodeTitleEl) nodeTitleEl.textContent = val;
+                    node.name = val;
+                    toggleRequired(e.target, isEmpty(val));
+                    isDirty = true;
                 }
             });
 
             propNameInput.addEventListener('blur', (e) => {
                 const node = flowState.nodes[flowState.selectedNodeId];
-                if (node) {
-                    const oldId = node.id;
-                    const newId = e.target.value.replace(/\s/g, '_');
-                    if (!newId || oldId === newId || (flowState.nodes[newId] && newId !== oldId)) {
-                        e.target.value = oldId;
-                        if (node.name !== oldId) {
-                            node.name = oldId;
-                            renderFlowNodes();
-                        }
-                        toggleRequired(e.target, isEmpty(e.target.value));
-                        return;
-                    }
-                    node.id = newId;
-                    node.name = newId;
-                    delete flowState.nodes[oldId];
-                    flowState.nodes[newId] = node;
-                    flowState.selectedNodeId = newId;
-                    // Reenrutar nextStep que apunten al viejo id
-                    Object.values(flowState.nodes).forEach(n => {
-                        if (n.type === 'select') {
-                            n.options.forEach(opt => {
-                                if (opt.nextStep === oldId) opt.nextStep = newId;
-                            });
-                        }
-                    });
-                    // Actualizar tokens en plantilla que referían al viejo id
-                    if (editor) {
-                        editor.querySelectorAll(`.template-token[data-variable-id="${CSS.escape(oldId)}"]`).forEach(tok => {
-                            tok.setAttribute('data-variable-id', newId);
-                            tok.textContent = `{${newId}}`;
-                        });
-                        hiddenTpl.value = textFromTemplateEditor(editor);
-                    }
-                    isDirty = true;
-                    renderFlow();
+                if (!node) return;
+                const oldId = node.id;
+                const newId = e.target.value.replace(/\s/g, '_');
+                if (!newId || oldId === newId || (flowState.nodes[newId] && newId !== oldId)) {
+                    e.target.value = oldId;
+                    if (node.name !== oldId) { node.name = oldId; renderFlowNodes(); }
+                    toggleRequired(e.target, isEmpty(e.target.value));
+                    return;
                 }
+                node.id = newId; node.name = newId;
+                delete flowState.nodes[oldId];
+                flowState.nodes[newId] = node;
+                flowState.selectedNodeId = newId;
+                Object.values(flowState.nodes).forEach(n => {
+                    if (n.type === 'select') n.options.forEach(opt => { if (opt.nextStep === oldId) opt.nextStep = newId; });
+                });
+                // Actualizar tokens en plantilla
+                if (editor) {
+                    editor.querySelectorAll(`.template-token[data-variable-id="${CSS.escape(oldId)}"]`).forEach(tok => {
+                        tok.setAttribute('data-variable-id', newId);
+                        tok.textContent = `{${newId}}`;
+                    });
+                    hiddenTpl.value = textFromTemplateEditor(editor);
+                    if (flowState.nodes.result) flowState.nodes.result.template = hiddenTpl.value;
+                }
+                isDirty = true;
+                renderFlow();
             });
         }
 
-        // Añadir opción
         document.getElementById('add-option-btn')?.addEventListener('click', () => {
-            if (flowState.nodes[flowState.selectedNodeId]) {
-                flowState.nodes[flowState.selectedNodeId].options.push({ label: '', value: '', nextStep: 'result' });
+            const node = flowState.nodes[flowState.selectedNodeId];
+            if (node) {
+                node.options.push({ label: '', value: '', nextStep: 'result' });
                 isDirty = true;
                 renderFlow();
                 applyValidationStyles();
             }
         });
 
-        // Eliminar opción (con confirmación)
         document.querySelectorAll('.delete-option-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const idx = e.target.dataset.index;
@@ -881,8 +873,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Eliminar opción',
                     `¿Eliminar la opción ${parseInt(idx,10)+1}?`,
                     () => {
-                        if (flowState.nodes[flowState.selectedNodeId]) {
-                            flowState.nodes[flowState.selectedNodeId].options.splice(idx, 1);
+                        const node = flowState.nodes[flowState.selectedNodeId];
+                        if (node) {
+                            node.options.splice(idx, 1);
                             isDirty = true;
                             renderFlow();
                         }
@@ -891,49 +884,101 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Inputs de opciones: validación + actualización UI en vivo
         document.querySelectorAll('.option-prop-input').forEach(input => {
             input.addEventListener('input', (e) => {
-                if (flowState.nodes[flowState.selectedNodeId]) {
+                const node = flowState.nodes[flowState.selectedNodeId];
+                if (node) {
                     const { index, prop } = e.target.dataset;
-                    const node = flowState.nodes[flowState.selectedNodeId];
                     node.options[index][prop] = e.target.value;
                     isDirty = true;
 
                     if (e.target.tagName.toLowerCase() === 'textarea') autoExpandTextarea(e.target);
                     toggleRequired(e.target, isEmpty(e.target.value));
 
-                    // Actualiza label en nodo
                     if (prop === 'label') {
                         const nodeEl = document.getElementById(node.id);
                         if (nodeEl) {
                             const spans = nodeEl.querySelectorAll('.node-options .option span');
                             const idx = parseInt(index, 10);
-                            if (spans && spans[idx]) {
-                                spans[idx].textContent = e.target.value || `Opción ${idx + 1}`;
-                            }
+                            if (spans && spans[idx]) spans[idx].textContent = e.target.value || `Opción ${idx + 1}`;
                         }
                     }
                 }
             });
         });
-
-        // Editor de plantilla: arrastrar desde pills (ya implementado en initTemplateEditor)
-        // Auto expand no aplica al editor rich; hidden textarea se mantiene para compatibilidad.
-
-        // Hacer las pills arrastrables con data
-        document.querySelectorAll('.variable-pill').forEach(pill => {
-            pill.addEventListener('dragstart', e => {
-                e.dataTransfer.setData('text/plain', e.target.dataset.variableId);
-            });
-        });
-
-        // Al crear una nueva variable (cuando se añade un nodo select), insertar token automáticamente
-        // Se maneja en addSelectNode()
     }
 
+    // ----- Minimap -----
+    function getNodesBounds() {
+        const nodes = Object.values(flowState.nodes);
+        if (nodes.length === 0) return { minX: 0, minY: 0, maxX: 1, maxY: 1 };
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        nodes.forEach(n => {
+            minX = Math.min(minX, n.x);
+            minY = Math.min(minY, n.y);
+            maxX = Math.max(maxX, n.x + 220); // ancho aprox del nodo
+            maxY = Math.max(maxY, n.y + 100); // alto aprox
+        });
+        // evitar degenerate
+        if (maxX - minX < 1) maxX = minX + 1;
+        if (maxY - minY < 1) maxY = minY + 1;
+        return { minX, minY, maxX, maxY };
+    }
+
+    function drawMinimap() {
+        const canvas = document.getElementById('minimap-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const { width, height } = canvas;
+
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = '#ffffffcc';
+        ctx.fillRect(0, 0, width, height);
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.strokeRect(0, 0, width, height);
+
+        const bounds = getNodesBounds();
+        const worldW = bounds.maxX - bounds.minX;
+        const worldH = bounds.maxY - bounds.minY;
+        const scale = Math.min(width / worldW, height / worldH);
+
+        // Dibujar nodos
+        Object.values(flowState.nodes).forEach(n => {
+            const nx = (n.x - bounds.minX) * scale;
+            const ny = (n.y - bounds.minY) * scale;
+            const nw = 220 * scale;
+            const nh = 80 * scale;
+            ctx.fillStyle = (n.type === 'result') ? '#dcfce7' : '#e0e7ff';
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 1;
+            ctx.fillRect(nx, ny, nw, nh);
+            ctx.strokeRect(nx, ny, nw, nh);
+        });
+
+        // Interacción: click para centrar
+        canvas.onclick = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const cx = e.clientX - rect.left;
+            const cy = e.clientY - rect.top;
+            const worldX = cx / scale + bounds.minX;
+            const worldY = cy / scale + bounds.minY;
+
+            centerOnWorldPoint(worldX, worldY);
+        };
+    }
+
+    function centerOnWorldPoint(wx, wy) {
+        const canvas = document.getElementById('flow-canvas-container');
+        const rect = canvas.getBoundingClientRect();
+        const scale = zoomState.scale;
+        const dx = (rect.width / (2 * scale)) - wx;
+        const dy = (rect.height / (2 * scale)) - wy;
+        Object.values(flowState.nodes).forEach(n => { n.x += dx; n.y += dy; });
+        renderFlow();
+    }
+
+    // ----- Interacción de nodos y conexiones -----
     function onNodeMouseDown(e) {
-        // Si clic en fondo del nodo (no en conector ni botones), arrastrar nodo
         if (e.target.classList.contains('connector-dot') || e.target.closest('button')) return;
         e.stopPropagation();
         const id = e.currentTarget.id;
@@ -942,8 +987,9 @@ document.addEventListener('DOMContentLoaded', () => {
         flowState.dragging.id = id;
         const node = flowState.nodes[id];
         const canvasRect = document.getElementById('flow-canvas-container').getBoundingClientRect();
-        const mouseXInCanvas = e.clientX - canvasRect.left;
-        const mouseYInCanvas = e.clientY - canvasRect.top;
+        const scale = zoomState.scale;
+        const mouseXInCanvas = (e.clientX - canvasRect.left) / scale;
+        const mouseYInCanvas = (e.clientY - canvasRect.top) / scale;
         flowState.dragging.offsetX = mouseXInCanvas - node.x;
         flowState.dragging.offsetY = mouseYInCanvas - node.y;
         e.currentTarget.style.cursor = 'grabbing';
@@ -963,9 +1009,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function onFlowMouseMove(e) {
+        const canvasRect = document.getElementById('flow-canvas-container').getBoundingClientRect();
+        const scale = zoomState.scale;
+
         if (panningState.active) {
-            const dx = e.clientX - panningState.startX;
-            const dy = e.clientY - panningState.startY;
+            const dx = (e.clientX - panningState.startX) / scale;
+            const dy = (e.clientY - panningState.startY) / scale;
             Object.values(flowState.nodes).forEach(node => {
                 const initial = panningState.initialNodePositions[node.id];
                 node.x = initial.x + dx;
@@ -978,15 +1027,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (flowState.dragging.active && flowState.dragging.id) {
             const node = flowState.nodes[flowState.dragging.id];
-            const canvasRect = document.getElementById('flow-canvas-container').getBoundingClientRect();
-            node.x = e.clientX - canvasRect.left - flowState.dragging.offsetX;
-            node.y = e.clientY - canvasRect.top - flowState.dragging.offsetY;
+            const mouseX = (e.clientX - canvasRect.left) / scale;
+            const mouseY = (e.clientY - canvasRect.top) / scale;
+            node.x = mouseX - flowState.dragging.offsetX;
+            node.y = mouseY - flowState.dragging.offsetY;
             isDirty = true;
             renderFlow();
         }
+
         if (flowState.connecting.active) {
             const fromDot = document.querySelector(`.connector-dot[data-node-id="${CSS.escape(flowState.connecting.fromNodeId)}"][data-option-index="${CSS.escape(flowState.connecting.fromOptionIndex)}"]`);
-            const canvasRect = document.getElementById('flow-canvas-container').getBoundingClientRect();
             const fromRect = fromDot.getBoundingClientRect();
             const startX = fromRect.left - canvasRect.left + fromRect.width / 2;
             const startY = fromRect.top - canvasRect.top + fromRect.height / 2;
@@ -1004,12 +1054,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (flowState.dragging.active) {
             const draggedNode = document.getElementById(flowState.dragging.id);
-            if (draggedNode) {
-                draggedNode.style.cursor = 'grab';
-            }
+            if (draggedNode) draggedNode.style.cursor = 'grab';
             flowState.dragging.active = false;
             flowState.dragging.id = null;
         }
+
         if (flowState.connecting.active) {
             flowState.connecting.tempLine.remove();
             const toNodeEl = e.target.closest('.node');
@@ -1039,11 +1088,9 @@ document.addEventListener('DOMContentLoaded', () => {
         selectNode(nodeId);
         applyValidationStyles();
 
-        // Insertar token automáticamente en la plantilla
+        // Insertar token automáticamente al FINAL (sin limpiar)
         const editor = document.getElementById('final-template-editor');
-        if (editor) {
-            insertTokenAtCaret(editor, nodeId, true);
-        }
+        if (editor) appendTokenAtEnd(editor, nodeId);
     }
 
     function deleteNode(id) {
@@ -1059,6 +1106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderFlow();
     }
     
+    // ----- Modal open/close & navegación -----
     const openModal = () => {
         showListView();
         modal.classList.add('visible');
@@ -1145,6 +1193,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const firstNodeId = Object.keys(flowState.nodes).find(id => id !== 'result');
         selectNode(firstNodeId || 'result');
+        applyZoomTransform();
+        drawMinimap();
     }
     
     function parseFlowchartEditor() {
@@ -1223,11 +1273,9 @@ document.addEventListener('DOMContentLoaded', () => {
             tags: currentTags
         };
 
-        if (currentEditingKey) {
-            shortkeyManager.updateShortcut(currentEditingKey, data);
-        } else {
-            shortkeyManager.addShortcut(data);
-        }
+        if (currentEditingKey) shortkeyManager.updateShortcut(currentEditingKey, data);
+        else shortkeyManager.addShortcut(data);
+
         isDirty = false;
         showListView();
     }
@@ -1290,9 +1338,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tagTextColors = ['#0c4a6e', '#166534', '#854d0e', '#991b1b', '#581c87', '#1e40af', '#312e81'];
     const getColorForTag = (tag) => {
         let hash = 0;
-        for (let i = 0; i < tag.length; i++) {
-            hash = tag.charCodeAt(i) + ((hash << 5) - hash);
-        }
+        for (let i = 0; i < tag.length; i++) hash = tag.charCodeAt(i) + ((hash << 5) - hash);
         const index = Math.abs(hash % tagColors.length);
         return { bg: tagColors[index], text: tagTextColors[index] };
     };
@@ -1365,15 +1411,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (confirmSaveBtn) confirmSaveBtn.addEventListener('click', () => { validateAndSave(); });
     
     document.getElementById('generic-confirm-no-btn').addEventListener('click', () => {
-        // si estaba en modo confirm/yes-no, solo cierra (el handler de info modal ya lo maneja)
         if (!genericConfirmModal.classList.contains('hidden')) {
             genericConfirmModal.classList.add('hidden');
-            // restaurar posibles cambios de showInfoModal
             if (genericYesBtn) genericYesBtn.style.display = '';
             document.getElementById('generic-confirm-no-btn').textContent = 'No';
         }
     });
-
+    
     const shortcutsListEl = document.getElementById('shortcutsList');
     if (shortcutsListEl) {
         shortcutsListEl.addEventListener('click', (e) => {
@@ -1392,10 +1436,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showGenericConfirm(
                     'Eliminar Shortkey', 
                     `¿Estás seguro de que quieres eliminar el shortkey "@${key}"? Esta acción no se puede deshacer.`,
-                    () => {
-                        shortkeyManager.removeShortcut(key);
-                        renderShortcuts();
-                    }
+                    () => { shortkeyManager.removeShortcut(key); renderShortcuts(); }
                 );
             }
         });
@@ -1407,7 +1448,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 confirmModal.classList.add('hidden');
             } else if (genericConfirmModal && !genericConfirmModal.classList.contains('hidden')) {
                 genericConfirmModal.classList.add('hidden');
-                // restaurar estado del modal genérico
                 if (genericYesBtn) genericYesBtn.style.display = '';
                 document.getElementById('generic-confirm-no-btn').textContent = 'No';
             } else {
@@ -1416,9 +1456,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (e.ctrlKey && e.shiftKey && (e.key === 'S' || e.key === 's')) {
             e.preventDefault();
-            if (modal) {
-                modal.classList.contains('visible') ? attemptClose() : openModal();
-            }
+            if (modal) modal.classList.contains('visible') ? attemptClose() : openModal();
         }
     });
 

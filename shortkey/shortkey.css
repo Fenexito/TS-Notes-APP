@@ -1,6 +1,6 @@
 /**
  * Estilos personalizados para el componente Shortkey.
- * Versión 34: Header con estilo de tags, validación ligera, panning y tokens en plantilla.
+ * Versión 36: Header reescrito, zoom + minimapa, tokens al final y validación suave.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
@@ -17,6 +17,7 @@
     --gray-100: #f3f4f6;
     --gray-200: #e5e7eb;
     --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
     --gray-500: #6b7280;
     --gray-700: #374151;
     --gray-800: #1f2937;
@@ -24,7 +25,7 @@
     --text-light: #6b7280;
 }
 
-/* --- Modal --- */
+/* --- Modal base --- */
 #settingsModal {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 1000; display: flex; align-items: center; justify-content: center;
@@ -86,52 +87,36 @@
     min-width: 0;
 }
 
-/* Header con estilo de tags */
-.flow-editor-header {
-    flex-shrink: 0;
-    background-color: white;
+/* HEADER reescrito y unificado */
+.flow-header.clean {
+    display: grid;
+    grid-template-columns: 1.2fr 2fr 1.4fr;
+    gap: 0.8rem;
     padding: 0.75rem 0.9rem;
+    background: #fff;
     border: 1px solid var(--gray-200);
     border-radius: 0.5rem;
-    display: grid;
-    grid-template-columns: 1.1fr 1.9fr 1.4fr;
-    gap: 0.75rem;
     align-items: end;
 }
-.flow-editor-header .input-group { display: flex; flex-direction: column; gap: 0.35rem; }
-.flow-editor-header label { font-weight: 600; font-size: 0.8rem; color: var(--gray-700); margin-bottom: 0; }
+.flow-header.clean .field { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+.flow-header.clean label { font-weight: 600; font-size: 0.8rem; color: var(--gray-700); }
+.flow-header.clean .chip-input, 
+.flow-header.clean .chip {
+    height: 38px; display: flex; align-items: center; 
+    background: #fff; border: 1px solid var(--gray-300); border-radius: 0.375rem;
+    padding: 0 0.6rem; box-sizing: border-box; font-size: 0.9rem;
+}
+.flow-header.clean .chip-input input {
+    border: none; outline: none; width: 100%; height: 100%; font-size: 0.9rem; background: transparent;
+}
+.flow-header.clean .chip-prefix {
+    border-right: 1px solid var(--gray-300);
+    margin-right: 0.6rem; padding-right: 0.6rem;
+    font-family: 'JetBrains Mono', monospace; color: var(--gray-700);
+}
+.flow-header.clean .hint { color: var(--text-light); font-size: 0.75rem; }
 
-/* --- Reutilizable: look de .tags-container aplicado a inputs --- */
-.tags-container {
-    display: flex; flex-wrap: wrap; gap: 0.4rem; background-color: white; 
-    border: 1px solid var(--gray-300); border-radius: 0.375rem; padding: 0.4rem; 
-    min-height: 38px; align-items: center;
-}
-.taglike-field {
-    background-color: white;
-    border: 1px solid var(--gray-300);
-    border-radius: 0.375rem;
-    padding: 0.4rem 0.6rem;
-    height: 38px;
-    font-family: 'Inter', sans-serif; 
-    font-size: 0.9rem; 
-    box-sizing: border-box;
-}
-.taglike-field-group {
-    display: flex; align-items: center; 
-    background-color: white; border: 1px solid var(--gray-300);
-    border-radius: 0.375rem; height: 38px; box-sizing: border-box;
-}
-.taglike-prefix {
-    padding: 0.4rem 0.6rem; border-right: 1px solid var(--gray-300);
-    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--gray-700);
-}
-.taglike-field-input {
-    border: 0; outline: 0; height: 100%; width: 100%; padding: 0 0.6rem; 
-    font-family: 'Inter', sans-serif; font-size: 0.9rem; background: transparent;
-}
-
-/* Lienzo (panning sin afectar modal) */
+/* Lienzo y zoom (wrapper interno para aplicar transform) */
 .canvas-container { 
     flex-grow: 1; position: relative; 
     background-color: var(--gray-100); 
@@ -140,7 +125,10 @@
     overflow: hidden; cursor: grab;
 }
 .canvas-container:active { cursor: grabbing; }
+.flow-inner { position: absolute; inset: 0; }
 #node-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; transform-origin: 0 0; }
+#flow-node-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; transform-origin: 0 0; }
+#flow-connector-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; transform-origin: 0 0; }
 .node {
     position: absolute; background-color: white; border: 1px solid #9ca3af; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
     padding: 10px; width: 220px; cursor: grab; transition: box-shadow 0.2s, border-color 0.2s; user-select: none;
@@ -156,7 +144,6 @@
 .connector-dot-in { position: absolute; left: -7px; top: 50%; transform: translateY(-50%); }
 
 .properties-panel { width: 320px; flex-shrink: 0; background-color: #f9fafb; border: 1px solid var(--gray-200); border-radius: 0.5rem; padding: 16px; display: flex; flex-direction: column; overflow-y: auto; height: 100%; }
-#connector-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; transform-origin: 0 0; }
 .connector-line { stroke: var(--gray-500); stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
 .connector-line.highlight { stroke: var(--brand-indigo); }
 
@@ -168,6 +155,15 @@
     box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s, background-color 0.2s;
 }
 #add-select-node-btn-floating:hover { background-color: #4338ca; transform: scale(1.05); }
+
+/* Minimap */
+.minimap {
+    position: absolute; left: 1rem; bottom: 1rem; z-index: 4;
+    background: #ffffffee; border: 1px solid var(--gray-300);
+    border-radius: 0.5rem; box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    padding: 6px;
+}
+.minimap canvas { display: block; }
 
 /* Panel de propiedades */
 .properties-panel input, .properties-panel textarea { font-family: 'Inter', sans-serif; font-size: 0.9rem; padding: 0.5rem; border: 1px solid var(--gray-300); border-radius: 0.375rem; box-sizing: border-box; width: 100%; }
@@ -186,7 +182,7 @@
     border-radius: 999px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.8rem;
-    cursor: grab;
+    cursor: pointer;
     margin-right: 0.5rem;
     margin-bottom: 0.5rem;
 }
@@ -217,15 +213,12 @@
     user-select: none;
 }
 
-/* Textarea oculto para serialización (compatibilidad) */
-.hidden-textarea {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-}
+/* Textarea oculto para serialización */
+.hidden-textarea { position: absolute; opacity: 0; pointer-events: none; }
 
-/* Etiquetas en Editor */
+/* Etiquetas */
 .tags-editor-wrapper { display: flex; flex-direction: column; gap: 0.4rem; }
+.tags-container { display: flex; flex-wrap: wrap; gap: 0.4rem; background-color: white; border: 1px solid var(--gray-300); border-radius: 0.375rem; padding: 0.4rem; min-height: 38px; align-items: center; }
 .tag-pill { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0.5rem; border-radius: 999px; font-weight: 500; font-size: 0.8rem; }
 .remove-tag-btn { all: unset; box-sizing: border-box; cursor: pointer; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1; background-color: rgba(0,0,0,0.1); }
 .remove-tag-btn:hover { background-color: rgba(0,0,0,0.2); }
@@ -234,13 +227,13 @@
 .existing-tags .tag-pill { cursor: pointer; transition: transform 0.1s, box-shadow 0.2s; }
 .existing-tags .tag-pill:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
 
-/* Validación (ligera) */
+/* Validación */
 .required-field-error {
     border-color: var(--brand-red-soft) !important;
     box-shadow: 0 0 0 2px var(--brand-red-soft-shadow);
 }
 
-/* Botones y Acciones */
+/* Botones / acciones */
 #closeSettingsBtn, .delete-node-btn, .delete-option-btn {
     all: unset; box-sizing: border-box; color: var(--brand-red); border-radius: 50%;
     width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
@@ -262,30 +255,10 @@
 #editor-cancel-btn { background-color: var(--gray-500); color: white; }
 #editor-save-btn { background-color: var(--brand-green); color: white; }
 
-/* Confirm/Popups */
-.confirm-modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 1500; display: flex; align-items: center; justify-content: center;
-    background-color: rgba(17, 24, 39, 0.6); backdrop-filter: blur(4px);
-}
-.confirm-modal-overlay.hidden { display: none; }
-.confirm-modal-dialog {
-    background-color: white; padding: 1.5rem; border-radius: 0.75rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    width: 90%; max-width: 450px;
-}
-.confirm-modal-dialog h4 { margin: 0 0 0.5rem; font-size: 1.25rem; text-align: center; }
-.confirm-modal-dialog p { margin: 0 0 1.5rem; color: var(--text-light); text-align: center; }
-.confirm-modal-actions { display: flex; justify-content: center; gap: 1rem; }
-.modal-action-btn { font-weight: 600; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; cursor: pointer; }
-.btn-secondary { background-color: var(--gray-200); color: var(--gray-800); }
-.btn-danger { background-color: var(--brand-red); color: white; }
-.btn-success { background-color: var(--brand-green); color: white; }
-
-/* Shortkey popups */
+/* Popups shortkey */
 .shortkey-popup {
     position: fixed; z-index: 2000; background-color: white; border: 1px solid var(--gray-300);
-    border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-family: 'Inter', sans-serif;
+    border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); font-family: 'Inter', sans-serif;
     opacity: 0; visibility: hidden; transform: scale(0.95) translateY(-10px); 
     transition: opacity 0.1s ease, transform 0.1s ease, visibility 0s linear 0.1s; 
     max-height: 250px; overflow-y: auto;
