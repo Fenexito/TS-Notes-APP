@@ -851,7 +851,7 @@
             <button id="closeSettingsBtn" title="Cerrar">&times;</button>
         </div>
         <div class="modal-body">
-            <!-- Vista de Lista (sin cambios) -->
+            <!-- Vista de Lista -->
             <div id="view-list">
                 <div class="list-header">
                     <h4>Shortkeys Guardados</h4>
@@ -860,9 +860,9 @@
                 <div id="shortcutsList"></div>
             </div>
 
-            <!-- NUEVO Editor de Flujo Visual -->
+            <!-- Editor de Flujo Visual -->
             <div id="view-editor" class="hidden">
-                <!-- El contenido del editor de flujo se inyectará aquí desde JS -->
+                <!-- El contenido se inyectará aquí desde JS -->
             </div>
         </div>
         <div id="editor-actions-sticky" class="editor-actions-sticky hidden">
@@ -878,7 +878,7 @@
 </div>
 
 
-<!-- Modal de Confirmación para Salir sin Guardar (sin cambios) -->
+<!-- Modal de Confirmación para Salir sin Guardar -->
 <div id="confirm-modal" class="confirm-modal-overlay hidden">
     <div class="confirm-modal-dialog">
         <h4>Cambios sin guardar</h4>
@@ -891,8 +891,18 @@
     </div>
 </div>
 
-<!-- === SECCIÓN DE PLANTILLAS === -->
-<!-- Las plantillas antiguas se eliminan y se reemplazan por la lógica de JS -->
+<!-- Modal de Confirmación Genérico (para eliminar, etc.) -->
+<div id="generic-confirm-modal" class="confirm-modal-overlay hidden">
+    <div class="confirm-modal-dialog">
+        <h4 id="generic-confirm-title">Confirmación</h4>
+        <p id="generic-confirm-message">¿Estás seguro?</p>
+        <div class="confirm-modal-actions">
+            <button id="generic-confirm-no-btn" class="modal-action-btn btn-secondary">No</button>
+            <button id="generic-confirm-yes-btn" class="modal-action-btn btn-danger">Sí</button>
+        </div>
+    </div>
+</div>
+
 
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
     <script type="module" src="js/main.js"></script>

@@ -324,29 +324,58 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmDiscardBtn = document.getElementById('confirm-discard-btn');
     const confirmSaveBtn = document.getElementById('confirm-save-btn');
     
+    const genericConfirmModal = document.getElementById('generic-confirm-modal');
+    let genericConfirmCallback = null;
+    
     let currentEditingKey = null;
+    let currentTags = [];
     let isDirty = false;
     let flowState = {};
 
     function setupFlowEditor() {
         viewEditor.innerHTML = `
-            <div id="flow-canvas-container" class="canvas-container">
-                <svg id="flow-connector-svg"></svg>
-                <div id="flow-node-container"></div>
-            </div>
-            <div id="flow-properties-panel" class="properties-panel">
-                <div class="flex-grow">
-                    <h2 class="text-xl font-bold mb-4">Propiedades</h2>
-                    <div id="flow-properties-content" class="space-y-4"></div>
+            <div class="flow-editor-header">
+                <div class="input-group">
+                    <label for="shortkey-key-input">Activador (Key)</label>
+                    <div class="key-input-wrapper">
+                        <span class="key-input-prefix">@</span>
+                        <input type="text" id="shortkey-key-input" placeholder="mi_shortkey">
+                    </div>
                 </div>
-                <div id="flow-actions" class="flex-shrink-0 mt-6 space-y-2">
-                     <button id="add-select-node-btn" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-all shadow">
-                        + Añadir Pregunta
-                    </button>
+                <div class="input-group">
+                    <label for="shortkey-desc-input">Descripción</label>
+                    <input type="text" id="shortkey-desc-input" placeholder="Descripción breve para la lista">
+                </div>
+                <div class="input-group">
+                    <label>Etiquetas</label>
+                    <div id="tags-editor" class="tags-editor-wrapper"></div>
+                </div>
+            </div>
+            <div class="flow-editor-main">
+                <div id="flow-canvas-container" class="canvas-container">
+                    <svg id="flow-connector-svg">
+                        <defs>
+                            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--gray-500)"></path>
+                            </marker>
+                        </defs>
+                    </svg>
+                    <div id="flow-node-container"></div>
+                </div>
+                <div id="flow-properties-panel" class="properties-panel">
+                    <div class="flex-grow">
+                        <div id="flow-properties-content" class="space-y-4"></div>
+                    </div>
+                    <div id="flow-actions" class="flex-shrink-0 mt-6 space-y-2">
+                        <button id="add-select-node-btn" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-all shadow">
+                            + Añadir Pregunta
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
         addFlowEventListeners();
+        setupTagEditor();
     }
 
     function addFlowEventListeners() {
@@ -355,6 +384,13 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.addEventListener('mouseup', onFlowMouseUp);
         canvas.addEventListener('mousedown', () => selectNode(null));
         document.getElementById('add-select-node-btn').addEventListener('click', addSelectNode);
+        
+        viewEditor.addEventListener('click', (e) => {
+            const deleteBtn = e.target.closest('.delete-node-btn');
+            if (deleteBtn) {
+                deleteNode(deleteBtn.dataset.nodeId);
+            }
+        });
     }
     
     function resetFlowState() {
@@ -364,6 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dragging: { active: false, id: null, offsetX: 0, offsetY: 0 },
             connecting: { active: false, fromNodeId: null, fromOptionIndex: null, tempLine: null }
         };
+        currentTags = [];
     }
 
     function renderFlow() {
@@ -416,7 +453,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const svg = document.getElementById('flow-connector-svg');
         const canvas = document.getElementById('flow-canvas-container');
         if (!svg || !canvas) return;
+        
+        const defs = svg.querySelector('defs');
         svg.innerHTML = '';
+        if(defs) svg.appendChild(defs);
+
         const canvasRect = canvas.getBoundingClientRect();
 
         Object.values(flowState.nodes).forEach(node => {
@@ -426,12 +467,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         const fromEl = document.querySelector(`.connector-dot[data-node-id="${node.id}"][data-option-index="${index}"]`);
                         const toEl = document.getElementById(opt.nextStep);
                         if (fromEl && toEl) {
+                            const toDot = toEl.querySelector('.connector-dot-in');
                             const fromRect = fromEl.getBoundingClientRect();
-                            const toRect = toEl.getBoundingClientRect();
+                            const toRect = toDot.getBoundingClientRect();
 
                             const startX = fromRect.left - canvasRect.left + fromRect.width / 2;
                             const startY = fromRect.top - canvasRect.top + fromRect.height / 2;
-                            const endX = toRect.left - canvasRect.left;
+                            const endX = toRect.left - canvasRect.left + toRect.width / 2;
                             const endY = toRect.top - canvasRect.top + toRect.height / 2;
                             
                             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -451,7 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const resultNode = flowState.nodes.result;
         const templateEditorHTML = `
-            <div class="mt-6 pt-4 border-t border-gray-200">
+            <div class="properties-section">
                  <h3 class="font-semibold text-sm">Plantilla de Texto Final</h3>
                  <p class="text-xs text-gray-500 mb-2">Usa {id_variable} para insertar valores.</p>
                  <textarea id="final-template" class="w-full p-2 mt-1 border rounded-lg h-32 font-mono text-sm">${resultNode ? resultNode.template : ''}</textarea>
@@ -478,20 +520,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `).join('');
             optionsEditor = `
-                <h3 class="font-semibold mt-4 text-sm">Opciones</h3>
-                <div class="space-y-2">${optionsHTML}</div>
-                <button id="add-option-btn" class="mt-2 text-sm text-indigo-600 hover:text-indigo-800 font-semibold">+ Añadir opción</button>
+                <div class="properties-section">
+                    <h3 class="font-semibold text-sm">Opciones</h3>
+                    <div class="space-y-2 mt-2">${optionsHTML}</div>
+                    <button id="add-option-btn" class="mt-2 text-sm text-indigo-600 hover:text-indigo-800 font-semibold">+ Añadir opción</button>
+                </div>
             `;
         }
 
         container.innerHTML = `
-            <div>
-                <label for="prop-name">Nombre de la Variable</label>
-                <input type="text" id="prop-name" value="${node.name}" ${node.type === 'result' ? 'readonly class="bg-gray-200"' : ''}>
-            </div>
-            <div>
-                <label for="prop-id">ID de la Variable (para plantilla)</label>
-                <input type="text" id="prop-id" value="${node.id}" readonly class="bg-gray-200">
+            <div class="properties-section">
+                <div>
+                    <label for="prop-name">Nombre de la Variable</label>
+                    <input type="text" id="prop-name" value="${node.name}" ${node.type === 'result' ? 'readonly class="bg-gray-200"' : ''}>
+                </div>
+                <div>
+                    <label for="prop-id">ID de la Variable (para plantilla)</label>
+                    <input type="text" id="prop-id" value="${node.id}" readonly class="bg-gray-200">
+                </div>
             </div>
             ${optionsEditor}
             ${templateEditorHTML}
@@ -621,7 +667,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function addSelectNode() {
         const count = Object.keys(flowState.nodes).length;
-        const nodeId = `variable_${count}`;
+        const nodeId = `variable_${Date.now()}`;
         flowState.nodes[nodeId] = {
             id: nodeId, name: `Nueva Pregunta ${count}`, type: 'select', x: 50, y: 50,
             options: [{ label: 'Opción 1', value: 'valor1', nextStep: 'result' }]
@@ -631,6 +677,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function deleteNode(id) {
+        if (id === 'result') return;
         Object.values(flowState.nodes).forEach(node => {
             if (node.type === 'select') {
                 node.options.forEach(opt => { if (opt.nextStep === id) opt.nextStep = 'result'; });
@@ -684,7 +731,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isDirty = false;
         currentEditingKey = shortcutKey;
         const shortcut = shortcutKey ? shortkeyManager.getShortcuts().find(s => s.key === shortcutKey) : null;
-        modalTitle.textContent = shortcut ? `Editando: @${shortcut.key}` : "Creando Nuevo Shortkey";
+        modalTitle.textContent = shortcut ? `Editando Shortkey` : "Creando Nuevo Shortkey";
         buildFlowchartEditor(shortcut);
     };
 
@@ -692,6 +739,11 @@ document.addEventListener('DOMContentLoaded', () => {
         setupFlowEditor();
         resetFlowState();
         
+        document.getElementById('shortkey-key-input').value = shortcut ? shortcut.key : '';
+        document.getElementById('shortkey-desc-input').value = shortcut ? shortcut.description : '';
+        currentTags = shortcut ? [...(shortcut.tags || [])] : [];
+        renderTags();
+
         if (!shortcut || !shortcut.steps || shortcut.steps.length === 0) {
             flowState.nodes = {
                 'result': { id: 'result', name: 'Texto Final', type: 'result', x: 400, y: 150, template: shortcut ? shortcut.description : '' }
@@ -706,7 +758,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             });
             if (!flowState.nodes.result) {
-                 flowState.nodes.result = { id: 'result', name: 'Texto Final', type: 'result', x: 400, y: 350, template: '' };
+                 const resultNode = shortcut.steps.find(s => s.type === 'template') || { id: 'result', type: 'template', template: '' };
+                 flowState.nodes.result = { ...resultNode, name: 'Texto Final', type: 'result', x: 400, y: 350 };
             }
         }
         const firstNodeId = Object.keys(flowState.nodes).find(id => id !== 'result');
@@ -717,10 +770,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const nodes = flowState.nodes;
         const resultNode = nodes.result || { id: 'result', type: 'template', template: '' };
         
-        if (Object.keys(nodes).length <= 1 && !resultNode.template) {
-            return []; 
-        }
-
         const selectSteps = Object.values(nodes)
             .filter(node => node.type === 'select')
             .map(node => ({
@@ -734,8 +783,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }))
             }));
         
-        const finalSteps = selectSteps.concat([resultNode]);
-        return finalSteps.filter(step => step.id); // Ensure no steps without an id are saved
+        const finalSteps = selectSteps.concat([{
+            id: 'result',
+            type: 'template',
+            template: document.getElementById('final-template').value
+        }]);
+        return finalSteps.filter(step => step.id); 
     }
 
     function renderShortcuts() {
@@ -748,7 +801,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         shortcuts.forEach((shortcut, index) => {
-            const isDynamic = shortcut.steps && shortcut.steps.length > 1; // A dynamic shortkey has more than just the result step
+            const isDynamic = shortcut.steps && shortcut.steps.length > 1;
             const item = document.createElement('div');
             item.className = 'shortcut-item';
 
@@ -802,32 +855,99 @@ document.addEventListener('DOMContentLoaded', () => {
         return { bg: tagColors[index], text: tagTextColors[index] };
     };
 
+    function setupTagEditor() {
+        const container = document.getElementById('tags-editor');
+        container.innerHTML = `
+            <div id="tags-container" class="tags-container">
+                <input type="text" id="add-tag-input" placeholder="Añadir etiqueta...">
+            </div>
+            <div class="existing-tags">
+                <small>Sugerencias:</small>
+                ${PREDEFINED_TAGS.map(tag => {
+                    const {bg, text} = getColorForTag(tag);
+                    return `<span class="tag-pill suggestion-tag" style="background-color: ${bg}; color: ${text};">${tag}</span>`
+                }).join('')}
+            </div>
+        `;
+
+        const input = document.getElementById('add-tag-input');
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                const tagName = input.value.trim();
+                if (tagName && !currentTags.includes(tagName)) {
+                    currentTags.push(tagName);
+                    renderTags();
+                }
+                input.value = '';
+            }
+        });
+        
+        container.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-tag-btn')) {
+                const tag = e.target.dataset.tag;
+                currentTags = currentTags.filter(t => t !== tag);
+                renderTags();
+            } else if (e.target.classList.contains('suggestion-tag')) {
+                const tagName = e.target.textContent;
+                if (tagName && !currentTags.includes(tagName)) {
+                    currentTags.push(tagName);
+                    renderTags();
+                }
+            }
+        });
+    }
+
+    function renderTags() {
+        const container = document.getElementById('tags-container');
+        const input = document.getElementById('add-tag-input');
+        
+        // Clear previous tags
+        container.querySelectorAll('.tag-pill').forEach(pill => pill.remove());
+
+        currentTags.forEach(tag => {
+            const {bg, text} = getColorForTag(tag);
+            const pill = document.createElement('span');
+            pill.className = 'tag-pill';
+            pill.style.backgroundColor = bg;
+            pill.style.color = text;
+            pill.innerHTML = `${tag} <button class="remove-tag-btn" data-tag="${tag}">&times;</button>`;
+            container.insertBefore(pill, input);
+        });
+        isDirty = true;
+    }
+
     if (closeBtn) closeBtn.addEventListener('click', attemptClose);
     if (overlay) overlay.addEventListener('click', attemptClose);
     if (addNewBtn) addNewBtn.addEventListener('click', () => showEditorView());
     if (editorCancelBtn) editorCancelBtn.addEventListener('click', attemptClose);
     if (editorSaveBtn) {
         editorSaveBtn.addEventListener('click', () => {
-            const keyToSave = currentEditingKey || prompt("Ingresa el activador para este shortkey (ej: mi_flujo):")?.trim().toLowerCase().replace(/\s/g, '');
+            const keyInput = document.getElementById('shortkey-key-input');
+            const descInput = document.getElementById('shortkey-desc-input');
+            
+            const keyToSave = keyInput.value.trim().toLowerCase().replace(/\s/g, '');
             if (!keyToSave) {
-                if(!currentEditingKey) alert("El activador no puede estar vacío.");
+                alert("El activador no puede estar vacío.");
+                keyInput.focus();
                 return;
             }
             
             const existing = shortkeyManager.getShortcuts().find(s => s.key === keyToSave);
             if (existing && keyToSave !== currentEditingKey) {
                 alert(`El shortkey "@${keyToSave}" ya existe. Por favor, elige otro activador.`);
+                keyInput.focus();
                 return;
             }
 
             const steps = parseFlowchartEditor();
-            const description = steps.length > 1 ? "Shortkey dinámico con variables." : (flowState.nodes.result?.template || "Shortkey simple.");
+            const description = descInput.value.trim() || (steps.length > 1 ? "Shortkey dinámico con variables." : "Shortkey simple.");
             
             const data = {
                 key: keyToSave,
                 description: description,
                 steps: steps,
-                tags: []
+                tags: currentTags
             };
 
             if (currentEditingKey) {
@@ -844,6 +964,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (confirmDiscardBtn) confirmDiscardBtn.addEventListener('click', showListView);
     if (confirmSaveBtn) confirmSaveBtn.addEventListener('click', () => { editorSaveBtn.click(); });
     
+    function showGenericConfirm(title, message, onConfirm) {
+        document.getElementById('generic-confirm-title').textContent = title;
+        document.getElementById('generic-confirm-message').textContent = message;
+        genericConfirmModal.classList.remove('hidden');
+        genericConfirmCallback = onConfirm;
+    }
+
+    document.getElementById('generic-confirm-no-btn').addEventListener('click', () => {
+        genericConfirmModal.classList.add('hidden');
+        genericConfirmCallback = null;
+    });
+
+    document.getElementById('generic-confirm-yes-btn').addEventListener('click', () => {
+        if (genericConfirmCallback) {
+            genericConfirmCallback();
+        }
+        genericConfirmModal.classList.add('hidden');
+        genericConfirmCallback = null;
+    });
+
     const shortcutsListEl = document.getElementById('shortcutsList');
     if (shortcutsListEl) {
         shortcutsListEl.addEventListener('click', (e) => {
@@ -859,10 +999,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 shortkeyManager.moveShortcut(key, 'down');
                 renderShortcuts();
             } else if (button.classList.contains('delete-btn')) {
-                if (confirm(`¿Estás seguro de que quieres eliminar el shortkey "@${key}"?`)) {
-                    shortkeyManager.removeShortcut(key);
-                    renderShortcuts();
-                }
+                showGenericConfirm(
+                    'Eliminar Shortkey', 
+                    `¿Estás seguro de que quieres eliminar el shortkey "@${key}"? Esta acción no se puede deshacer.`,
+                    () => {
+                        shortkeyManager.removeShortcut(key);
+                        renderShortcuts();
+                    }
+                );
             }
         });
     }
@@ -871,6 +1015,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Escape' && modal && modal.classList.contains('visible')) {
             if (confirmModal && !confirmModal.classList.contains('hidden')) {
                 confirmModal.classList.add('hidden');
+            } else if (genericConfirmModal && !genericConfirmModal.classList.contains('hidden')) {
+                genericConfirmModal.classList.add('hidden');
             } else {
                 attemptClose();
             }
@@ -883,5 +1029,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Initial load
     showListView();
 });
