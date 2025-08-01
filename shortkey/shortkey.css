@@ -1,6 +1,6 @@
 /**
  * Estilos personalizados para el componente Shortkey.
- * Versión 28: Ajustes visuales y funcionales solicitados.
+ * Versión 29: Correcciones de layout, visibilidad de conectores y mejoras de UI.
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
 
@@ -73,7 +73,7 @@
 
 /* --- EDITOR DE FLUJO VISUAL --- */
 #view-editor.hidden { display: none; }
-#view-editor { display: flex; flex-direction: column; height: 100%; width: 100%; gap: 0.75rem; }
+#view-editor { display: flex; flex-direction: column; height: 100%; width: 100%; gap: 0.5rem; }
 .flow-editor-header {
     flex-shrink: 0;
     background-color: white;
@@ -83,7 +83,7 @@
     display: grid;
     grid-template-columns: 1fr 2fr 1.5fr;
     gap: 1rem;
-    align-items: center;
+    align-items: flex-start;
 }
 .flow-editor-header .input-group {
     display: flex;
@@ -123,6 +123,7 @@
     height: 100%;
     width: 100%;
     min-height: 0;
+    gap: 0.5rem;
 }
 .canvas-container { flex-grow: 1; position: relative; background-color: var(--gray-100); background-image: radial-gradient(var(--gray-300) 1px, transparent 1px); background-size: 20px 20px; border-radius: 0.5rem; overflow: hidden; }
 #node-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
@@ -142,10 +143,30 @@
 .connector-dot { cursor: crosshair; }
 .connector-dot:hover { background-color: var(--brand-indigo); }
 .connector-dot-in { position: absolute; left: -7px; top: 50%; transform: translateY(-50%); }
-.properties-panel { width: 320px; flex-shrink: 0; background-color: #f9fafb; border-left: 1px solid var(--gray-200); padding: 16px; display: flex; flex-direction: column; overflow-y: auto; }
+.properties-panel { width: 320px; flex-shrink: 0; background-color: #f9fafb; border: 1px solid var(--gray-200); border-radius: 0.5rem; padding: 16px; display: flex; flex-direction: column; overflow-y: auto; }
 #connector-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
 .connector-line { stroke: var(--gray-500); stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
 .connector-line.highlight { stroke: var(--brand-indigo); }
+
+#add-select-node-btn-floating {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 3;
+    background-color: var(--brand-indigo);
+    color: white;
+    font-weight: 600;
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s, background-color 0.2s;
+}
+#add-select-node-btn-floating:hover {
+    background-color: #4338ca;
+    transform: scale(1.05);
+}
 
 /* Estilos para el panel de propiedades */
 .properties-panel input, .properties-panel textarea {
@@ -162,6 +183,10 @@
     border-bottom: none;
     margin-bottom: 0;
 }
+.option-prop-textarea {
+    min-height: 60px;
+    resize: vertical;
+}
 
 /* Estilos para Etiquetas en el Editor */
 .tags-editor-wrapper { display: flex; flex-direction: column; gap: 0.4rem; }
@@ -171,16 +196,8 @@
 .remove-tag-btn:hover { background-color: rgba(0,0,0,0.2); }
 .existing-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-top: 0.25rem; }
 .existing-tags small { color: var(--text-light); font-size: 0.75rem; }
-.existing-tags .tag-pill { cursor: pointer; transition: transform 0.1s; }
-.existing-tags .tag-pill:hover { transform: translateY(-1px); }
-#add-tag-input {
-    flex-grow: 1;
-    border: none;
-    outline: none;
-    padding: 0.2rem;
-    font-size: 0.85rem;
-    background: transparent;
-}
+.existing-tags .tag-pill { cursor: pointer; transition: transform 0.1s, box-shadow 0.2s; }
+.existing-tags .tag-pill:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
 
 
 /* Botones y Acciones */

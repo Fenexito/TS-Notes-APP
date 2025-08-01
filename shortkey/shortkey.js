@@ -361,16 +361,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         </defs>
                     </svg>
                     <div id="flow-node-container"></div>
+                    <button id="add-select-node-btn-floating">+ Añadir Pregunta</button>
                 </div>
                 <div id="flow-properties-panel" class="properties-panel">
-                    <div class="flex-grow">
-                        <div id="flow-properties-content" class="space-y-4"></div>
-                    </div>
-                    <div id="flow-actions" class="flex-shrink-0 mt-6 space-y-2">
-                        <button id="add-select-node-btn" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-all shadow">
-                            + Añadir Pregunta
-                        </button>
-                    </div>
+                    <div id="flow-properties-content" class="space-y-4"></div>
                 </div>
             </div>
         `;
@@ -382,8 +376,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const canvas = document.getElementById('flow-canvas-container');
         canvas.addEventListener('mousemove', onFlowMouseMove);
         canvas.addEventListener('mouseup', onFlowMouseUp);
-        canvas.addEventListener('mousedown', () => selectNode(null));
-        document.getElementById('add-select-node-btn').addEventListener('click', addSelectNode);
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.target === canvas) {
+                 selectNode(null);
+            }
+        });
+        document.getElementById('add-select-node-btn-floating').addEventListener('click', addSelectNode);
         
         viewEditor.addEventListener('click', (e) => {
             const deleteBtn = e.target.closest('.delete-node-btn');
@@ -495,13 +493,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const templateEditorHTML = `
             <div class="properties-section">
                  <h3 class="font-semibold text-sm">Plantilla de Texto Final</h3>
-                 <p class="text-xs text-gray-500 mb-2">Usa {id_variable} para insertar valores.</p>
-                 <textarea id="final-template" class="w-full p-2 mt-1 border rounded-lg h-32 font-mono text-sm">${resultNode ? resultNode.template : ''}</textarea>
+                 <p class="text-xs text-gray-500 mb-2">Usa {id_de_la_variable} para insertar los valores de las preguntas.</p>
+                 <textarea id="final-template" class="w-full p-2 mt-1 border rounded-lg h-48 font-mono text-sm">${resultNode ? resultNode.template : ''}</textarea>
             </div>
         `;
 
         if (!flowState.selectedNodeId || !flowState.nodes[flowState.selectedNodeId]) {
-            container.innerHTML = `<p class="text-gray-500">Selecciona un nodo para ver sus propiedades.</p>${templateEditorHTML}`;
+            container.innerHTML = `<p class="text-gray-500">Selecciona un nodo para ver sus propiedades o añade una nueva pregunta.</p>${templateEditorHTML}`;
             addPropertiesEventListeners();
             return;
         }
@@ -515,13 +513,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p class="text-sm font-semibold">Opción ${index + 1}</p>
                         <button class="delete-option-btn" data-index="${index}">&times;</button>
                     </div>
-                    <input type="text" class="option-prop-input w-full p-1 border rounded" data-index="${index}" data-prop="label" value="${opt.label || ''}" placeholder="Texto a mostrar">
-                    <input type="text" class="option-prop-input w-full p-1 border rounded" data-index="${index}" data-prop="value" value="${opt.value || ''}" placeholder="Valor a guardar">
+                    <div>
+                        <label class="text-xs font-medium text-gray-600">Texto a mostrar</label>
+                        <input type="text" class="option-prop-input w-full p-1 border rounded" data-index="${index}" data-prop="label" value="${opt.label || ''}">
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium text-gray-600">Valor a guardar</label>
+                        <textarea class="option-prop-input option-prop-textarea w-full p-1 border rounded" data-index="${index}" data-prop="value">${opt.value || ''}</textarea>
+                    </div>
                 </div>
             `).join('');
             optionsEditor = `
                 <div class="properties-section">
-                    <h3 class="font-semibold text-sm">Opciones</h3>
+                    <h3 class="font-semibold text-sm">Opciones de la Pregunta</h3>
                     <div class="space-y-2 mt-2">${optionsHTML}</div>
                     <button id="add-option-btn" class="mt-2 text-sm text-indigo-600 hover:text-indigo-800 font-semibold">+ Añadir opción</button>
                 </div>
@@ -531,9 +535,10 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = `
             <div class="properties-section">
                 <div>
-                    <label for="prop-name">Nombre de la Variable</label>
-                    <input type="text" id="prop-name" value="${node.name}" ${node.type === 'result' ? 'readonly class="bg-gray-200"' : ''}>
+                    <label for="prop-name">ID de la Variable (sin espacios)</label>
+                    <input type="text" id="prop-name" value="${node.id}" ${node.type === 'result' ? 'readonly class="bg-gray-200"' : `placeholder="ej: motivo_de_llamada"`}>
                 </div>
+                 <p class="text-xs text-gray-500 mt-1">Este ID se usará en la plantilla final, ej: {${node.id}}</p>
             </div>
             ${optionsEditor}
             ${templateEditorHTML}
@@ -542,13 +547,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function addPropertiesEventListeners() {
-        document.getElementById('prop-name')?.addEventListener('input', (e) => {
-            if (flowState.nodes[flowState.selectedNodeId]) {
-                flowState.nodes[flowState.selectedNodeId].name = e.target.value;
-                isDirty = true;
-                renderFlowNodes();
-            }
-        });
+        const propNameInput = document.getElementById('prop-name');
+        if (propNameInput) {
+            propNameInput.addEventListener('input', (e) => {
+                const node = flowState.nodes[flowState.selectedNodeId];
+                if (node) {
+                    // Replace spaces with underscores and update value
+                    const originalValue = e.target.value;
+                    const sanitizedValue = originalValue.replace(/\s/g, '_');
+                    if (originalValue !== sanitizedValue) {
+                        e.target.value = sanitizedValue;
+                    }
+                    
+                    // Update the node ID, which is the "name" in this context
+                    const oldId = node.id;
+                    const newId = sanitizedValue;
+
+                    // Prevent empty ID or changing the 'result' node ID
+                    if (!newId || oldId === 'result') {
+                        e.target.value = oldId; // Revert if invalid
+                        return;
+                    }
+
+                    // Update node id
+                    node.id = newId;
+                    node.name = newId; // Keep name and id in sync for simplicity
+
+                    // Update any connections pointing to the old ID
+                    Object.values(flowState.nodes).forEach(n => {
+                        if (n.type === 'select') {
+                            n.options.forEach(opt => {
+                                if (opt.nextStep === oldId) {
+                                    opt.nextStep = newId;
+                                }
+                            });
+                        }
+                    });
+                    
+                    // Update the key in the main nodes object
+                    delete flowState.nodes[oldId];
+                    flowState.nodes[newId] = node;
+                    flowState.selectedNodeId = newId;
+
+                    isDirty = true;
+                    renderFlow(); // Re-render everything to reflect the ID change
+                }
+            });
+        }
+
         document.getElementById('add-option-btn')?.addEventListener('click', () => {
             if (flowState.nodes[flowState.selectedNodeId]) {
                 flowState.nodes[flowState.selectedNodeId].options.push({ label: '', value: '', nextStep: 'result' });
@@ -663,9 +709,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function addSelectNode() {
         const count = Object.keys(flowState.nodes).length;
-        const nodeId = `variable_${Date.now()}`;
+        const nodeId = `pregunta_${count}`;
         flowState.nodes[nodeId] = {
-            id: nodeId, name: `Nueva Pregunta ${count}`, type: 'select', x: 50, y: 50,
+            id: nodeId, name: nodeId, type: 'select', x: 50, y: 50,
             options: [{ label: 'Opción 1', value: 'valor1', nextStep: 'result' }]
         };
         isDirty = true;
@@ -742,21 +788,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!shortcut || !shortcut.steps || shortcut.steps.length === 0) {
             flowState.nodes = {
-                'result': { id: 'result', name: 'Texto Final', type: 'result', x: 400, y: 150, template: shortcut ? shortcut.description : '' }
+                'result': { id: 'result', name: 'result', type: 'result', x: 400, y: 150, template: shortcut ? shortcut.description : '' }
             };
         } else {
-            shortcut.steps.forEach((step, index) => {
+            shortcut.steps.forEach((step) => {
                 if (step.type !== 'template') {
                     flowState.nodes[step.id] = {
                         ...step,
-                        name: step.name || step.id,
-                        x: 100 + (index * 280),
-                        y: 150
+                        name: step.id, // Use ID as the name for consistency
+                        x: Math.floor(Math.random() * 400) + 50,
+                        y: Math.floor(Math.random() * 200) + 50
                     };
                 }
             });
-            const resultNode = shortcut.steps.find(s => s.type === 'template') || { id: 'result', type: 'template', template: '' };
-            flowState.nodes.result = { ...resultNode, name: 'Texto Final', type: 'result', x: 400, y: 350 };
+            const resultNode = shortcut.steps.find(s => s.type === 'template') || { id: 'result', template: '' };
+            flowState.nodes.result = { ...resultNode, id: 'result', name: 'result', type: 'result', x: 600, y: 150 };
         }
         const firstNodeId = Object.keys(flowState.nodes).find(id => id !== 'result');
         selectNode(firstNodeId || 'result');
@@ -769,7 +815,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .filter(node => node.type === 'select')
             .map(node => ({
                 id: node.id,
-                name: node.name,
+                name: node.name, // Keep name and id the same
                 type: 'select',
                 options: node.options.map(opt => ({
                     label: opt.label,
@@ -853,30 +899,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupTagEditor() {
         const container = document.getElementById('tags-editor');
         container.innerHTML = `
-            <div id="tags-container" class="tags-container">
-                <input type="text" id="add-tag-input" placeholder="Añadir etiqueta...">
-            </div>
-            <div class="existing-tags">
-                <small>Sugerencias:</small>
-                ${PREDEFINED_TAGS.map(tag => {
-                    const {bg, text} = getColorForTag(tag);
-                    return `<span class="tag-pill suggestion-tag" style="background-color: ${bg}; color: ${text};">${tag}</span>`
-                }).join('')}
+            <div id="tags-container" class="tags-container"></div>
+            <div id="existing-tags-container" class="existing-tags">
+                <small>Etiquetas disponibles:</small>
             </div>
         `;
-
-        const input = document.getElementById('add-tag-input');
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ',') {
-                e.preventDefault();
-                const tagName = input.value.trim();
-                if (tagName && !currentTags.includes(tagName)) {
-                    currentTags.push(tagName);
-                    renderTags();
-                }
-                input.value = '';
-            }
-        });
         
         container.addEventListener('click', (e) => {
             if (e.target.classList.contains('remove-tag-btn')) {
@@ -894,11 +921,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderTags() {
-        const container = document.getElementById('tags-container');
-        const input = document.getElementById('add-tag-input');
+        const selectedContainer = document.getElementById('tags-container');
+        const availableContainer = document.getElementById('existing-tags-container');
         
-        container.querySelectorAll('.tag-pill:not(.suggestion-tag)').forEach(pill => pill.remove());
-
+        selectedContainer.innerHTML = '';
         currentTags.forEach(tag => {
             const {bg, text} = getColorForTag(tag);
             const pill = document.createElement('span');
@@ -906,8 +932,24 @@ document.addEventListener('DOMContentLoaded', () => {
             pill.style.backgroundColor = bg;
             pill.style.color = text;
             pill.innerHTML = `${tag} <button class="remove-tag-btn" data-tag="${tag}">&times;</button>`;
-            container.insertBefore(pill, input);
+            selectedContainer.appendChild(pill);
         });
+        if (currentTags.length === 0) {
+            selectedContainer.innerHTML = `<span class="text-xs text-gray-500">Ninguna etiqueta seleccionada</span>`;
+        }
+
+        availableContainer.innerHTML = '<small>Etiquetas disponibles:</small>';
+        const availableTags = PREDEFINED_TAGS.filter(t => !currentTags.includes(t));
+        availableTags.forEach(tag => {
+            const {bg, text} = getColorForTag(tag);
+            const pill = document.createElement('span');
+            pill.className = 'tag-pill suggestion-tag';
+            pill.style.backgroundColor = bg;
+            pill.style.color = text;
+            pill.textContent = tag;
+            availableContainer.appendChild(pill);
+        });
+
         isDirty = true;
     }
 
