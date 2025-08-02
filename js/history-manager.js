@@ -354,7 +354,7 @@ function createNoteItemHTML(note) {
     let resolutionDetailsHTML = '';
     if (resolvedSelect === 'No | Tech Booked' && dispatchDateInput && dispatchTimeSlotSelect) {
         resolutionDetailsHTML += `<div class="detail-row"><span>DISPATCH:</span><strong>${dispatchDateInput}, ${dispatchTimeSlotSelect}</strong></div>`;
-    } else if ((resolvedSelect === 'No | Follow Up Required' || resolvedSelect === 'Cx Need a Follow Up. Set SCB on FVA') && dispatchDateInput && dispatchTimeSlotSelect) {
+    } else if ((resolvedSelect === 'No | Follow Up Required' || resolvedSelect === 'No | Follow Up Required | Set SCB with FVA') && dispatchDateInput && dispatchTimeSlotSelect) {
         resolutionDetailsHTML += `<div class="detail-row"><span>FOLLOW UP:</span><strong>${dispatchDateInput}, ${dispatchTimeSlotSelect}</strong></div>`;
     } else if (resolvedSelect === 'No | BOSR Created' && cbr2Input) {
         resolutionDetailsHTML += `<div class="detail-row"><span>BOSR TICKET:</span><strong>${cbr2Input}</strong></div>`;
