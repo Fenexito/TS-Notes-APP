@@ -219,7 +219,7 @@ const _buildSection4Content = (sourceData = null) => {
                 const formattedDate = `${dayAbbreviations[dateObj.getDay()]} ${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}`;
                 resolutionDetails.push(`DISPATCH: ${formattedDate}, ${dispatchTime}`);
             }
-        } else if (resolvedValue === 'No | Follow Up Required' || resolvedValue === 'Cx Need a Follow Up. Set SCB on FVA') {
+        } else if (resolvedValue === 'No | Follow Up Required' || resolvedValue === 'No | Follow Up Required | Set SCB with FVA') {
             const followUpDate = _getFieldValue('dispatchDateInput', sourceData);
             const followUpTime = _getFieldValue('dispatchTimeSlotSelect', sourceData);
             if (followUpDate && followUpTime) {
@@ -270,7 +270,7 @@ function updateChecklistState() {
     setChecklistValue('checklistReboot', rebootKeywords.some(keyword => tsText.includes(keyword)) ? 'yes' : 'na');
     setChecklistValue('checklistSwap', _getFieldValue('csrOrderInput') ? 'yes' : 'na');
     const resolvedValueForCallback = _getFieldValue('resolvedSelect');
-    setChecklistValue('checklistCallback', resolvedValueForCallback === 'Cx Need a Follow Up. Set SCB on FVA' ? 'yes' : 'na');
+    setChecklistValue('checklistCallback', resolvedValueForCallback === 'No | Follow Up Required | Set SCB with FVA' ? 'yes' : 'na');
     setChecklistValue('checklistAllServices', _getFieldValue('serviceOnCsr') === 'Active' ? 'yes' : 'no');
     setChecklistValue('checklistGoSend', state.extraStepsSelected.size > 0);
 }
