@@ -2412,3 +2412,13 @@ input:checked + .theme-slider:before {
 }
 
 /* ===== FIN DE CAMBIOS Y ADICIONES ===== */
+
+/* Highlight animation for Copilot button */
+.highlight-button {
+    animation: pulse-highlight 1s infinite alternate;
+}
+
+@keyframes pulse-highlight {
+    from { box-shadow: 0 0 5px var(--accent-warning); }
+    to { box-shadow: 0 0 15px var(--accent-warning); }
+}

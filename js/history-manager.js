@@ -203,9 +203,12 @@ export async function saveCurrentNote() {
         state.currentlyViewedNoteData = null;
         
         clearAllFormFields();
+        state.checklistVerified = false;
+        state.copilotUsed = false;
+        state.checklistOpened = false;
         window.scrollTo({ top: 0, behavior: 'smooth' });
         if (dom.banInput) dom.banInput.focus();
-        
+
         return savedNote;
 
     } catch (e) {

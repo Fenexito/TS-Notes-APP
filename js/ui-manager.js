@@ -652,12 +652,17 @@ export function clearAllFormFields(isForEdit = false) {
     resetChecklist();
     dom.sections.forEach(section => section.classList.remove('collapsed'));
 
+    config.state.checklistVerified = false;
+    config.state.copilotUsed = false;
+    config.state.checklistOpened = false;
+    if (dom.modalCopilotBtn) dom.modalCopilotBtn.classList.remove('highlight-button');
+
     if (!isForEdit) {
         if (dom.skillToggle) dom.skillToggle.checked = false;
         config.state.currentEditingNoteId = null;
         config.state.isEditingNoteFlag = false;
         config.state.currentlyViewedNoteData = null;
-        
+
         handleSkillChange();
         updateThirdRowLayout();
         updateTvsKeyFieldState();
