@@ -14,6 +14,21 @@ import { closeChecklistSidebar, handleChecklistChange } from './checklist-manage
 
 function addMainHeaderListeners() {
     dom.btnSave.addEventListener('click', async () => {
+        if (!state.checklistVerified) {
+            dom.checklistSidebar.classList.add('open');
+            dom.checklistSidebarOverlay.classList.add('is-visible');
+            state.checklistOpened = true;
+            showToast('Please verify the checklist before saving.', 'info');
+            return;
+        }
+
+        if (!state.copilotUsed) {
+            viewNoteInModal({ id: null, finalNoteText: state.currentFinalNoteContent, formData: null });
+            if (dom.modalCopilotBtn) dom.modalCopilotBtn.classList.add('highlight-button');
+            showToast('Please use Copilot before saving.', 'info');
+            return;
+        }
+
         await copyToClipboard(state.currentFinalNoteContent);
         const saved = await saveCurrentNote();
         if (saved) clearAllFormFields();
@@ -133,10 +148,27 @@ function addModalAndSidebarListeners() {
     dom.modalCopilotBtn.addEventListener('click', () => {
         if (state.currentlyViewedNoteData) {
             handleCopilotCopy(state.currentlyViewedNoteData.finalNoteText);
+            state.copilotUsed = true;
+            dom.modalCopilotBtn.classList.remove('highlight-button');
         }
     });
     
     dom.modalCopySaveBtn.addEventListener('click', async () => {
+        if (!state.checklistVerified) {
+            state.awaitingChecklistCompletionForCopySave = true;
+            dom.checklistSidebar.classList.add('open');
+            dom.checklistSidebarOverlay.classList.add('is-visible');
+            state.checklistOpened = true;
+            showToast('Please verify the checklist before saving.', 'info');
+            return;
+        }
+
+        if (!state.copilotUsed) {
+            dom.modalCopilotBtn.classList.add('highlight-button');
+            showToast('Please use Copilot before saving.', 'info');
+            return;
+        }
+
         state.awaitingChecklistCompletionForCopySave = true;
         const copied = await copyToClipboard(dom.modalNoteTextarea.value);
         const savedNote = await saveCurrentNote();
@@ -161,6 +193,22 @@ function addModalAndSidebarListeners() {
     dom.separateModalCloseBtnBottom.addEventListener('click', closeSeparateModal);
 
     dom.separateModalCopySaveBtn.addEventListener('click', async () => {
+        if (!state.checklistVerified) {
+            state.awaitingChecklistCompletionForCopySave = true;
+            dom.checklistSidebar.classList.add('open');
+            dom.checklistSidebarOverlay.classList.add('is-visible');
+            state.checklistOpened = true;
+            showToast('Please verify the checklist before saving.', 'info');
+            return;
+        }
+
+        if (!state.copilotUsed) {
+            closeSeparateModal();
+            dom.modalCopilotBtn.classList.add('highlight-button');
+            showToast('Please use Copilot before saving.', 'info');
+            return;
+        }
+
         const noteToCopy = state.currentlyViewedNoteData
             ? state.currentlyViewedNoteData.finalNoteText
             : state.currentFinalNoteContent;
@@ -199,6 +247,8 @@ function addModalAndSidebarListeners() {
         }
         if (button.id === 'separateModalCopilotBtn') {
             handleCopilotCopy(finalNote);
+            state.copilotUsed = true;
+            if (dom.modalCopilotBtn) dom.modalCopilotBtn.classList.remove('highlight-button');
             return;
         }
     });
@@ -214,6 +264,7 @@ function addModalAndSidebarListeners() {
     dom.btnChecklistMenu.addEventListener('click', () => {
         dom.checklistSidebar.classList.add('open');
         dom.checklistSidebarOverlay.classList.add('is-visible');
+        state.checklistOpened = true;
     });
     dom.closeChecklistBtn.addEventListener('click', closeChecklistSidebar);
     dom.checklistSidebarOverlay.addEventListener('click', closeChecklistSidebar);

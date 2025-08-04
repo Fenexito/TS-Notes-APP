@@ -10,6 +10,8 @@ export function closeChecklistSidebar() {
     if (dom.checklistSidebar) dom.checklistSidebar.classList.remove('open');
     if (dom.checklistSidebarOverlay) dom.checklistSidebarOverlay.classList.remove('is-visible');
 
+    state.checklistVerified = true;
+
     if (state.awaitingChecklistCompletionForCopySave) {
         state.awaitingChecklistCompletionForCopySave = false;
         viewNoteInModal(state.currentlyViewedNoteData || { id: null, finalNoteText: state.currentFinalNoteContent, formData: null });

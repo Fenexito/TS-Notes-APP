@@ -41,6 +41,9 @@ export let state = {
     resolveConfirmPromise: null,
     isAgentNameEditable: false,
     awaitingChecklistCompletionForCopySave: false,
+    checklistVerified: false,
+    copilotUsed: false,
+    checklistOpened: false,
     // State for new multi-selects
     awaAlertsSelected: new Set(),
     extraStepsSelected: new Set(),
