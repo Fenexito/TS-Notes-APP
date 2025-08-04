@@ -14,6 +14,7 @@ import { closeChecklistSidebar, handleChecklistChange } from './checklist-manage
 
 function addMainHeaderListeners() {
     dom.btnSave.addEventListener('click', async () => {
+        await copyToClipboard(state.currentFinalNoteContent);
         const saved = await saveCurrentNote();
         if (saved) clearAllFormFields();
     });
@@ -137,13 +138,11 @@ function addModalAndSidebarListeners() {
     
     dom.modalCopySaveBtn.addEventListener('click', async () => {
         state.awaitingChecklistCompletionForCopySave = true;
+        const copied = await copyToClipboard(dom.modalNoteTextarea.value);
         const savedNote = await saveCurrentNote();
-        if (savedNote) {
-            const copied = await copyToClipboard(dom.modalNoteTextarea.value);
-            if (copied) {
-                clearAllFormFields();
-                closeModal(true);
-            }
+        if (savedNote && copied) {
+            clearAllFormFields();
+            closeModal(true);
         }
         state.awaitingChecklistCompletionForCopySave = false;
     });
@@ -162,18 +161,16 @@ function addModalAndSidebarListeners() {
     dom.separateModalCloseBtnBottom.addEventListener('click', closeSeparateModal);
 
     dom.separateModalCopySaveBtn.addEventListener('click', async () => {
-        const noteToCopy = state.currentlyViewedNoteData 
-            ? state.currentlyViewedNoteData.finalNoteText 
+        const noteToCopy = state.currentlyViewedNoteData
+            ? state.currentlyViewedNoteData.finalNoteText
             : state.currentFinalNoteContent;
-            
+
         const copied = await copyToClipboard(noteToCopy);
-        if (copied) {
-            const saved = await saveCurrentNote();
-            if (saved) {
-                clearAllFormFields();
-                closeSeparateModal();
-                closeModal(true);
-            }
+        const saved = await saveCurrentNote();
+        if (saved && copied) {
+            clearAllFormFields();
+            closeSeparateModal();
+            closeModal(true);
         }
     });
 
