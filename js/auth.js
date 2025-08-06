@@ -9,6 +9,7 @@ const authorizedEmails = [
     'alex.vanhoutven.g38@gmail.com',
     'menfil.tovarvanhoutven@telus.com',
     'diego.cotzojayquiran@telus.com',
+    'Ilych.ReyesSosa1@telus.com',
 ];
 
 const SESSION_KEY = 'userAuthSession';
@@ -225,3 +226,4 @@ function renderCodeInputScreen(email, resolve) {
         }
     });
 }
+
