@@ -87,7 +87,7 @@ function renderEmailPromptScreen(resolve, errorMessage = null) {
         const email = emailInput.value.toLowerCase().trim();
         if (!email) return;
 
-        if (authorizedEmails.includes(email)) {
+        if (authorizedEmails.some(authorizedEmail => authorizedEmail.toLowerCase() === email)) {
             submitButton.disabled = true;
             submitButton.textContent = 'Sending...';
             messageDiv.textContent = '';
@@ -226,5 +226,6 @@ function renderCodeInputScreen(email, resolve) {
         }
     });
 }
+
 
 
